@@ -72,7 +72,7 @@ async def export_data(db: Session = Depends(get_db)):
         io.BytesIO(json_data.encode()),
         media_type="application/json",
         headers={
-            "Content-Disposition": f"attachment; filename=daily-workspace-backup-{datetime.utcnow().strftime('%Y%m%d-%H%M%S')}.json"
+            "Content-Disposition": f"attachment; filename=pull-your-poop-together-backup-{datetime.utcnow().strftime('%Y%m%d-%H%M%S')}.json"
         }
     )
 

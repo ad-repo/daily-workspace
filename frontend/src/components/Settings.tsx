@@ -20,7 +20,7 @@ const Settings = () => {
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
-          link.setAttribute('download', `daily-workspace-backup-${new Date().toISOString().split('T')[0]}.json`);
+          link.setAttribute('download', `pull-your-poop-together-backup-${new Date().toISOString().split('T')[0]}.json`);
       document.body.appendChild(link);
       link.click();
       link.remove();

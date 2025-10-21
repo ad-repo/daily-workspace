@@ -6,7 +6,7 @@ from app.routers import notes, entries, uploads, labels, backup, reports, search
 # Create database tables
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Daily Workspace API", version="1.0.0")
+app = FastAPI(title="pull your shit together API", version="1.0.0")
 
 # Configure CORS
 app.add_middleware(
@@ -30,7 +30,7 @@ app.include_router(link_preview.router, prefix="/api/link-preview", tags=["link-
 
 @app.get("/")
 async def root():
-    return {"message": "Daily Workspace API", "version": "1.0.0"}
+    return {"message": "pull your shit together API", "version": "1.0.0"}
 
 @app.get("/health")
 async def health():

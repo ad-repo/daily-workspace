@@ -1,7 +1,7 @@
 [project]
-name = "daily-workspace-backend"
+name = "pull-your-poop-together-backend"
 version = "1.0.0"
-description = "Daily Workspace API Backend"
+description = "pull your shit together API Backend"
 requires-python = ">=3.11"
 dependencies = [
     "fastapi==0.104.1",

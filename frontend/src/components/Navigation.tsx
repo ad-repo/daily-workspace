@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Calendar, Laptop, Settings, FileText, Search } from 'lucide-react';
+import { Calendar, Laptop, Settings, FileText, Search, BookOpen } from 'lucide-react';
 import { format } from 'date-fns';
 import { formatInTimeZone } from 'date-fns-tz';
 import { useTimezone } from '../contexts/TimezoneContext';
@@ -15,9 +15,16 @@ const Navigation = () => {
     <nav className="bg-white shadow-sm border-b border-gray-200">
       <div className="container mx-auto px-4 max-w-7xl">
         <div className="flex items-center justify-between h-16">
-          <Link to="/" className="flex items-center space-x-2">
-            <Laptop className="h-8 w-8 text-blue-600" />
-            <span className="text-xl font-bold text-gray-900">Daily Workspace</span>
+          <Link 
+            to="/" 
+            className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+              location.pathname === '/'
+                ? 'bg-blue-100 text-blue-700'
+                : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            <BookOpen className="h-5 w-5" />
+            <span className="text-lg font-semibold">pull your shit together</span>
           </Link>
 
           <div className="flex space-x-4">
