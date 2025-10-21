@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { format, parse, addDays, subDays } from 'date-fns';
-import { ChevronLeft, ChevronRight, Plus, Code } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Code, CheckSquare, Combine } from 'lucide-react';
+import axios from 'axios';
 import { notesApi, entriesApi } from '../api';
 import type { DailyNote, NoteEntry } from '../types';
 import NoteEntryCard from './NoteEntryCard';
 import LabelSelector from './LabelSelector';
 import EntryTimeline from './EntryTimeline';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 const DailyView = () => {
   const { date } = useParams<{ date: string }>();
@@ -15,6 +18,9 @@ const DailyView = () => {
   const [entries, setEntries] = useState<NoteEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [dailyGoal, setDailyGoal] = useState('');
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedEntries, setSelectedEntries] = useState<Set<number>>(new Set());
+  const [isMerging, setIsMerging] = useState(false);
 
   useEffect(() => {
     if (date) {
@@ -120,6 +126,55 @@ const DailyView = () => {
     return () => clearTimeout(timeoutId);
   };
 
+  const handleSelectionChange = (entryId: number, selected: boolean) => {
+    setSelectedEntries(prev => {
+      const newSet = new Set(prev);
+      if (selected) {
+        newSet.add(entryId);
+      } else {
+        newSet.delete(entryId);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleSelectionMode = () => {
+    setSelectionMode(!selectionMode);
+    setSelectedEntries(new Set()); // Clear selection when toggling
+  };
+
+  const handleMergeEntries = async () => {
+    if (selectedEntries.size < 2) {
+      alert('Please select at least 2 entries to merge');
+      return;
+    }
+
+    if (!window.confirm(`Merge ${selectedEntries.size} selected entries? The original entries will be deleted.`)) {
+      return;
+    }
+
+    setIsMerging(true);
+    try {
+      await axios.post(`${API_URL}/api/entries/merge`, {
+        entry_ids: Array.from(selectedEntries),
+        separator: '\n\n',
+        delete_originals: true
+      });
+
+      // Reload the daily note to get the updated entries
+      await loadDailyNote();
+      
+      // Reset selection state
+      setSelectedEntries(new Set());
+      setSelectionMode(false);
+    } catch (error: any) {
+      console.error('Failed to merge entries:', error);
+      alert(error.response?.data?.detail || 'Failed to merge entries');
+    } finally {
+      setIsMerging(false);
+    }
+  };
+
   if (!date) return null;
 
   const currentDate = parse(date, 'yyyy-MM-dd', new Date());
@@ -213,21 +268,53 @@ const DailyView = () => {
           </div>
         ) : (
           <>
-            <div className="flex gap-3">
-              <button
-                onClick={() => handleAddEntry('rich_text')}
-                className="flex-1 p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors flex items-center justify-center gap-2 text-gray-600 hover:text-blue-600"
-              >
-                <Plus className="h-5 w-5" />
-                Add Text Entry
-              </button>
-              <button
-                onClick={() => handleAddEntry('code')}
-                className="flex-1 p-4 border-2 border-dashed border-gray-700 rounded-lg hover:border-gray-800 hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 text-gray-600 hover:text-gray-800"
-              >
-                <Code className="h-5 w-5" />
-                Add Code Entry
-              </button>
+            <div className="flex gap-3 items-center">
+              {!selectionMode ? (
+                <>
+                  <button
+                    onClick={() => handleAddEntry('rich_text')}
+                    className="flex-1 p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors flex items-center justify-center gap-2 text-gray-600 hover:text-blue-600"
+                  >
+                    <Plus className="h-5 w-5" />
+                    Add Text Entry
+                  </button>
+                  <button
+                    onClick={() => handleAddEntry('code')}
+                    className="flex-1 p-4 border-2 border-dashed border-gray-700 rounded-lg hover:border-gray-800 hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 text-gray-600 hover:text-gray-800"
+                  >
+                    <Code className="h-5 w-5" />
+                    Add Code Entry
+                  </button>
+                  <button
+                    onClick={toggleSelectionMode}
+                    className="p-4 border-2 border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-colors flex items-center justify-center gap-2 text-gray-600 hover:text-purple-600"
+                    title="Select entries to merge"
+                  >
+                    <CheckSquare className="h-5 w-5" />
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={toggleSelectionMode}
+                    className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleMergeEntries}
+                    disabled={selectedEntries.size < 2 || isMerging}
+                    className={`flex-1 px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 ${
+                      selectedEntries.size >= 2 && !isMerging
+                        ? 'bg-purple-600 text-white hover:bg-purple-700'
+                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    }`}
+                  >
+                    <Combine className="h-5 w-5" />
+                    {isMerging ? 'Merging...' : `Merge ${selectedEntries.size} Entries`}
+                  </button>
+                </>
+              )}
             </div>
             {entries.map((entry) => (
               <div key={entry.id} data-entry-id={entry.id}>
@@ -236,6 +323,9 @@ const DailyView = () => {
                   onUpdate={handleEntryUpdate}
                   onDelete={handleEntryDelete}
                   onLabelsChange={loadDailyNote}
+                  selectionMode={selectionMode}
+                  isSelected={selectedEntries.has(entry.id)}
+                  onSelectionChange={handleSelectionChange}
                 />
               </div>
             ))}

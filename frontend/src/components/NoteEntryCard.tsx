@@ -14,9 +14,12 @@ interface NoteEntryCardProps {
   onUpdate: (id: number, content: string) => void;
   onDelete: (id: number) => void;
   onLabelsChange: () => void;
+  isSelected?: boolean;
+  onSelectionChange?: (id: number, selected: boolean) => void;
+  selectionMode?: boolean;
 }
 
-const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsChange }: NoteEntryCardProps) => {
+const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsChange, isSelected = false, onSelectionChange, selectionMode = false }: NoteEntryCardProps) => {
   const [content, setContent] = useState(entry.content);
   const [isSaving, setIsSaving] = useState(false);
   const [includeInReport, setIncludeInReport] = useState(entry.include_in_report || false);
@@ -96,10 +99,18 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsChange }: NoteEntryC
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-lg overflow-hidden transition-all hover:shadow-xl">
+    <div className={`bg-white rounded-lg shadow-lg overflow-hidden transition-all hover:shadow-xl ${isSelected ? 'ring-2 ring-blue-500' : ''}`}>
       <div className="p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-4">
+            {selectionMode && (
+              <input
+                type="checkbox"
+                checked={isSelected}
+                onChange={(e) => onSelectionChange?.(entry.id, e.target.checked)}
+                className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
+              />
+            )}
             <div className="flex items-center gap-2 text-sm text-gray-500">
               <Clock className="h-4 w-4" />
               <span>

@@ -74,3 +74,31 @@ class DailyNote(DailyNoteBase):
 class DailyNoteWithEntries(DailyNote):
     pass
 
+# Link Preview Schemas
+class LinkPreviewResponse(BaseModel):
+    url: str
+    title: Optional[str] = None
+    description: Optional[str] = None
+    image: Optional[str] = None
+    site_name: Optional[str] = None
+
+# Report Schemas
+class ReportEntry(BaseModel):
+    date: str
+    content: str
+    labels: List[Label]
+    entry_id: int
+    is_completed: bool
+
+class WeeklyReport(BaseModel):
+    week_start: str
+    week_end: str
+    generated_at: datetime
+    entries: List[ReportEntry]
+
+# Merge Schemas
+class MergeEntriesRequest(BaseModel):
+    entry_ids: List[int]
+    separator: str = "\n\n"
+    delete_originals: bool = True
+
