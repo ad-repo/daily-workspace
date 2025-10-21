@@ -34,7 +34,8 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
         if (abbr && abbr.getAttribute('aria-label')) {
           const dateStr = format(new Date(abbr.getAttribute('aria-label')!), 'yyyy-MM-dd');
           const note = notes.find(n => n.date === dateStr);
-          if (note && note.entries.length > 0) {
+          // Only show tooltip if there are entries or a goal
+          if (note && (note.entries.length > 0 || (note.daily_goal && note.daily_goal.trim() !== ''))) {
             const goalText = note.daily_goal || 'No goals set';
             (tile as HTMLElement).title = goalText;
           }
@@ -73,7 +74,8 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
     const dateStr = format(date, 'yyyy-MM-dd');
     const note = notes.find(n => n.date === dateStr);
 
-    if (note && note.entries.length > 0) {
+    // Only show indicator if there are actual entries OR a daily goal
+    if (note && (note.entries.length > 0 || (note.daily_goal && note.daily_goal.trim() !== ''))) {
       const hasImportantEntries = note.entries.some(entry => entry.is_important);
       
       return (
