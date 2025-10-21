@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Tag as TagIcon, X, Plus } from 'lucide-react';
 import axios from 'axios';
+import EmojiPicker from './EmojiPicker';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -155,6 +156,37 @@ const LabelSelector = ({ date, entryId, selectedLabels, onLabelsChange }: LabelS
     }
   };
 
+  const handleEmojiSelect = async (emoji: string) => {
+    setNewLabelName(emoji);
+    setLoading(true);
+    setShowSuggestions(false);
+    try {
+      // Check if label exists
+      let label = allLabels.find(l => l.name === emoji);
+
+      // Create label if it doesn't exist
+      if (!label) {
+        const response = await axios.post(`${API_URL}/api/labels/`, {
+          name: emoji,
+          color: getRandomColor(),
+        });
+        label = response.data;
+        await loadLabels(); // Reload labels
+      }
+
+      // Add label to note or entry
+      await addLabelToItem(label);
+      setNewLabelName('');
+    } catch (error: any) {
+      console.error('Failed to add emoji label:', error);
+      if (error.response?.status !== 400) { // 400 means label already on note/entry
+        alert('Failed to add emoji label');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="w-full">
       <div className="flex items-center gap-2 mb-2 relative">
@@ -212,6 +244,8 @@ const LabelSelector = ({ date, entryId, selectedLabels, onLabelsChange }: LabelS
           <Plus className="h-4 w-4" />
           Add
         </button>
+        
+        <EmojiPicker onEmojiSelect={handleEmojiSelect} />
       </div>
 
       {/* Display selected labels */}
