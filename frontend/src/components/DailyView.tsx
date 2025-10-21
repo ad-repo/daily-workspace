@@ -183,7 +183,7 @@ const DailyView = () => {
   return (
     <div className="relative">
       <EntryTimeline entries={entries} />
-      <div className="max-w-3xl mx-auto px-4 xl:px-8">
+      <div className="max-w-4xl mx-auto px-4 xl:px-8">
       {/* Header */}
       <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
         <div className="flex items-center justify-between mb-4">

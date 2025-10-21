@@ -23,7 +23,9 @@ import {
   Code2,
   FileText,
   Paperclip,
+  ExternalLink,
 } from 'lucide-react';
+import { LinkPreviewExtension, fetchLinkPreview } from '../extensions/LinkPreview';
 
 interface RichTextEditorProps {
   content: string;
@@ -57,9 +59,11 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
       }),
       PreformattedText,
       Link.configure({
-        openOnClick: false,
+        openOnClick: true,
         HTMLAttributes: {
-          class: 'text-blue-600 underline cursor-pointer',
+          class: 'text-blue-600 underline cursor-pointer hover:text-blue-800',
+          target: '_blank',
+          rel: 'noopener noreferrer',
         },
       }),
       Image.configure({
@@ -73,6 +77,7 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
           class: 'bg-gray-900 text-white p-4 rounded-lg',
         },
       }),
+      LinkPreviewExtension,
       Placeholder.configure({
         placeholder,
       }),
@@ -139,9 +144,10 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
         
         return false;
       },
-      handlePaste: (view, event) => {
+      handlePaste: async (view, event) => {
         const items = event.clipboardData?.items;
         if (items) {
+          // Check for images first
           for (let i = 0; i < items.length; i++) {
             if (items[i].type.indexOf('image') !== -1) {
               event.preventDefault();
@@ -167,6 +173,38 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
             }
           }
         }
+        
+        // Check for URLs in text
+        const text = event.clipboardData?.getData('text/plain');
+        if (text) {
+          // Simple URL detection - matches http(s) URLs
+          const urlRegex = /^https?:\/\/[^\s]+$/;
+          if (urlRegex.test(text.trim())) {
+            event.preventDefault();
+            
+            // Try to fetch link preview
+            fetchLinkPreview(text.trim())
+              .then(preview => {
+                if (preview && editor) {
+                  // Insert link preview card
+                  editor.chain().focus().insertContent({
+                    type: 'linkPreview',
+                    attrs: preview,
+                  }).run();
+                } else {
+                  // Fallback to regular link if preview fails
+                  editor?.chain().focus().insertContent(`<a href="${text.trim()}" target="_blank" rel="noopener noreferrer">${text.trim()}</a> `).run();
+                }
+              })
+              .catch(() => {
+                // Fallback to regular link on error
+                editor?.chain().focus().insertContent(`<a href="${text.trim()}" target="_blank" rel="noopener noreferrer">${text.trim()}</a> `).run();
+              });
+            
+            return true;
+          }
+        }
+        
         return false;
       },
     },
@@ -253,6 +291,26 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
     };
 
     input.click();
+  };
+
+  const addLinkPreview = async () => {
+    const url = window.prompt('Enter URL to preview:');
+    if (!url) return;
+
+    try {
+      const preview = await fetchLinkPreview(url);
+      if (preview) {
+        editor?.chain().focus().insertContent({
+          type: 'linkPreview',
+          attrs: preview,
+        }).run();
+      } else {
+        alert('Failed to fetch link preview. The link might not support previews.');
+      }
+    } catch (error) {
+      console.error('Failed to add link preview:', error);
+      alert('Failed to add link preview.');
+    }
   };
 
   const ToolbarButton = ({
@@ -378,6 +436,10 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
 
         <ToolbarButton onClick={addLink} active={editor.isActive('link')} title="Add Link">
           <Link2 className="h-4 w-4" />
+        </ToolbarButton>
+
+        <ToolbarButton onClick={addLinkPreview} title="Add Link Preview">
+          <ExternalLink className="h-4 w-4" />
         </ToolbarButton>
 
             <ToolbarButton onClick={addImage} title="Add Image">
