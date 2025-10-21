@@ -6,6 +6,8 @@ from app import models
 import json
 import io
 from datetime import datetime
+import re
+from html import unescape
 
 router = APIRouter()
 
@@ -73,6 +75,143 @@ async def export_data(db: Session = Depends(get_db)):
         media_type="application/json",
         headers={
             "Content-Disposition": f"attachment; filename=pull-your-poop-together-backup-{datetime.utcnow().strftime('%Y%m%d-%H%M%S')}.json"
+        }
+    )
+
+def html_to_markdown(html_content: str) -> str:
+    """Convert HTML content to markdown"""
+    if not html_content:
+        return ""
+    
+    # Unescape HTML entities
+    text = unescape(html_content)
+    
+    # Convert headers
+    text = re.sub(r'<h1[^>]*>(.*?)</h1>', r'# \1\n', text, flags=re.DOTALL)
+    text = re.sub(r'<h2[^>]*>(.*?)</h2>', r'## \1\n', text, flags=re.DOTALL)
+    text = re.sub(r'<h3[^>]*>(.*?)</h3>', r'### \1\n', text, flags=re.DOTALL)
+    text = re.sub(r'<h4[^>]*>(.*?)</h4>', r'#### \1\n', text, flags=re.DOTALL)
+    text = re.sub(r'<h5[^>]*>(.*?)</h5>', r'##### \1\n', text, flags=re.DOTALL)
+    text = re.sub(r'<h6[^>]*>(.*?)</h6>', r'###### \1\n', text, flags=re.DOTALL)
+    
+    # Convert bold
+    text = re.sub(r'<strong[^>]*>(.*?)</strong>', r'**\1**', text, flags=re.DOTALL)
+    text = re.sub(r'<b[^>]*>(.*?)</b>', r'**\1**', text, flags=re.DOTALL)
+    
+    # Convert italic
+    text = re.sub(r'<em[^>]*>(.*?)</em>', r'*\1*', text, flags=re.DOTALL)
+    text = re.sub(r'<i[^>]*>(.*?)</i>', r'*\1*', text, flags=re.DOTALL)
+    
+    # Convert links
+    text = re.sub(r'<a[^>]*href="([^"]*)"[^>]*>(.*?)</a>', r'[\2](\1)', text, flags=re.DOTALL)
+    
+    # Convert code blocks
+    text = re.sub(r'<pre[^>]*><code[^>]*>(.*?)</code></pre>', r'```\n\1\n```', text, flags=re.DOTALL)
+    
+    # Convert inline code
+    text = re.sub(r'<code[^>]*>(.*?)</code>', r'`\1`', text, flags=re.DOTALL)
+    
+    # Convert blockquotes
+    text = re.sub(r'<blockquote[^>]*>(.*?)</blockquote>', lambda m: '\n'.join('> ' + line for line in m.group(1).strip().split('\n')) + '\n', text, flags=re.DOTALL)
+    
+    # Convert lists
+    text = re.sub(r'<ul[^>]*>(.*?)</ul>', r'\1', text, flags=re.DOTALL)
+    text = re.sub(r'<ol[^>]*>(.*?)</ol>', r'\1', text, flags=re.DOTALL)
+    text = re.sub(r'<li[^>]*>(.*?)</li>', r'- \1\n', text, flags=re.DOTALL)
+    
+    # Convert line breaks
+    text = re.sub(r'<br\s*/?>', '\n', text)
+    
+    # Convert paragraphs
+    text = re.sub(r'<p[^>]*>(.*?)</p>', r'\1\n\n', text, flags=re.DOTALL)
+    
+    # Remove remaining HTML tags
+    text = re.sub(r'<[^>]+>', '', text)
+    
+    # Clean up multiple newlines
+    text = re.sub(r'\n{3,}', '\n\n', text)
+    
+    return text.strip()
+
+@router.get("/export-markdown")
+async def export_markdown(db: Session = Depends(get_db)):
+    """Export all data as Markdown for LLM consumption"""
+    
+    # Get all notes with entries and labels, sorted by date
+    notes = db.query(models.DailyNote).order_by(models.DailyNote.date).all()
+    labels = db.query(models.Label).all()
+    
+    # Build markdown content
+    markdown_lines = []
+    markdown_lines.append("# Daily Workspace Export")
+    markdown_lines.append(f"\nExported: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}\n")
+    markdown_lines.append("---\n")
+    
+    # Add label index
+    if labels:
+        markdown_lines.append("## Labels\n")
+        for label in labels:
+            markdown_lines.append(f"- **{label.name}**")
+        markdown_lines.append("\n---\n")
+    
+    # Add notes
+    for note in notes:
+        if not note.entries and not note.daily_goal:
+            continue
+            
+        markdown_lines.append(f"\n## {note.date}\n")
+        
+        # Add daily goal if present
+        if note.daily_goal:
+            markdown_lines.append(f"**Daily Goals:** {note.daily_goal}\n")
+        
+        # Add note labels if present
+        if note.labels:
+            label_names = [label.name for label in note.labels]
+            markdown_lines.append(f"**Day Labels:** {', '.join(label_names)}\n")
+        
+        # Add entries
+        if note.entries:
+            for idx, entry in enumerate(note.entries, 1):
+                markdown_lines.append(f"\n### Entry {idx}")
+                markdown_lines.append(f"*Created: {entry.created_at.strftime('%Y-%m-%d %H:%M:%S')}*\n")
+                
+                # Add entry metadata
+                metadata = []
+                if entry.is_important:
+                    metadata.append("⭐ Important")
+                if entry.is_completed:
+                    metadata.append("✓ Completed")
+                if entry.include_in_report:
+                    metadata.append("📄 In Report")
+                
+                if metadata:
+                    markdown_lines.append(f"**Status:** {' | '.join(metadata)}\n")
+                
+                # Add entry labels
+                if entry.labels:
+                    label_names = [label.name for label in entry.labels]
+                    markdown_lines.append(f"**Labels:** {', '.join(label_names)}\n")
+                
+                # Add content
+                if entry.content_type == 'code':
+                    markdown_lines.append(f"\n```\n{entry.content}\n```\n")
+                else:
+                    # Convert HTML to markdown
+                    content_md = html_to_markdown(entry.content)
+                    markdown_lines.append(f"\n{content_md}\n")
+        
+        markdown_lines.append("\n---\n")
+    
+    # Join all lines
+    markdown_content = "\n".join(markdown_lines)
+    
+    # Return as downloadable file
+    return StreamingResponse(
+        io.BytesIO(markdown_content.encode('utf-8')),
+        media_type="text/markdown",
+        headers={
+            "Content-Disposition": f"attachment; filename=daily-workspace-{datetime.utcnow().strftime('%Y%m%d-%H%M%S')}.md"
         }
     )
 
