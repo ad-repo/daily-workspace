@@ -30,8 +30,29 @@ const DailyView = () => {
     }
   }, [date]);
 
-  const loadDailyNote = async () => {
+  // Scroll to specific entry if hash is present
+  useEffect(() => {
+    if (entries.length > 0 && window.location.hash) {
+      const hash = window.location.hash.slice(1); // Remove the #
+      if (hash.startsWith('entry-')) {
+        const entryId = hash.replace('entry-', '');
+        setTimeout(() => {
+          const element = document.querySelector(`[data-entry-id="${entryId}"]`);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // Clear the hash after scrolling
+            window.history.replaceState(null, '', window.location.pathname);
+          }
+        }, 300);
+      }
+    }
+  }, [entries]);
+
+  const loadDailyNote = async (preserveScroll = false) => {
     if (!date) return;
+
+    // Save current scroll position if we want to preserve it
+    const scrollY = preserveScroll ? window.scrollY : 0;
 
     setLoading(true);
     try {
@@ -51,8 +72,12 @@ const DailyView = () => {
       }
     } finally {
       setLoading(false);
-      // Scroll to top after content is loaded
-      setTimeout(() => window.scrollTo({ top: 0, behavior: 'instant' }), 0);
+      // Restore scroll position if preserving, otherwise scroll to top
+      if (preserveScroll) {
+        setTimeout(() => window.scrollTo({ top: scrollY, behavior: 'instant' }), 0);
+      } else {
+        setTimeout(() => window.scrollTo({ top: 0, behavior: 'instant' }), 0);
+      }
     }
   };
 
@@ -234,7 +259,7 @@ const DailyView = () => {
               <LabelSelector
                 date={date}
                 selectedLabels={note?.labels || []}
-                onLabelsChange={loadDailyNote}
+                onLabelsChange={() => loadDailyNote(true)}
               />
             </div>
           </div>
@@ -322,7 +347,7 @@ const DailyView = () => {
                   entry={entry}
                   onUpdate={handleEntryUpdate}
                   onDelete={handleEntryDelete}
-                  onLabelsChange={loadDailyNote}
+                  onLabelsChange={() => loadDailyNote(true)}
                   selectionMode={selectionMode}
                   isSelected={selectedEntries.has(entry.id)}
                   onSelectionChange={handleSelectionChange}

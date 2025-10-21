@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Trash2, Clock, FileText, Star, Check, Copy, CheckCheck, ArrowRight } from 'lucide-react';
+import { Trash2, Clock, FileText, Star, Check, Copy, CheckCheck, ArrowRight, Skull } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import axios from 'axios';
@@ -31,6 +31,7 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsChange, isSelected =
   const [includeInReport, setIncludeInReport] = useState(entry.include_in_report || false);
   const [isImportant, setIsImportant] = useState(entry.is_important || false);
   const [isCompleted, setIsCompleted] = useState(entry.is_completed || false);
+  const [isDevNull, setIsDevNull] = useState(entry.is_dev_null || false);
   const [copied, setCopied] = useState(false);
   const [isContinuing, setIsContinuing] = useState(false);
   const isCodeEntry = entry.content_type === 'code';
@@ -43,6 +44,7 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsChange, isSelected =
     setIncludeInReport(entry.include_in_report || false);
     setIsImportant(entry.is_important || false);
     setIsCompleted(entry.is_completed || false);
+    setIsDevNull(entry.is_dev_null || false);
   }, [entry]);
 
   const handleContentChange = async (newContent: string) => {
@@ -105,6 +107,22 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsChange, isSelected =
     } catch (error) {
       console.error('Failed to update completed status:', error);
       setIsCompleted(!newValue); // Revert on error
+    }
+  };
+
+  const handleDevNullToggle = async () => {
+    const newValue = !isDevNull;
+    setIsDevNull(newValue);
+    
+    try {
+      await axios.patch(`${API_URL}/api/entries/${entry.id}`, {
+        is_dev_null: newValue
+      });
+      // Reload the note to sync data
+      onLabelsChange();
+    } catch (error) {
+      console.error('Failed to update dev_null status:', error);
+      setIsDevNull(!newValue); // Revert on error
     }
   };
 
@@ -182,22 +200,21 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsChange, isSelected =
                 <span className="text-blue-600 ml-2">Saving...</span>
               )}
             </div>
-            
-            <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={includeInReport}
-                onChange={handleReportToggle}
-                className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
-              />
-              <span className="flex items-center gap-1 text-gray-700 pointer-events-none">
-                <FileText className="h-4 w-4" />
-                Add to Report
-              </span>
-            </label>
           </div>
 
           <div className="flex items-center gap-2">
+            <button
+              onClick={handleReportToggle}
+              className={`p-2 rounded transition-colors ${
+                includeInReport 
+                  ? 'text-blue-500 hover:text-blue-600' 
+                  : 'text-gray-400 hover:text-blue-500'
+              }`}
+              title={includeInReport ? "Remove from report" : "Add to report"}
+            >
+              <FileText className="h-5 w-5" />
+            </button>
+            
             <button
               onClick={handleCompletedToggle}
               className={`p-2 rounded transition-colors ${
@@ -220,6 +237,18 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsChange, isSelected =
               title={isImportant ? "Mark as not important" : "Mark as important"}
             >
               <Star className={`h-5 w-5 ${isImportant ? 'fill-current' : ''}`} />
+            </button>
+            
+            <button
+              onClick={handleDevNullToggle}
+              className={`p-2 rounded transition-colors ${
+                isDevNull 
+                  ? 'text-gray-700 hover:text-gray-800' 
+                  : 'text-gray-400 hover:text-gray-600'
+              }`}
+              title={isDevNull ? "Remove from /dev/null" : "Mark as /dev/null"}
+            >
+              <Skull className={`h-5 w-5 ${isDevNull ? 'stroke-[2.5]' : ''}`} />
             </button>
             
             <button

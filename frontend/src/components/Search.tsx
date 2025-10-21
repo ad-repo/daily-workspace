@@ -136,7 +136,7 @@ const Search = () => {
   };
 
   const goToEntry = (entry: NoteEntry, date: string) => {
-    navigate(`/day/${date}`);
+    navigate(`/day/${date}#entry-${entry.id}`);
   };
 
   const stripHtml = (html: string) => {

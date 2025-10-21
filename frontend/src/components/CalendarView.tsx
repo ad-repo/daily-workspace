@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import Calendar from 'react-calendar';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
+import { Star, Check, Skull } from 'lucide-react';
 import { notesApi } from '../api';
 import type { DailyNote } from '../types';
 import 'react-calendar/dist/Calendar.css';
@@ -33,7 +34,8 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
         if (abbr && abbr.getAttribute('aria-label')) {
           const dateStr = format(new Date(abbr.getAttribute('aria-label')!), 'yyyy-MM-dd');
           const note = notes.find(n => n.date === dateStr);
-          if (note && note.entries.length > 0) {
+          // Only show tooltip if there are entries or a goal
+          if (note && (note.entries.length > 0 || (note.daily_goal && note.daily_goal.trim() !== ''))) {
             const goalText = note.daily_goal || 'No goals set';
             (tile as HTMLElement).title = goalText;
           }
@@ -72,10 +74,30 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
     const dateStr = format(date, 'yyyy-MM-dd');
     const note = notes.find(n => n.date === dateStr);
 
-    if (note && note.entries.length > 0) {
+    // Only show indicator if there are actual entries OR a daily goal
+    if (note && (note.entries.length > 0 || (note.daily_goal && note.daily_goal.trim() !== ''))) {
+      const hasDevNullEntries = note.entries.some(entry => entry.is_dev_null);
+      const hasImportantEntries = note.entries.some(entry => entry.is_important);
+      const hasCompletedEntries = note.entries.some(entry => entry.is_completed);
+      
       return (
         <div className="flex flex-col items-center justify-center mt-1">
-          <div className="w-1.5 h-1.5 bg-blue-500 rounded-full" />
+          {hasDevNullEntries ? (
+            // Skull emoji overrides all other indicators
+            <Skull className="h-3 w-3 text-gray-700 stroke-[2.5]" />
+          ) : hasImportantEntries && hasCompletedEntries ? (
+            // Green star for both important and completed - dramatic pulse
+            <Star className="h-3 w-3 text-green-500 fill-green-500 dramatic-pulse" />
+          ) : hasCompletedEntries ? (
+            // Green checkmark for completed only - bouncing animation
+            <Check className="h-3 w-3 text-green-500 stroke-[3] animate-bounce" />
+          ) : hasImportantEntries ? (
+            // Yellow star for important only - with rays
+            <Star className="h-3 w-3 text-yellow-500 fill-yellow-500 star-rays spin-rays" />
+          ) : (
+            // Blue dot for regular notes
+            <div className="w-1.5 h-1.5 bg-blue-500 rounded-full" />
+          )}
         </div>
       );
     }
@@ -104,8 +126,23 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
           <h3 className="text-sm font-semibold text-gray-700 mb-2">Legend</h3>
           <div className="flex flex-wrap gap-4 text-sm text-gray-600">
             <div className="flex items-center gap-2">
+              <Star className="h-4 w-4 text-green-500 fill-green-500 dramatic-pulse" />
+              <span>Has important and completed</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Check className="h-4 w-4 text-green-500 stroke-[3] animate-bounce" />
+              <span>Has completed entries</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Star className="h-4 w-4 text-yellow-500 fill-yellow-500 star-rays spin-rays" />
+              <span>Has important entries</span>
+            </div>
+            <div className="flex items-center gap-2">
               <div className="w-3 h-3 bg-blue-500 rounded-full" />
               <span>Has notes</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Skull className="h-4 w-4 text-gray-700 stroke-[2.5]" />
             </div>
           </div>
         </div>

@@ -60,6 +60,7 @@ def search_entries(
             "include_in_report": bool(entry.include_in_report),
             "is_important": bool(entry.is_important),
             "is_completed": bool(entry.is_completed),
+            "is_dev_null": bool(entry.is_dev_null),
             "date": entry.daily_note.date if entry.daily_note else "Unknown"
         }
         search_results.append(result_dict)

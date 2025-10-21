@@ -33,6 +33,7 @@ class NoteEntryUpdate(BaseModel):
     include_in_report: Optional[bool] = None
     is_important: Optional[bool] = None
     is_completed: Optional[bool] = None
+    is_dev_null: Optional[bool] = None
 
 class NoteEntry(NoteEntryBase):
     id: int
@@ -43,6 +44,7 @@ class NoteEntry(NoteEntryBase):
     include_in_report: bool = False
     is_important: bool = False
     is_completed: bool = False
+    is_dev_null: bool = False
 
     class Config:
         from_attributes = True
@@ -89,6 +91,7 @@ class ReportEntry(BaseModel):
     labels: List[Label]
     entry_id: int
     is_completed: bool
+    is_dev_null: bool = False
 
 class WeeklyReport(BaseModel):
     week_start: str
@@ -113,6 +116,7 @@ class SearchResult(NoteEntryBase):
     include_in_report: bool = False
     is_important: bool = False
     is_completed: bool = False
+    is_dev_null: bool = False
 
     class Config:
         from_attributes = True

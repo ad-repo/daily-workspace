@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { FileText, Download, Calendar, Copy, Check } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { format } from 'date-fns';
 import { useTimezone } from '../contexts/TimezoneContext';
@@ -32,6 +33,7 @@ interface Week {
 
 const Reports = () => {
   const { timezone } = useTimezone();
+  const navigate = useNavigate();
   const [report, setReport] = useState<ReportData | null>(null);
   const [weeks, setWeeks] = useState<Week[]>([]);
   const [loading, setLoading] = useState(false);
@@ -42,6 +44,7 @@ const Reports = () => {
   const [allEntriesReport, setAllEntriesReport] = useState<any | null>(null);
   const [loadingAll, setLoadingAll] = useState(false);
   const [copiedAllReport, setCopiedAllReport] = useState(false);
+  const [copiedEntryId, setCopiedEntryId] = useState<number | null>(null);
 
   useEffect(() => {
     loadAvailableWeeks();
@@ -89,7 +92,7 @@ const Reports = () => {
   const exportAllEntriesReport = () => {
     if (!allEntriesReport) return;
 
-    let markdown = `# All Entries Report\n\n`;
+    let markdown = `# Selected Entries Report\n\n`;
     markdown += `**Generated:** ${new Date(allEntriesReport.generated_at).toLocaleString()}\n\n`;
     markdown += `**Total Entries:** ${allEntriesReport.entries.length}\n\n`;
     markdown += `---\n\n`;
@@ -218,6 +221,137 @@ const Reports = () => {
     return tmp.textContent || tmp.innerText || '';
   };
 
+  const processLinkPreviews = (html: string) => {
+    // Parse HTML and find all link preview divs
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    
+    const linkPreviews = tmp.querySelectorAll('[data-link-preview]');
+    
+    linkPreviews.forEach((preview) => {
+      const element = preview as HTMLElement;
+      // Check both data-url and url (for backward compatibility with old saves)
+      const url = element.getAttribute('data-url') || element.getAttribute('url') || '';
+      const title = element.getAttribute('data-title') || element.getAttribute('title') || '';
+      const description = element.getAttribute('data-description') || element.getAttribute('description') || '';
+      const image = element.getAttribute('data-image') || element.getAttribute('image') || '';
+      const siteName = element.getAttribute('data-site-name') || element.getAttribute('site_name') || element.getAttribute('site-name') || '';
+      
+      // Skip if no valid URL
+      if (!url || url === 'null' || url === 'undefined') {
+        return;
+      }
+      
+      // Create a visible link preview card
+      const card = document.createElement('a');
+      card.href = url;
+      card.target = '_blank';
+      card.rel = 'noopener noreferrer';
+      card.className = 'block border border-gray-200 rounded-lg overflow-hidden hover:border-blue-400 transition-colors my-4 no-underline';
+      
+      let cardHTML = '<div class="flex gap-4 p-4">';
+      
+      if (image && image !== 'null' && image !== 'undefined') {
+        cardHTML += `<div class="flex-shrink-0"><img src="${image}" alt="${title || 'Link preview'}" class="w-32 h-32 object-cover rounded" /></div>`;
+      }
+      
+      cardHTML += '<div class="flex-1 min-w-0">';
+      if (siteName && siteName !== 'null' && siteName !== 'undefined') {
+        cardHTML += `<p class="text-xs text-gray-500 mb-1">${siteName}</p>`;
+      }
+      if (title && title !== 'null' && title !== 'undefined') {
+        cardHTML += `<h3 class="font-semibold text-gray-900 mb-2 line-clamp-2">${title}</h3>`;
+      }
+      if (description && description !== 'null' && description !== 'undefined') {
+        cardHTML += `<p class="text-sm text-gray-600 line-clamp-2 mb-2">${description}</p>`;
+      }
+      
+      // Try to extract hostname, fallback to full URL if parsing fails
+      let displayUrl = url;
+      try {
+        displayUrl = new URL(url).hostname;
+      } catch (e) {
+        console.warn('Invalid URL for link preview:', url);
+      }
+      
+      cardHTML += `<div class="flex items-center gap-1 text-xs text-blue-600"><span class="truncate">${displayUrl}</span></div>`;
+      cardHTML += '</div></div>';
+      
+      card.innerHTML = cardHTML;
+      element.replaceWith(card);
+    });
+    
+    return tmp.innerHTML;
+  };
+
+  const extractContentWithLinks = (html: string) => {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    
+    let result = '';
+    
+    // Process all nodes
+    const processNode = (node: Node) => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        const text = node.textContent?.trim();
+        if (text) result += text + ' ';
+      } else if (node.nodeType === Node.ELEMENT_NODE) {
+        const element = node as HTMLElement;
+        
+        // Handle link preview divs (data-link-preview attribute)
+        if (element.hasAttribute('data-link-preview')) {
+          // Try to get attributes directly (supports both old and new format)
+          const url = element.getAttribute('data-url') || element.getAttribute('url') || '';
+          const title = element.getAttribute('data-title') || element.getAttribute('title') || '';
+          const description = element.getAttribute('data-description') || element.getAttribute('description') || '';
+          
+          if (url) {
+            result += '\n[Link Preview]\n';
+            if (title) result += `Title: ${title}\n`;
+            if (description) result += `Description: ${description}\n`;
+            result += `URL: ${url}\n`;
+            result += '\n';
+          }
+          return; // Don't process children since we've extracted what we need
+        }
+        // Handle links
+        else if (element.tagName === 'A') {
+          const href = element.getAttribute('href');
+          const text = element.textContent?.trim();
+          if (href) {
+            result += `${text || href} (${href}) `;
+          }
+        }
+        // Handle images
+        else if (element.tagName === 'IMG') {
+          const src = element.getAttribute('src');
+          const alt = element.getAttribute('alt');
+          if (src) {
+            result += `[Image: ${alt || src}] `;
+          }
+        }
+        // Handle line breaks
+        else if (element.tagName === 'BR') {
+          result += '\n';
+        }
+        // Handle paragraphs and divs
+        else if (element.tagName === 'P' || element.tagName === 'DIV') {
+          Array.from(node.childNodes).forEach(processNode);
+          result += '\n';
+        }
+        // Recursively process other elements
+        else {
+          Array.from(node.childNodes).forEach(processNode);
+        }
+      }
+    };
+    
+    Array.from(tmp.childNodes).forEach(processNode);
+    
+    // Clean up multiple spaces and newlines
+    return result.replace(/\s+/g, ' ').replace(/\n\s+/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+  };
+
   const copySection = async (section: 'completed' | 'in-progress') => {
     if (!report) return;
 
@@ -239,7 +373,7 @@ const Reports = () => {
 
         const content = entry.content_type === 'code'
           ? entry.content
-          : stripHtml(entry.content);
+          : extractContentWithLinks(entry.content);
 
         text += `${content}\n\n`;
 
@@ -262,43 +396,22 @@ const Reports = () => {
   const copyAllEntriesReport = async () => {
     if (!allEntriesReport) return;
 
-    let text = `All Entries Report\n\n`;
-    text += `Total Entries: ${allEntriesReport.entries.length}\n\n`;
-    text += `${'='.repeat(60)}\n\n`;
+    let text = '';
 
     if (allEntriesReport.entries.length === 0) {
-      text += `No entries found.\n`;
+      text = `No entries found.\n`;
     } else {
-      let currentDate = '';
-      allEntriesReport.entries.forEach((entry: any) => {
-        if (entry.date !== currentDate) {
-          currentDate = entry.date;
-          text += `\n${currentDate}\n${'='.repeat(60)}\n\n`;
-        }
-
-        const time = new Date(entry.created_at).toLocaleTimeString('en-US', {
-          hour: 'numeric',
-          minute: '2-digit',
-          hour12: true
-        });
-
-        text += `${time}`;
-        if (entry.is_important) text += ` ⭐`;
-        if (entry.is_completed) text += ` ✓`;
-        text += `\n`;
-
-        if (entry.labels.length > 0) {
-          text += `Labels: ${entry.labels.map((l: any) => l.name).join(', ')}\n`;
-        }
-
-        text += `\n`;
-
+      allEntriesReport.entries.forEach((entry: any, index: number) => {
         const content = entry.content_type === 'code'
           ? entry.content
-          : stripHtml(entry.content);
+          : extractContentWithLinks(entry.content);
 
-        text += `${content}\n\n`;
-        text += `${'-'.repeat(60)}\n\n`;
+        text += content;
+        
+        // Add double newline between entries, but not after the last one
+        if (index < allEntriesReport.entries.length - 1) {
+          text += `\n\n`;
+        }
       });
     }
 
@@ -310,6 +423,38 @@ const Reports = () => {
       console.error('Failed to copy:', error);
       alert('Failed to copy to clipboard');
     }
+  };
+
+  const copyEntry = async (entry: any) => {
+    const content = entry.content_type === 'code'
+      ? entry.content
+      : extractContentWithLinks(entry.content);
+
+    let text = `${entry.date}\n`;
+    text += `${new Date(entry.created_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`;
+    
+    if (entry.is_important) text += ` ⭐`;
+    if (entry.is_completed) text += ` ✓`;
+    text += `\n\n`;
+
+    if (entry.labels.length > 0) {
+      text += `Labels: ${entry.labels.map((l: any) => l.name).join(', ')}\n\n`;
+    }
+
+    text += `${content}\n`;
+
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedEntryId(entry.entry_id);
+      setTimeout(() => setCopiedEntryId(null), 2000);
+    } catch (error) {
+      console.error('Failed to copy:', error);
+      alert('Failed to copy to clipboard');
+    }
+  };
+
+  const goToEntry = (date: string, entryId: number) => {
+    navigate(`/day/${date}#entry-${entryId}`);
   };
 
   return (
@@ -334,7 +479,7 @@ const Reports = () => {
               className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
             >
               <Calendar className="h-5 w-5" />
-              {loading ? 'Generating...' : 'Generate This Week'}
+              {loading ? 'Generating...' : 'Generate'}
             </button>
 
             {weeks.length > 0 && (
@@ -372,7 +517,7 @@ const Reports = () => {
               </div>
               <button
                 onClick={exportReport}
-                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
               >
                 <Download className="h-5 w-5" />
                 Export as Markdown
@@ -431,8 +576,17 @@ const Reports = () => {
                                 </pre>
                               ) : (
                                 <div 
-                                  className="prose max-w-none"
-                                  dangerouslySetInnerHTML={{ __html: entry.content }}
+                                  className="prose max-w-none 
+                                    [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-lg [&_img]:my-2 
+                                    [&_a]:text-blue-600 [&_a]:underline 
+                                    [&_p]:mb-2 
+                                    [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:mb-2 
+                                    [&_h2]:text-xl [&_h2]:font-bold [&_h2]:mb-2 
+                                    [&_ul]:list-disc [&_ul]:ml-6 
+                                    [&_ol]:list-decimal [&_ol]:ml-6
+                                    [&_[data-link-preview]]:my-4 [&_[data-link-preview]]:block
+                                    [&_.link-preview]:my-4"
+                                  dangerouslySetInnerHTML={{ __html: processLinkPreviews(entry.content) }}
                                 />
                               )}
                             </div>
@@ -499,8 +653,17 @@ const Reports = () => {
                                 </pre>
                               ) : (
                                 <div 
-                                  className="prose max-w-none"
-                                  dangerouslySetInnerHTML={{ __html: entry.content }}
+                                  className="prose max-w-none 
+                                    [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-lg [&_img]:my-2 
+                                    [&_a]:text-blue-600 [&_a]:underline 
+                                    [&_p]:mb-2 
+                                    [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:mb-2 
+                                    [&_h2]:text-xl [&_h2]:font-bold [&_h2]:mb-2 
+                                    [&_ul]:list-disc [&_ul]:ml-6 
+                                    [&_ol]:list-decimal [&_ol]:ml-6
+                                    [&_[data-link-preview]]:my-4 [&_[data-link-preview]]:block
+                                    [&_.link-preview]:my-4"
+                                  dangerouslySetInnerHTML={{ __html: processLinkPreviews(entry.content) }}
                                 />
                               )}
                             </div>
@@ -530,15 +693,15 @@ const Reports = () => {
         )}
       </div>
 
-      {/* All Entries Report Section */}
+      {/* Selected Entries Report Section */}
       <div className="bg-white rounded-lg shadow-lg p-6 mt-6">
         <div className="mb-6">
           <div className="flex items-center gap-3 mb-4">
             <FileText className="h-8 w-8 text-gray-700" />
-            <h2 className="text-3xl font-bold text-gray-900">All Entries Report</h2>
+            <h2 className="text-3xl font-bold text-gray-900">Selected Entries Report</h2>
           </div>
           <p className="text-gray-600 mb-4">
-            Generate a complete report of ALL entries ever created (not filtered by date or "Add to Report" checkbox).
+            Generate a report of all entries marked with "Add to Report" (not filtered by date or week).
           </p>
 
           <div className="flex gap-4 items-end mb-4">
@@ -547,7 +710,7 @@ const Reports = () => {
               disabled={loadingAll}
               className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loadingAll ? 'Generating...' : 'Generate All Entries Report'}
+              {loadingAll ? 'Generating...' : 'Generate'}
             </button>
 
             {allEntriesReport && (
@@ -577,7 +740,7 @@ const Reports = () => {
                   className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 >
                   <Download className="h-5 w-5" />
-                  Export
+                  Export to Markdown
                 </button>
               </>
             )}
@@ -602,7 +765,11 @@ const Reports = () => {
             ) : (
               <div className="space-y-4">
                 {allEntriesReport.entries.map((entry: any) => (
-                  <div key={entry.entry_id} className="border border-gray-200 rounded-lg p-4">
+                  <div 
+                    key={entry.entry_id} 
+                    onClick={() => goToEntry(entry.date, entry.entry_id)}
+                    className="border border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow cursor-pointer"
+                  >
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
@@ -631,6 +798,31 @@ const Reports = () => {
                           </div>
                         )}
                       </div>
+                      
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          copyEntry(entry);
+                        }}
+                        className={`flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors ${
+                          copiedEntryId === entry.entry_id
+                            ? 'bg-green-100 text-green-700'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                        title="Copy entry"
+                      >
+                        {copiedEntryId === entry.entry_id ? (
+                          <>
+                            <Check className="h-4 w-4" />
+                            Copied!
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="h-4 w-4" />
+                            Copy
+                          </>
+                        )}
+                      </button>
                     </div>
 
                     {entry.content_type === 'code' ? (
@@ -639,8 +831,17 @@ const Reports = () => {
                       </pre>
                     ) : (
                       <div 
-                        className="prose max-w-none"
-                        dangerouslySetInnerHTML={{ __html: entry.content }}
+                        className="text-gray-800 leading-relaxed 
+                          [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-lg [&_img]:my-2 
+                          [&_a]:text-blue-600 [&_a]:underline 
+                          [&_p]:mb-2 
+                          [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:mb-2 
+                          [&_h2]:text-xl [&_h2]:font-bold [&_h2]:mb-2 
+                          [&_ul]:list-disc [&_ul]:ml-6 
+                          [&_ol]:list-decimal [&_ol]:ml-6
+                          [&_[data-link-preview]]:my-4 [&_[data-link-preview]]:block
+                          [&_.link-preview]:my-4"
+                        dangerouslySetInnerHTML={{ __html: processLinkPreviews(entry.content) }}
                       />
                     )}
                   </div>

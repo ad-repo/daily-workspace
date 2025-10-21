@@ -64,6 +64,7 @@ class NoteEntry(Base):
     include_in_report = Column(Integer, default=0)  # 0 = false, 1 = true (for SQLite compatibility)
     is_important = Column(Integer, default=0)  # 0 = false, 1 = true (starred/important)
     is_completed = Column(Integer, default=0)  # 0 = false, 1 = true (completed checkbox)
+    is_dev_null = Column(Integer, default=0)  # 0 = false, 1 = true (marked as /dev/null - discarded)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     

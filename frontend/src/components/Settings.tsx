@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Download, Upload, Settings as SettingsIcon, Clock, Archive } from 'lucide-react';
+import { Download, Upload, Settings as SettingsIcon, Clock, Archive, FileCode } from 'lucide-react';
 import axios from 'axios';
 import { useTimezone } from '../contexts/TimezoneContext';
 
@@ -8,6 +8,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 const Settings = () => {
   const [isImporting, setIsImporting] = useState(false);
   const [isDownloadingFiles, setIsDownloadingFiles] = useState(false);
+  const [isExportingMarkdown, setIsExportingMarkdown] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const { timezone, setTimezone } = useTimezone();
 
@@ -20,7 +21,7 @@ const Settings = () => {
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
-          link.setAttribute('download', `daily-workspace-backup-${new Date().toISOString().split('T')[0]}.json`);
+          link.setAttribute('download', `pull-your-poop-together-backup-${new Date().toISOString().split('T')[0]}.json`);
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -98,6 +99,41 @@ const Settings = () => {
       }
     } finally {
       setIsDownloadingFiles(false);
+    }
+  };
+
+  const handleExportMarkdown = async () => {
+    setIsExportingMarkdown(true);
+    try {
+      const response = await axios.get(`${API_URL}/api/backup/export-markdown`, {
+        responseType: 'blob',
+      });
+      
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      
+      // Extract filename from response headers or use default
+      const contentDisposition = response.headers['content-disposition'];
+      let filename = `daily-workspace-${new Date().toISOString().split('T')[0]}.md`;
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename="?(.+)"?/);
+        if (filenameMatch) {
+          filename = filenameMatch[1];
+        }
+      }
+      
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      
+      showMessage('success', 'Markdown export downloaded successfully!');
+    } catch (error: any) {
+      console.error('Markdown export failed:', error);
+      showMessage('error', 'Failed to export as markdown');
+    } finally {
+      setIsExportingMarkdown(false);
     }
   };
 
@@ -229,6 +265,15 @@ const Settings = () => {
                 <Archive className="h-5 w-5" />
                 {isDownloadingFiles ? 'Downloading...' : 'Download Files'}
               </button>
+
+              <button
+                onClick={handleExportMarkdown}
+                disabled={isExportingMarkdown}
+                className="flex items-center gap-2 px-6 py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <FileCode className="h-5 w-5" />
+                {isExportingMarkdown ? 'Exporting...' : 'Export as Markdown'}
+              </button>
             </div>
 
             <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
@@ -240,6 +285,10 @@ const Settings = () => {
                 <p>
                   <strong>Download Files:</strong> Downloads all uploaded images and files as a zip archive. 
                   Use this with "Export Data" for a complete backup.
+                </p>
+                <p>
+                  <strong>Export as Markdown:</strong> Converts all your notes to a single markdown file, 
+                  perfect for feeding into LLMs like ChatGPT or Claude for analysis and insights.
                 </p>
               </div>
             </div>
