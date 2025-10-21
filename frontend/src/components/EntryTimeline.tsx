@@ -120,11 +120,11 @@ const EntryTimeline = ({ entries }: EntryTimelineProps) => {
                       );
                     }
                     
-                    // Text label - colored background
+                    // Text label - colored background (pill-shaped)
                     return (
                       <span
                         key={label.id}
-                        className="inline-block px-2 py-0.5 rounded text-xs font-medium text-white"
+                        className="inline-block px-2 py-0.5 rounded-full text-xs font-medium text-white"
                         style={{ backgroundColor: label.color }}
                       >
                         {label.name}
