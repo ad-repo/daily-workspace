@@ -24,6 +24,12 @@ const LabelSelector = ({ date, entryId, selectedLabels, onLabelsChange }: LabelS
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [filteredSuggestions, setFilteredSuggestions] = useState<Label[]>([]);
 
+  // Check if a string is only emojis (with optional spaces)
+  const isEmojiOnly = (str: string): boolean => {
+    const emojiRegex = /^[\p{Emoji}\p{Emoji_Modifier}\p{Emoji_Component}\p{Emoji_Modifier_Base}\p{Emoji_Presentation}\s]+$/u;
+    return emojiRegex.test(str.trim());
+  };
+
   useEffect(() => {
     loadLabels();
   }, []);
@@ -90,19 +96,24 @@ const LabelSelector = ({ date, entryId, selectedLabels, onLabelsChange }: LabelS
   };
 
   const handleAddLabel = async () => {
-    const labelName = newLabelName.trim().toLowerCase();
+    const labelName = newLabelName.trim();
     if (!labelName) return;
 
     setLoading(true);
     setShowSuggestions(false);
     try {
+      // For emoji labels, keep original case; for text labels, use lowercase
+      const searchName = isEmojiOnly(labelName) ? labelName : labelName.toLowerCase();
+      
       // Check if label exists
-      let label = allLabels.find(l => l.name.toLowerCase() === labelName);
+      let label = allLabels.find(l => 
+        isEmojiOnly(l.name) ? l.name === searchName : l.name.toLowerCase() === searchName
+      );
 
       // Create label if it doesn't exist
       if (!label) {
         const response = await axios.post(`${API_URL}/api/labels/`, {
-          name: labelName,
+          name: searchName,
           color: getRandomColor(),
         });
         label = response.data;
@@ -159,7 +170,7 @@ const LabelSelector = ({ date, entryId, selectedLabels, onLabelsChange }: LabelS
                 setShowSuggestions(true);
               }
             }}
-            placeholder="Type a label name..."
+            placeholder="Type a label name or emoji..."
             disabled={loading}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
           />
@@ -167,19 +178,28 @@ const LabelSelector = ({ date, entryId, selectedLabels, onLabelsChange }: LabelS
           {/* Autocomplete suggestions */}
           {showSuggestions && (
             <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-              {filteredSuggestions.map((label) => (
-                <button
-                  key={label.id}
-                  onClick={() => handleSelectSuggestion(label)}
-                  className="w-full px-3 py-2 text-left hover:bg-gray-100 flex items-center gap-2 transition-colors"
-                >
-                  <div
-                    className="w-3 h-3 rounded-full"
-                    style={{ backgroundColor: label.color }}
-                  />
-                  <span className="text-sm">{label.name}</span>
-                </button>
-              ))}
+              {filteredSuggestions.map((label) => {
+                const isEmoji = isEmojiOnly(label.name);
+                return (
+                  <button
+                    key={label.id}
+                    onClick={() => handleSelectSuggestion(label)}
+                    className="w-full px-3 py-2 text-left hover:bg-gray-100 flex items-center gap-2 transition-colors"
+                  >
+                    {isEmoji ? (
+                      <span className="text-lg">{label.name}</span>
+                    ) : (
+                      <>
+                        <div
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: label.color }}
+                        />
+                        <span className="text-sm">{label.name}</span>
+                      </>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>
@@ -196,20 +216,41 @@ const LabelSelector = ({ date, entryId, selectedLabels, onLabelsChange }: LabelS
 
       {/* Display selected labels */}
       <div className="flex items-center gap-2 flex-wrap">
-        {selectedLabels.map((label) => (
-          <button
-            key={label.id}
-            onClick={() => handleRemoveLabel(label.id)}
-            disabled={loading}
-            className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium text-white transition-all hover:opacity-80 disabled:opacity-50"
-            style={{ backgroundColor: label.color }}
-            title="Click to remove"
-          >
-            <TagIcon className="h-3 w-3" />
-            {label.name}
-            <X className="h-3 w-3" />
-          </button>
-        ))}
+        {selectedLabels.map((label) => {
+          const isEmoji = isEmojiOnly(label.name);
+          
+          if (isEmoji) {
+            // Emoji-only label - simpler display
+            return (
+              <button
+                key={label.id}
+                onClick={() => handleRemoveLabel(label.id)}
+                disabled={loading}
+                className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-2xl transition-all hover:bg-gray-100 disabled:opacity-50 border border-gray-200"
+                title="Click to remove"
+              >
+                {label.name}
+                <X className="h-3 w-3 text-gray-500" />
+              </button>
+            );
+          }
+          
+          // Text label - traditional pill style
+          return (
+            <button
+              key={label.id}
+              onClick={() => handleRemoveLabel(label.id)}
+              disabled={loading}
+              className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium text-white transition-all hover:opacity-80 disabled:opacity-50"
+              style={{ backgroundColor: label.color }}
+              title="Click to remove"
+            >
+              <TagIcon className="h-3 w-3" />
+              {label.name}
+              <X className="h-3 w-3" />
+            </button>
+          );
+        })}
       </div>
     </div>
   );
