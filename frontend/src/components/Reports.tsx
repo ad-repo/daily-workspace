@@ -374,8 +374,8 @@ const Reports = () => {
     }
   };
 
-  const goToEntry = (date: string) => {
-    navigate(`/day/${date}`);
+  const goToEntry = (date: string, entryId: number) => {
+    navigate(`/day/${date}#entry-${entryId}`);
   };
 
   return (
@@ -670,7 +670,7 @@ const Reports = () => {
                 {allEntriesReport.entries.map((entry: any) => (
                   <div 
                     key={entry.entry_id} 
-                    onClick={() => goToEntry(entry.date)}
+                    onClick={() => goToEntry(entry.date, entry.entry_id)}
                     className="border border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow cursor-pointer"
                   >
                     <div className="flex items-start justify-between mb-2">

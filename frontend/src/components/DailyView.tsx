@@ -30,6 +30,24 @@ const DailyView = () => {
     }
   }, [date]);
 
+  // Scroll to specific entry if hash is present
+  useEffect(() => {
+    if (entries.length > 0 && window.location.hash) {
+      const hash = window.location.hash.slice(1); // Remove the #
+      if (hash.startsWith('entry-')) {
+        const entryId = hash.replace('entry-', '');
+        setTimeout(() => {
+          const element = document.querySelector(`[data-entry-id="${entryId}"]`);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // Clear the hash after scrolling
+            window.history.replaceState(null, '', window.location.pathname);
+          }
+        }, 300);
+      }
+    }
+  }, [entries]);
+
   const loadDailyNote = async (preserveScroll = false) => {
     if (!date) return;
 
