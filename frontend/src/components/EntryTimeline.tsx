@@ -56,7 +56,7 @@ const EntryTimeline = ({ entries }: EntryTimelineProps) => {
   return (
     <div 
       ref={timelineRef}
-      className="fixed left-[calc((100vw-48rem)/4-6.5rem)] top-36 w-52 max-h-[calc(100vh-180px)] hidden xl:block z-10"
+      className="fixed left-[calc((100vw-56rem)/4-6.5rem)] top-36 w-52 max-h-[calc(100vh-180px)] hidden xl:block z-10"
     >
       <div className="mb-4 px-1">
         <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Timeline</h3>
