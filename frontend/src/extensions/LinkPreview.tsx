@@ -94,8 +94,18 @@ export const LinkPreviewExtension = Node.create({
     ];
   },
 
-  renderHTML({ HTMLAttributes }) {
-    return ['div', mergeAttributes({ 'data-link-preview': '' }, HTMLAttributes)];
+  renderHTML({ node, HTMLAttributes }) {
+    return [
+      'div',
+      mergeAttributes(HTMLAttributes, {
+        'data-link-preview': '',
+        'data-url': node.attrs.url,
+        'data-title': node.attrs.title,
+        'data-description': node.attrs.description,
+        'data-image': node.attrs.image,
+        'data-site-name': node.attrs.site_name,
+      }),
+    ];
   },
 
   addNodeView() {

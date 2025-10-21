@@ -221,6 +221,53 @@ const Reports = () => {
     return tmp.textContent || tmp.innerText || '';
   };
 
+  const processLinkPreviews = (html: string) => {
+    // Parse HTML and find all link preview divs
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    
+    const linkPreviews = tmp.querySelectorAll('[data-link-preview]');
+    linkPreviews.forEach((preview) => {
+      const element = preview as HTMLElement;
+      const url = element.getAttribute('data-url') || '';
+      const title = element.getAttribute('data-title') || '';
+      const description = element.getAttribute('data-description') || '';
+      const image = element.getAttribute('data-image') || '';
+      const siteName = element.getAttribute('data-site-name') || '';
+      
+      // Create a visible link preview card
+      const card = document.createElement('a');
+      card.href = url;
+      card.target = '_blank';
+      card.rel = 'noopener noreferrer';
+      card.className = 'block border border-gray-200 rounded-lg overflow-hidden hover:border-blue-400 transition-colors my-4 no-underline';
+      
+      let cardHTML = '<div class="flex gap-4 p-4">';
+      
+      if (image) {
+        cardHTML += `<div class="flex-shrink-0"><img src="${image}" alt="${title || 'Link preview'}" class="w-32 h-32 object-cover rounded" /></div>`;
+      }
+      
+      cardHTML += '<div class="flex-1 min-w-0">';
+      if (siteName) {
+        cardHTML += `<p class="text-xs text-gray-500 mb-1">${siteName}</p>`;
+      }
+      if (title) {
+        cardHTML += `<h3 class="font-semibold text-gray-900 mb-2 line-clamp-2">${title}</h3>`;
+      }
+      if (description) {
+        cardHTML += `<p class="text-sm text-gray-600 line-clamp-2 mb-2">${description}</p>`;
+      }
+      cardHTML += `<div class="flex items-center gap-1 text-xs text-blue-600"><span class="truncate">${new URL(url).hostname}</span></div>`;
+      cardHTML += '</div></div>';
+      
+      card.innerHTML = cardHTML;
+      element.replaceWith(card);
+    });
+    
+    return tmp.innerHTML;
+  };
+
   const extractContentWithLinks = (html: string) => {
     const tmp = document.createElement('div');
     tmp.innerHTML = html;
@@ -235,8 +282,25 @@ const Reports = () => {
       } else if (node.nodeType === Node.ELEMENT_NODE) {
         const element = node as HTMLElement;
         
+        // Handle link preview divs (data-link-preview attribute)
+        if (element.hasAttribute('data-link-preview')) {
+          // Find the link inside the preview
+          const link = element.querySelector('a');
+          if (link) {
+            const href = link.getAttribute('href');
+            const title = link.querySelector('h3')?.textContent?.trim();
+            const description = link.querySelector('p.text-sm')?.textContent?.trim();
+            
+            result += '\n[Link Preview]\n';
+            if (title) result += `Title: ${title}\n`;
+            if (description) result += `Description: ${description}\n`;
+            if (href) result += `URL: ${href}\n`;
+            result += '\n';
+          }
+          return; // Don't process children since we've extracted what we need
+        }
         // Handle links
-        if (element.tagName === 'A') {
+        else if (element.tagName === 'A') {
           const href = element.getAttribute('href');
           const text = element.textContent?.trim();
           if (href) {
@@ -270,7 +334,7 @@ const Reports = () => {
     Array.from(tmp.childNodes).forEach(processNode);
     
     // Clean up multiple spaces and newlines
-    return result.replace(/\s+/g, ' ').replace(/\n\s+/g, '\n').trim();
+    return result.replace(/\s+/g, ' ').replace(/\n\s+/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
   };
 
   const copySection = async (section: 'completed' | 'in-progress') => {
@@ -734,8 +798,17 @@ const Reports = () => {
                       </pre>
                     ) : (
                       <div 
-                        className="text-gray-800 leading-relaxed [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-lg [&_img]:my-2 [&_a]:text-blue-600 [&_a]:underline [&_p]:mb-2 [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:mb-2 [&_h2]:text-xl [&_h2]:font-bold [&_h2]:mb-2 [&_ul]:list-disc [&_ul]:ml-6 [&_ol]:list-decimal [&_ol]:ml-6"
-                        dangerouslySetInnerHTML={{ __html: entry.content }}
+                        className="text-gray-800 leading-relaxed 
+                          [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-lg [&_img]:my-2 
+                          [&_a]:text-blue-600 [&_a]:underline 
+                          [&_p]:mb-2 
+                          [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:mb-2 
+                          [&_h2]:text-xl [&_h2]:font-bold [&_h2]:mb-2 
+                          [&_ul]:list-disc [&_ul]:ml-6 
+                          [&_ol]:list-decimal [&_ol]:ml-6
+                          [&_[data-link-preview]]:my-4 [&_[data-link-preview]]:block
+                          [&_.link-preview]:my-4"
+                        dangerouslySetInnerHTML={{ __html: processLinkPreviews(entry.content) }}
                       />
                     )}
                   </div>
