@@ -30,8 +30,11 @@ const DailyView = () => {
     }
   }, [date]);
 
-  const loadDailyNote = async () => {
+  const loadDailyNote = async (preserveScroll = false) => {
     if (!date) return;
+
+    // Save current scroll position if we want to preserve it
+    const scrollY = preserveScroll ? window.scrollY : 0;
 
     setLoading(true);
     try {
@@ -51,8 +54,12 @@ const DailyView = () => {
       }
     } finally {
       setLoading(false);
-      // Scroll to top after content is loaded
-      setTimeout(() => window.scrollTo({ top: 0, behavior: 'instant' }), 0);
+      // Restore scroll position if preserving, otherwise scroll to top
+      if (preserveScroll) {
+        setTimeout(() => window.scrollTo({ top: scrollY, behavior: 'instant' }), 0);
+      } else {
+        setTimeout(() => window.scrollTo({ top: 0, behavior: 'instant' }), 0);
+      }
     }
   };
 
@@ -234,7 +241,7 @@ const DailyView = () => {
               <LabelSelector
                 date={date}
                 selectedLabels={note?.labels || []}
-                onLabelsChange={loadDailyNote}
+                onLabelsChange={() => loadDailyNote(true)}
               />
             </div>
           </div>
@@ -322,7 +329,7 @@ const DailyView = () => {
                   entry={entry}
                   onUpdate={handleEntryUpdate}
                   onDelete={handleEntryDelete}
-                  onLabelsChange={loadDailyNote}
+                  onLabelsChange={() => loadDailyNote(true)}
                   selectionMode={selectionMode}
                   isSelected={selectedEntries.has(entry.id)}
                   onSelectionChange={handleSelectionChange}
