@@ -80,8 +80,8 @@ async def download_all_files():
     if not UPLOAD_DIR.exists():
         raise HTTPException(status_code=404, detail="Upload directory not found")
     
-    # Get all files in the upload directory
-    files = list(UPLOAD_DIR.glob("*"))
+    # Get all files recursively in the upload directory
+    files = list(UPLOAD_DIR.rglob("*"))
     
     if not files:
         raise HTTPException(status_code=404, detail="No files to download")
@@ -91,8 +91,9 @@ async def download_all_files():
     with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
         for file_path in files:
             if file_path.is_file():
-                # Add file to zip with just the filename (no path)
-                zip_file.write(file_path, file_path.name)
+                # Add file to zip preserving relative folder structure
+                relative_path = file_path.relative_to(UPLOAD_DIR)
+                zip_file.write(file_path, relative_path)
     
     # Seek to beginning of buffer
     zip_buffer.seek(0)
