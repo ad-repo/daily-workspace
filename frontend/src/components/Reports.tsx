@@ -634,10 +634,16 @@ const Reports = () => {
                       </div>
                     </div>
 
-                    <div 
-                      className="prose max-w-none text-gray-700"
-                      dangerouslySetInnerHTML={{ __html: entry.content }}
-                    />
+                    {entry.content_type === 'code' ? (
+                      <pre className="text-sm bg-gray-900 text-white p-3 rounded overflow-x-auto">
+                        <code>{entry.content}</code>
+                      </pre>
+                    ) : (
+                      <div 
+                        className="prose max-w-none"
+                        dangerouslySetInnerHTML={{ __html: entry.content }}
+                      />
+                    )}
                   </div>
                 ))}
               </div>
