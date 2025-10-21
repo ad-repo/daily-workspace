@@ -13,36 +13,41 @@ router = APIRouter()
 async def export_data(db: Session = Depends(get_db)):
     """Export all data as JSON"""
     
-    # Get all notes with entries and tags
+    # Get all notes with entries and labels
     notes = db.query(models.DailyNote).all()
-    tags = db.query(models.Tag).all()
+    labels = db.query(models.Label).all()
     
     export_data = {
-        "version": "1.0",
+        "version": "2.0",
         "exported_at": datetime.utcnow().isoformat(),
-        "tags": [
+        "labels": [
             {
-                "id": tag.id,
-                "name": tag.name,
-                "color": tag.color,
-                "created_at": tag.created_at.isoformat()
+                "id": label.id,
+                "name": label.name,
+                "color": label.color,
+                "created_at": label.created_at.isoformat()
             }
-            for tag in tags
+            for label in labels
         ],
         "notes": [
             {
                 "date": note.date,
                 "fire_rating": note.fire_rating,
+                "daily_goal": note.daily_goal,
                 "created_at": note.created_at.isoformat(),
                 "updated_at": note.updated_at.isoformat(),
-                "tags": [tag.id for tag in note.tags],
+                "labels": [label.id for label in note.labels],
                 "entries": [
                     {
                         "content": entry.content,
                         "content_type": entry.content_type,
                         "order_index": entry.order_index,
+                        "include_in_report": bool(entry.include_in_report),
+                        "is_important": bool(entry.is_important),
+                        "is_completed": bool(entry.is_completed),
                         "created_at": entry.created_at.isoformat(),
-                        "updated_at": entry.updated_at.isoformat()
+                        "updated_at": entry.updated_at.isoformat(),
+                        "labels": [label.id for label in entry.labels]
                     }
                     for entry in note.entries
                 ]
@@ -80,29 +85,30 @@ async def import_data(
             raise HTTPException(status_code=400, detail="Invalid backup file format")
         
         stats = {
-            "tags_imported": 0,
+            "labels_imported": 0,
             "notes_imported": 0,
             "entries_imported": 0,
-            "tags_skipped": 0,
+            "labels_skipped": 0,
             "notes_skipped": 0
         }
         
-        # Import tags first
-        tag_id_mapping = {}
-        for tag_data in data.get("tags", []):
-            existing_tag = db.query(models.Tag).filter(models.Tag.name == tag_data["name"]).first()
-            if existing_tag:
-                tag_id_mapping[tag_data["id"]] = existing_tag.id
-                stats["tags_skipped"] += 1
+        # Import labels first (support both old "tags" and new "labels" format)
+        label_id_mapping = {}
+        labels_data = data.get("labels", data.get("tags", []))
+        for label_data in labels_data:
+            existing_label = db.query(models.Label).filter(models.Label.name == label_data["name"]).first()
+            if existing_label:
+                label_id_mapping[label_data["id"]] = existing_label.id
+                stats["labels_skipped"] += 1
             else:
-                new_tag = models.Tag(
-                    name=tag_data["name"],
-                    color=tag_data.get("color", "#3b82f6")
+                new_label = models.Label(
+                    name=label_data["name"],
+                    color=label_data.get("color", "#3b82f6")
                 )
-                db.add(new_tag)
+                db.add(new_label)
                 db.flush()
-                tag_id_mapping[tag_data["id"]] = new_tag.id
-                stats["tags_imported"] += 1
+                label_id_mapping[label_data["id"]] = new_label.id
+                stats["labels_imported"] += 1
         
         db.commit()
         
@@ -118,15 +124,18 @@ async def import_data(
                     db.query(models.NoteEntry).filter(
                         models.NoteEntry.daily_note_id == existing_note.id
                     ).delete()
-                    existing_note.tags.clear()
+                    existing_note.labels.clear()
                     note = existing_note
+                    note.fire_rating = note_data.get("fire_rating", 0)
+                    note.daily_goal = note_data.get("daily_goal", "")
                 else:
                     stats["notes_skipped"] += 1
                     continue
             else:
                 note = models.DailyNote(
                     date=note_data["date"],
-                    fire_rating=note_data.get("fire_rating", 0)
+                    fire_rating=note_data.get("fire_rating", 0),
+                    daily_goal=note_data.get("daily_goal", "")
                 )
                 db.add(note)
                 stats["notes_imported"] += 1
@@ -139,19 +148,34 @@ async def import_data(
                     daily_note_id=note.id,
                     content=entry_data["content"],
                     content_type=entry_data.get("content_type", "rich_text"),
-                    order_index=entry_data.get("order_index", 0)
+                    order_index=entry_data.get("order_index", 0),
+                    include_in_report=1 if entry_data.get("include_in_report", False) else 0,
+                    is_important=1 if entry_data.get("is_important", False) else 0,
+                    is_completed=1 if entry_data.get("is_completed", False) else 0
                 )
                 db.add(entry)
+                db.flush()
+                
+                # Add entry labels
+                for old_label_id in entry_data.get("labels", []):
+                    if old_label_id in label_id_mapping:
+                        label = db.query(models.Label).filter(
+                            models.Label.id == label_id_mapping[old_label_id]
+                        ).first()
+                        if label and label not in entry.labels:
+                            entry.labels.append(label)
+                
                 stats["entries_imported"] += 1
             
-            # Add tags
-            for old_tag_id in note_data.get("tags", []):
-                if old_tag_id in tag_id_mapping:
-                    tag = db.query(models.Tag).filter(
-                        models.Tag.id == tag_id_mapping[old_tag_id]
+            # Add note labels (support both old "tags" and new "labels" format)
+            note_labels = note_data.get("labels", note_data.get("tags", []))
+            for old_label_id in note_labels:
+                if old_label_id in label_id_mapping:
+                    label = db.query(models.Label).filter(
+                        models.Label.id == label_id_mapping[old_label_id]
                     ).first()
-                    if tag and tag not in note.tags:
-                        note.tags.append(tag)
+                    if label and label not in note.labels:
+                        note.labels.append(label)
         
         db.commit()
         

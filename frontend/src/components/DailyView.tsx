@@ -6,6 +6,7 @@ import { notesApi, entriesApi } from '../api';
 import type { DailyNote, NoteEntry } from '../types';
 import NoteEntryCard from './NoteEntryCard';
 import LabelSelector from './LabelSelector';
+import EntryTimeline from './EntryTimeline';
 
 const DailyView = () => {
   const { date } = useParams<{ date: string }>();
@@ -125,9 +126,11 @@ const DailyView = () => {
   const isToday = format(new Date(), 'yyyy-MM-dd') === date;
 
   return (
-    <div className="max-w-5xl mx-auto">
+    <div className="relative">
+      <EntryTimeline entries={entries} />
+      <div className="max-w-3xl mx-auto px-4 xl:px-8">
       {/* Header */}
-      <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+      <div className="bg-white rounded-lg shadow-lg p-8 mb-8">
         <div className="flex items-center justify-between mb-4">
           <button
             onClick={handlePreviousDay}
@@ -157,9 +160,9 @@ const DailyView = () => {
           </button>
         </div>
 
-          <div className="flex flex-col items-center gap-4 w-full max-w-2xl">
+          <div className="flex flex-col items-center gap-6 w-full">
             {/* Daily Goals Section */}
-            <div className="w-full px-4">
+            <div className="w-full">
               <label className="block text-sm font-medium text-gray-700 mb-2">Daily Goals:</label>
               <textarea
                 value={dailyGoal}
@@ -171,7 +174,7 @@ const DailyView = () => {
             </div>
             
             {/* Labels Section */}
-            <div className="w-full px-4">
+            <div className="w-full">
               <label className="block text-sm font-medium text-gray-700 mb-2">Day Labels:</label>
               <LabelSelector
                 date={date}
@@ -183,7 +186,7 @@ const DailyView = () => {
       </div>
 
       {/* Entries */}
-      <div className="space-y-4">
+      <div className="space-y-6">
         {loading ? (
           <div className="bg-white rounded-lg shadow-lg p-8 text-center text-gray-500">
             Loading...
@@ -227,17 +230,19 @@ const DailyView = () => {
               </button>
             </div>
             {entries.map((entry) => (
-              <NoteEntryCard
-                key={entry.id}
-                entry={entry}
-                onUpdate={handleEntryUpdate}
-                onDelete={handleEntryDelete}
-                onLabelsChange={loadDailyNote}
-              />
+              <div key={entry.id} data-entry-id={entry.id}>
+                <NoteEntryCard
+                  entry={entry}
+                  onUpdate={handleEntryUpdate}
+                  onDelete={handleEntryDelete}
+                  onLabelsChange={loadDailyNote}
+                />
+              </div>
             ))}
           </>
         )}
       </div>
+    </div>
     </div>
   );
 };

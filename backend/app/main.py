@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine, Base
-from app.routers import notes, entries, uploads, tags, backup, reports
+from app.routers import notes, entries, uploads, labels, backup, reports
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
@@ -21,7 +21,7 @@ app.add_middleware(
 app.include_router(notes.router, prefix="/api/notes", tags=["notes"])
 app.include_router(entries.router, prefix="/api/entries", tags=["entries"])
 app.include_router(uploads.router, prefix="/api/uploads", tags=["uploads"])
-app.include_router(tags.router, prefix="/api/labels", tags=["labels"])
+app.include_router(labels.router, prefix="/api/labels", tags=["labels"])
 app.include_router(backup.router, prefix="/api/backup", tags=["backup"])
 app.include_router(reports.router, prefix="/api/reports", tags=["reports"])
 
