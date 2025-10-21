@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { FileText, Download, Calendar, Copy, Check } from 'lucide-react';
 import axios from 'axios';
 import { format } from 'date-fns';
-import { formatInTimeZone } from 'date-fns-tz';
 import { useTimezone } from '../contexts/TimezoneContext';
+import { formatTimestamp } from '../utils/timezone';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -608,7 +608,7 @@ const Reports = () => {
                         <div className="flex items-center gap-3 mb-2">
                           <span className="text-lg font-semibold text-gray-900">{entry.date}</span>
                           <span className="text-sm text-gray-500">
-                            {formatInTimeZone(new Date(entry.created_at), timezone, 'h:mm a')}
+                            {formatTimestamp(entry.created_at, timezone, 'h:mm a')}
                           </span>
                           {entry.content_type === 'code' && (
                             <span className="px-2 py-0.5 bg-gray-800 text-white text-xs rounded">Code</span>

@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Trash2, Clock, FileText, Star, Check, Copy, CheckCheck } from 'lucide-react';
-import { formatInTimeZone } from 'date-fns-tz';
 import axios from 'axios';
 import type { NoteEntry } from '../types';
 import RichTextEditor from './RichTextEditor';
 import CodeEditor from './CodeEditor';
 import LabelSelector from './LabelSelector';
 import { useTimezone } from '../contexts/TimezoneContext';
+import { formatTimestamp } from '../utils/timezone';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -137,7 +137,7 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsChange, isSelected =
             <div className="flex items-center gap-2 text-sm text-gray-500">
               <Clock className="h-4 w-4" />
               <span>
-                {formatInTimeZone(new Date(entry.created_at), timezone, 'h:mm a zzz')}
+                {formatTimestamp(entry.created_at, timezone, 'h:mm a zzz')}
               </span>
               {isSaving && (
                 <span className="text-blue-600 ml-2">Saving...</span>

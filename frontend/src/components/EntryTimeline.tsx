@@ -1,8 +1,8 @@
 import { useEffect, useState, useRef } from 'react';
-import { formatInTimeZone } from 'date-fns-tz';
 import { Check, Star, Code, FileText } from 'lucide-react';
 import type { NoteEntry } from '../types';
 import { useTimezone } from '../contexts/TimezoneContext';
+import { formatTimestamp } from '../utils/timezone';
 
 interface EntryTimelineProps {
   entries: NoteEntry[];
@@ -66,7 +66,7 @@ const EntryTimeline = ({ entries }: EntryTimelineProps) => {
       <div className="space-y-1">
         {entries.map((entry, index) => {
           const isActive = entry.id === activeEntryId;
-          const time = formatInTimeZone(new Date(entry.created_at), timezone, 'h:mm a');
+          const time = formatTimestamp(entry.created_at, timezone, 'h:mm a');
           
           return (
             <button

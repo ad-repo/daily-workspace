@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { Search as SearchIcon, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { formatInTimeZone } from 'date-fns-tz';
 import type { NoteEntry, Label } from '../types';
 import { useTimezone } from '../contexts/TimezoneContext';
+import { formatTimestamp } from '../utils/timezone';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -284,7 +284,7 @@ const Search = () => {
                           {date}
                         </span>
                         <span className="text-sm text-gray-500">
-                          {formatInTimeZone(new Date(entry.created_at), timezone, 'h:mm a zzz')}
+                          {formatTimestamp(entry.created_at, timezone, 'h:mm a zzz')}
                         </span>
                         {entry.content_type === 'code' && (
                           <span className="px-2 py-0.5 bg-gray-800 text-white text-xs rounded">
