@@ -29,7 +29,7 @@ const EmojiPicker = ({ onEmojiSelect }: EmojiPickerProps) => {
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-1 px-3 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+        className="flex items-center gap-1 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         title="Pick emoji"
       >
         <Smile className="h-4 w-4" />
