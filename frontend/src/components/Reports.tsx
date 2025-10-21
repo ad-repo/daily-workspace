@@ -34,6 +34,11 @@ const Reports = () => {
   const [loading, setLoading] = useState(false);
   const [selectedWeek, setSelectedWeek] = useState<string>('');
   const [copiedSection, setCopiedSection] = useState<string | null>(null);
+  
+  // All entries report states
+  const [allEntriesReport, setAllEntriesReport] = useState<any | null>(null);
+  const [loadingAll, setLoadingAll] = useState(false);
+  const [copiedAllReport, setCopiedAllReport] = useState(false);
 
   useEffect(() => {
     loadAvailableWeeks();
@@ -63,6 +68,72 @@ const Reports = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const generateAllEntriesReport = async () => {
+    setLoadingAll(true);
+    try {
+      const response = await axios.get(`${API_URL}/api/reports/all-entries`);
+      setAllEntriesReport(response.data);
+    } catch (error) {
+      console.error('Failed to generate all entries report:', error);
+      alert('Failed to generate report');
+    } finally {
+      setLoadingAll(false);
+    }
+  };
+
+  const exportAllEntriesReport = () => {
+    if (!allEntriesReport) return;
+
+    let markdown = `# All Entries Report\n\n`;
+    markdown += `**Generated:** ${new Date(allEntriesReport.generated_at).toLocaleString()}\n\n`;
+    markdown += `**Total Entries:** ${allEntriesReport.entries.length}\n\n`;
+    markdown += `---\n\n`;
+
+    if (allEntriesReport.entries.length === 0) {
+      markdown += `No entries found.\n`;
+    } else {
+      let currentDate = '';
+      allEntriesReport.entries.forEach((entry: any) => {
+        if (entry.date !== currentDate) {
+          currentDate = entry.date;
+          markdown += `\n## ${currentDate}\n\n`;
+        }
+
+        const time = new Date(entry.created_at).toLocaleTimeString('en-US', { 
+          hour: 'numeric', 
+          minute: '2-digit',
+          hour12: true 
+        });
+
+        markdown += `### ${time}`;
+        if (entry.is_important) markdown += ` ⭐`;
+        if (entry.is_completed) markdown += ` ✓`;
+        markdown += `\n\n`;
+
+        if (entry.labels.length > 0) {
+          markdown += `*Labels: ${entry.labels.map((l: any) => l.name).join(', ')}*\n\n`;
+        }
+
+        const content = entry.content_type === 'code'
+          ? `\`\`\`\n${entry.content}\n\`\`\`\n`
+          : entry.content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+
+        markdown += `${content}\n\n`;
+        markdown += `---\n\n`;
+      });
+    }
+
+    const blob = new Blob([markdown], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `all-entries-${format(new Date(), 'yyyy-MM-dd')}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   const exportReport = () => {
@@ -179,6 +250,59 @@ const Reports = () => {
       await navigator.clipboard.writeText(text);
       setCopiedSection(section);
       setTimeout(() => setCopiedSection(null), 2000);
+    } catch (error) {
+      console.error('Failed to copy:', error);
+      alert('Failed to copy to clipboard');
+    }
+  };
+
+  const copyAllEntriesReport = async () => {
+    if (!allEntriesReport) return;
+
+    let text = `All Entries Report\n\n`;
+    text += `Total Entries: ${allEntriesReport.entries.length}\n\n`;
+    text += `${'='.repeat(60)}\n\n`;
+
+    if (allEntriesReport.entries.length === 0) {
+      text += `No entries found.\n`;
+    } else {
+      let currentDate = '';
+      allEntriesReport.entries.forEach((entry: any) => {
+        if (entry.date !== currentDate) {
+          currentDate = entry.date;
+          text += `\n${currentDate}\n${'='.repeat(60)}\n\n`;
+        }
+
+        const time = new Date(entry.created_at).toLocaleTimeString('en-US', {
+          hour: 'numeric',
+          minute: '2-digit',
+          hour12: true
+        });
+
+        text += `${time}`;
+        if (entry.is_important) text += ` ⭐`;
+        if (entry.is_completed) text += ` ✓`;
+        text += `\n`;
+
+        if (entry.labels.length > 0) {
+          text += `Labels: ${entry.labels.map((l: any) => l.name).join(', ')}\n`;
+        }
+
+        text += `\n`;
+
+        const content = entry.content_type === 'code'
+          ? entry.content
+          : stripHtml(entry.content);
+
+        text += `${content}\n\n`;
+        text += `${'-'.repeat(60)}\n\n`;
+      });
+    }
+
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedAllReport(true);
+      setTimeout(() => setCopiedAllReport(false), 2000);
     } catch (error) {
       console.error('Failed to copy:', error);
       alert('Failed to copy to clipboard');
@@ -399,6 +523,125 @@ const Reports = () => {
                 </>
               )}
             </div>
+          </div>
+        )}
+      </div>
+
+      {/* All Entries Report Section */}
+      <div className="bg-white rounded-lg shadow-lg p-6 mt-6">
+        <div className="mb-6">
+          <div className="flex items-center gap-3 mb-4">
+            <FileText className="h-8 w-8 text-gray-700" />
+            <h2 className="text-2xl font-bold text-gray-900">All Entries Report</h2>
+          </div>
+          <p className="text-gray-600 mb-4">
+            Generate a complete report of ALL entries ever created (not filtered by date or "Add to Report" checkbox).
+          </p>
+
+          <div className="flex gap-4 items-end mb-4">
+            <button
+              onClick={generateAllEntriesReport}
+              disabled={loadingAll}
+              className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loadingAll ? 'Generating...' : 'Generate All Entries Report'}
+            </button>
+
+            {allEntriesReport && (
+              <>
+                <button
+                  onClick={copyAllEntriesReport}
+                  className={`flex items-center gap-2 px-6 py-3 rounded-lg transition-colors ${
+                    copiedAllReport
+                      ? 'bg-green-600 text-white'
+                      : 'bg-gray-600 text-white hover:bg-gray-700'
+                  }`}
+                >
+                  {copiedAllReport ? (
+                    <>
+                      <Check className="h-5 w-5" />
+                      Copied!
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-5 w-5" />
+                      Copy
+                    </>
+                  )}
+                </button>
+                <button
+                  onClick={exportAllEntriesReport}
+                  className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <Download className="h-5 w-5" />
+                  Export
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+
+        {allEntriesReport && (
+          <div className="border-t pt-6">
+            <div className="mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">
+                All Entries
+              </h3>
+              <p className="text-sm text-gray-500">
+                {allEntriesReport.entries.length} {allEntriesReport.entries.length === 1 ? 'entry' : 'entries'}
+              </p>
+            </div>
+
+            {allEntriesReport.entries.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                No entries found.
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {allEntriesReport.entries.map((entry: any) => (
+                  <div key={entry.entry_id} className="border border-gray-200 rounded-lg p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <span className="text-sm font-semibold text-blue-600">{entry.date}</span>
+                          <span className="text-sm text-gray-500">
+                            {new Date(entry.created_at).toLocaleTimeString('en-US', {
+                              hour: 'numeric',
+                              minute: '2-digit',
+                              hour12: true
+                            })}
+                          </span>
+                          {entry.content_type === 'code' && (
+                            <span className="px-2 py-0.5 bg-gray-800 text-white text-xs rounded">Code</span>
+                          )}
+                          {entry.is_important && <span title="Important">⭐</span>}
+                          {entry.is_completed && <span title="Completed">✓</span>}
+                        </div>
+
+                        {entry.labels.length > 0 && (
+                          <div className="flex gap-2 flex-wrap mb-2">
+                            {entry.labels.map((label: any) => (
+                              <span
+                                key={label.name}
+                                className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium text-white"
+                                style={{ backgroundColor: label.color }}
+                              >
+                                {label.name}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div 
+                      className="prose max-w-none text-gray-700"
+                      dangerouslySetInnerHTML={{ __html: entry.content }}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>

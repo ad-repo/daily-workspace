@@ -6,7 +6,7 @@ from app import models, schemas
 
 router = APIRouter()
 
-@router.get("/", response_model=List[schemas.NoteEntry])
+@router.get("/", response_model=List[schemas.SearchResult])
 def search_entries(
     q: Optional[str] = Query(None, description="Search query for content"),
     label_ids: Optional[str] = Query(None, description="Comma-separated label IDs to filter by"),
@@ -45,5 +45,24 @@ def search_entries(
     # Limit results to prevent overwhelming response
     results = query.limit(100).all()
     
-    return results
+    # Build search results with date from daily_note
+    search_results = []
+    for entry in results:
+        result_dict = {
+            "id": entry.id,
+            "daily_note_id": entry.daily_note_id,
+            "content": entry.content,
+            "content_type": entry.content_type,
+            "order_index": entry.order_index,
+            "created_at": entry.created_at,
+            "updated_at": entry.updated_at,
+            "labels": entry.labels,
+            "include_in_report": bool(entry.include_in_report),
+            "is_important": bool(entry.is_important),
+            "is_completed": bool(entry.is_completed),
+            "date": entry.daily_note.date if entry.daily_note else "Unknown"
+        }
+        search_results.append(result_dict)
+    
+    return search_results
 

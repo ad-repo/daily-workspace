@@ -8,6 +8,11 @@ import type { NoteEntry, Label } from '../types';
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 const TIMEZONE = 'America/New_York';
 
+interface SearchHistoryItem {
+  query: string;
+  created_at: string;
+}
+
 const Search = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLabels, setSelectedLabels] = useState<number[]>([]);
@@ -15,11 +20,34 @@ const Search = () => {
   const [results, setResults] = useState<NoteEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [searchHistory, setSearchHistory] = useState<SearchHistoryItem[]>([]);
   const navigate = useNavigate();
 
   useEffect(() => {
     loadLabels();
+    loadSearchHistory();
   }, []);
+
+  useEffect(() => {
+    // Reset search when component unmounts or navigates away
+    return () => {
+      setSearchQuery('');
+      setSelectedLabels([]);
+      setResults([]);
+      setHasSearched(false);
+    };
+  }, []);
+
+  // Auto-search when labels change
+  useEffect(() => {
+    if (selectedLabels.length > 0) {
+      handleSearch();
+    } else if (hasSearched && !searchQuery.trim()) {
+      // Clear results if no labels and no query
+      setResults([]);
+      setHasSearched(false);
+    }
+  }, [selectedLabels]);
 
   const loadLabels = async () => {
     try {
@@ -30,6 +58,29 @@ const Search = () => {
     }
   };
 
+  const loadSearchHistory = async () => {
+    try {
+      const response = await axios.get<SearchHistoryItem[]>(`${API_URL}/api/search-history/`);
+      setSearchHistory(response.data);
+    } catch (error) {
+      console.error('Failed to load search history:', error);
+    }
+  };
+
+  const saveToHistory = async (query: string) => {
+    if (!query.trim()) return;
+
+    try {
+      await axios.post(`${API_URL}/api/search-history/`, null, {
+        params: { query: query.trim() }
+      });
+      // Reload history to get updated list
+      await loadSearchHistory();
+    } catch (error) {
+      console.error('Failed to save search history:', error);
+    }
+  };
+
   const handleSearch = async () => {
     if (!searchQuery.trim() && selectedLabels.length === 0) {
       return;
@@ -37,6 +88,11 @@ const Search = () => {
 
     setLoading(true);
     setHasSearched(true);
+
+    // Save to history if there's a text query
+    if (searchQuery.trim()) {
+      saveToHistory(searchQuery);
+    }
 
     try {
       const params: any = {};
@@ -160,6 +216,34 @@ const Search = () => {
           </div>
         </div>
 
+        {/* Search History */}
+        {searchHistory.length > 0 && !hasSearched && (
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Recent Searches:
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {searchHistory.map((item, index) => (
+                <button
+                  key={index}
+                  onClick={() => {
+                    setSearchQuery(item.query);
+                    // Trigger search after setting query
+                    setTimeout(() => {
+                      const event = new KeyboardEvent('keypress', { key: 'Enter' });
+                      handleSearch();
+                    }, 0);
+                  }}
+                  className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full text-sm transition-colors flex items-center gap-2"
+                >
+                  <SearchIcon className="h-3 w-3" />
+                  {item.query}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Search Info */}
         {hasSearched && (
           <div className="text-sm text-gray-600 mb-4">
@@ -178,9 +262,9 @@ const Search = () => {
               No results found. Try a different search query or labels.
             </div>
           ) : (
-            results.map((entry) => {
-              // Extract date from the entry's relationship
-              const date = (entry as any).daily_note?.date || 'Unknown';
+            results.map((entry: any) => {
+              // Extract date from the search result
+              const date = entry.date || 'Unknown';
               const content = entry.content_type === 'code' 
                 ? entry.content 
                 : stripHtml(entry.content);

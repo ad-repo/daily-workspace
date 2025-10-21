@@ -102,3 +102,18 @@ class MergeEntriesRequest(BaseModel):
     separator: str = "\n\n"
     delete_originals: bool = True
 
+# Search Schemas
+class SearchResult(NoteEntryBase):
+    id: int
+    daily_note_id: int
+    date: str  # Date of the daily note
+    created_at: datetime
+    updated_at: datetime
+    labels: List[Label] = []
+    include_in_report: bool = False
+    is_important: bool = False
+    is_completed: bool = False
+
+    class Config:
+        from_attributes = True
+

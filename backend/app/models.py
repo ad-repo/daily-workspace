@@ -71,3 +71,11 @@ class NoteEntry(Base):
     daily_note = relationship("DailyNote", back_populates="entries")
     labels = relationship("Label", secondary=entry_labels, back_populates="entries")
 
+class SearchHistory(Base):
+    """Model for search history"""
+    __tablename__ = "search_history"
+
+    id = Column(Integer, primary_key=True, index=True)
+    query = Column(String, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+

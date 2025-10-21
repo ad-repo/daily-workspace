@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Trash2, Clock, FileText, Star, Check } from 'lucide-react';
+import { Trash2, Clock, FileText, Star, Check, Copy, CheckCheck } from 'lucide-react';
 import { formatInTimeZone } from 'date-fns-tz';
 import axios from 'axios';
 import type { NoteEntry } from '../types';
@@ -25,6 +25,7 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsChange, isSelected =
   const [includeInReport, setIncludeInReport] = useState(entry.include_in_report || false);
   const [isImportant, setIsImportant] = useState(entry.is_important || false);
   const [isCompleted, setIsCompleted] = useState(entry.is_completed || false);
+  const [copied, setCopied] = useState(false);
   const isCodeEntry = entry.content_type === 'code';
 
   // Sync state with entry prop changes
@@ -98,6 +99,26 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsChange, isSelected =
     }
   };
 
+  const handleCopy = async () => {
+    try {
+      let textToCopy = content;
+      
+      // Strip HTML for rich text entries
+      if (!isCodeEntry) {
+        const tmp = document.createElement('div');
+        tmp.innerHTML = content;
+        textToCopy = tmp.textContent || tmp.innerText || '';
+      }
+      
+      await navigator.clipboard.writeText(textToCopy);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      console.error('Failed to copy:', error);
+      alert('Failed to copy to clipboard');
+    }
+  };
+
   return (
     <div className={`bg-white rounded-lg shadow-lg overflow-hidden transition-all hover:shadow-xl ${isSelected ? 'ring-2 ring-blue-500' : ''}`}>
       <div className="p-6">
@@ -158,6 +179,22 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsChange, isSelected =
               title={isImportant ? "Mark as not important" : "Mark as important"}
             >
               <Star className={`h-5 w-5 ${isImportant ? 'fill-current' : ''}`} />
+            </button>
+            
+            <button
+              onClick={handleCopy}
+              className={`p-2 rounded transition-colors ${
+                copied 
+                  ? 'text-green-500' 
+                  : 'text-gray-400 hover:text-blue-600 hover:bg-blue-50'
+              }`}
+              title={copied ? "Copied!" : "Copy content"}
+            >
+              {copied ? (
+                <CheckCheck className="h-5 w-5" />
+              ) : (
+                <Copy className="h-5 w-5" />
+              )}
             </button>
             
             <button

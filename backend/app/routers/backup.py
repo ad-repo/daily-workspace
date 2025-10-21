@@ -16,10 +16,18 @@ async def export_data(db: Session = Depends(get_db)):
     # Get all notes with entries and labels
     notes = db.query(models.DailyNote).all()
     labels = db.query(models.Label).all()
+    search_history = db.query(models.SearchHistory).order_by(models.SearchHistory.created_at.desc()).all()
     
     export_data = {
-        "version": "2.0",
+        "version": "3.0",
         "exported_at": datetime.utcnow().isoformat(),
+        "search_history": [
+            {
+                "query": item.query,
+                "created_at": item.created_at.isoformat()
+            }
+            for item in search_history
+        ],
         "labels": [
             {
                 "id": label.id,
@@ -89,10 +97,30 @@ async def import_data(
             "notes_imported": 0,
             "entries_imported": 0,
             "labels_skipped": 0,
-            "notes_skipped": 0
+            "notes_skipped": 0,
+            "search_history_imported": 0
         }
         
-        # Import labels first (support both old "tags" and new "labels" format)
+        # Import search history
+        search_history_data = data.get("search_history", [])
+        for history_item in search_history_data:
+            # Check if this query already exists
+            existing = db.query(models.SearchHistory).filter(
+                models.SearchHistory.query == history_item["query"],
+                models.SearchHistory.created_at == datetime.fromisoformat(history_item["created_at"])
+            ).first()
+            
+            if not existing:
+                new_history = models.SearchHistory(
+                    query=history_item["query"],
+                    created_at=datetime.fromisoformat(history_item["created_at"])
+                )
+                db.add(new_history)
+                stats["search_history_imported"] += 1
+        
+        db.commit()
+        
+        # Import labels (support both old "tags" and new "labels" format)
         label_id_mapping = {}
         labels_data = data.get("labels", data.get("tags", []))
         for label_data in labels_data:
