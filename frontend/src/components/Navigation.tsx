@@ -23,7 +23,7 @@ const Navigation = () => {
                 : 'text-gray-600 hover:bg-gray-100'
             }`}
           >
-            <span className="text-2xl leading-none">💻</span>
+            <Laptop className="h-6 w-6" />
             <span className="text-xl font-bold">pull your shit together</span>
           </Link>
 
@@ -36,7 +36,7 @@ const Navigation = () => {
                   : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
-              <span className="text-lg leading-none">💻</span>
+              <Laptop className="h-5 w-5" />
               <span className="font-medium">{dayName}</span>
             </Link>
 
