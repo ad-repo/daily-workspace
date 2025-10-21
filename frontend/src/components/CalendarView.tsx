@@ -77,10 +77,11 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
       const hasImportantEntries = note.entries.some(entry => entry.is_important);
       
       return (
-        <div className="flex flex-col items-center justify-center mt-1 gap-0.5">
-          <div className="w-1.5 h-1.5 bg-blue-500 rounded-full" />
-          {hasImportantEntries && (
+        <div className="flex flex-col items-center justify-center mt-1">
+          {hasImportantEntries ? (
             <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />
+          ) : (
+            <div className="w-1.5 h-1.5 bg-blue-500 rounded-full" />
           )}
         </div>
       );
@@ -110,12 +111,12 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
           <h3 className="text-sm font-semibold text-gray-700 mb-2">Legend</h3>
           <div className="flex flex-wrap gap-4 text-sm text-gray-600">
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-blue-500 rounded-full" />
-              <span>Has notes</span>
-            </div>
-            <div className="flex items-center gap-2">
               <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
               <span>Has important entries</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-blue-500 rounded-full" />
+              <span>Has notes</span>
             </div>
           </div>
         </div>
