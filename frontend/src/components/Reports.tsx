@@ -235,6 +235,11 @@ const Reports = () => {
       const image = element.getAttribute('data-image') || '';
       const siteName = element.getAttribute('data-site-name') || '';
       
+      // Skip if no valid URL
+      if (!url || url === 'null' || url === 'undefined') {
+        return;
+      }
+      
       // Create a visible link preview card
       const card = document.createElement('a');
       card.href = url;
@@ -244,21 +249,30 @@ const Reports = () => {
       
       let cardHTML = '<div class="flex gap-4 p-4">';
       
-      if (image) {
+      if (image && image !== 'null' && image !== 'undefined') {
         cardHTML += `<div class="flex-shrink-0"><img src="${image}" alt="${title || 'Link preview'}" class="w-32 h-32 object-cover rounded" /></div>`;
       }
       
       cardHTML += '<div class="flex-1 min-w-0">';
-      if (siteName) {
+      if (siteName && siteName !== 'null' && siteName !== 'undefined') {
         cardHTML += `<p class="text-xs text-gray-500 mb-1">${siteName}</p>`;
       }
-      if (title) {
+      if (title && title !== 'null' && title !== 'undefined') {
         cardHTML += `<h3 class="font-semibold text-gray-900 mb-2 line-clamp-2">${title}</h3>`;
       }
-      if (description) {
+      if (description && description !== 'null' && description !== 'undefined') {
         cardHTML += `<p class="text-sm text-gray-600 line-clamp-2 mb-2">${description}</p>`;
       }
-      cardHTML += `<div class="flex items-center gap-1 text-xs text-blue-600"><span class="truncate">${new URL(url).hostname}</span></div>`;
+      
+      // Try to extract hostname, fallback to full URL if parsing fails
+      let displayUrl = url;
+      try {
+        displayUrl = new URL(url).hostname;
+      } catch (e) {
+        console.warn('Invalid URL for link preview:', url);
+      }
+      
+      cardHTML += `<div class="flex items-center gap-1 text-xs text-blue-600"><span class="truncate">${displayUrl}</span></div>`;
       cardHTML += '</div></div>';
       
       card.innerHTML = cardHTML;
