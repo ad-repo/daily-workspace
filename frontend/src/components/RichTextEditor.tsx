@@ -23,7 +23,9 @@ import {
   Code2,
   FileText,
   Paperclip,
+  ExternalLink,
 } from 'lucide-react';
+import { LinkPreviewExtension, fetchLinkPreview } from '../extensions/LinkPreview';
 
 interface RichTextEditorProps {
   content: string;
@@ -75,6 +77,7 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
           class: 'bg-gray-900 text-white p-4 rounded-lg',
         },
       }),
+      LinkPreviewExtension,
       Placeholder.configure({
         placeholder,
       }),
@@ -257,6 +260,26 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
     input.click();
   };
 
+  const addLinkPreview = async () => {
+    const url = window.prompt('Enter URL to preview:');
+    if (!url) return;
+
+    try {
+      const preview = await fetchLinkPreview(url);
+      if (preview) {
+        editor?.chain().focus().insertContent({
+          type: 'linkPreview',
+          attrs: preview,
+        }).run();
+      } else {
+        alert('Failed to fetch link preview. The link might not support previews.');
+      }
+    } catch (error) {
+      console.error('Failed to add link preview:', error);
+      alert('Failed to add link preview.');
+    }
+  };
+
   const ToolbarButton = ({
     onClick,
     active,
@@ -380,6 +403,10 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
 
         <ToolbarButton onClick={addLink} active={editor.isActive('link')} title="Add Link">
           <Link2 className="h-4 w-4" />
+        </ToolbarButton>
+
+        <ToolbarButton onClick={addLinkPreview} title="Add Link Preview">
+          <ExternalLink className="h-4 w-4" />
         </ToolbarButton>
 
             <ToolbarButton onClick={addImage} title="Add Image">
