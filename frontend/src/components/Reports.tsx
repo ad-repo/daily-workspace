@@ -315,7 +315,7 @@ const Reports = () => {
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <FileText className="h-8 w-8 text-blue-600" />
-            <h1 className="text-3xl font-bold text-gray-900">Weekly Reports</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Weekly Report</h1>
           </div>
         </div>
 
@@ -584,7 +584,7 @@ const Reports = () => {
         {allEntriesReport && (
           <div className="border-t pt-6">
             <div className="mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">
+              <h3 className="text-2xl font-bold text-gray-900">
                 All Entries
               </h3>
               <p className="text-sm text-gray-500">
@@ -603,7 +603,7 @@ const Reports = () => {
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
-                          <span className="text-sm font-semibold text-blue-600">{entry.date}</span>
+                          <span className="text-lg font-semibold text-gray-900">{entry.date}</span>
                           <span className="text-sm text-gray-500">
                             {new Date(entry.created_at).toLocaleTimeString('en-US', {
                               hour: 'numeric',
