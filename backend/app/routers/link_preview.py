@@ -22,6 +22,11 @@ async def get_link_preview(request: LinkPreviewRequest):
     """Fetch metadata for a given URL"""
     url = str(request.url)
     
+    # Extract domain info for fallback
+    from urllib.parse import urlparse
+    parsed_url = urlparse(url)
+    domain = parsed_url.netloc.replace('www.', '')
+    
     try:
         # Fetch the URL with a timeout
         headers = {
@@ -34,7 +39,7 @@ async def get_link_preview(request: LinkPreviewRequest):
         soup = BeautifulSoup(response.content, 'lxml')
         
         # Extract metadata
-        preview = LinkPreviewResponse(url=url)
+        preview = LinkPreviewResponse(url=url, site_name=domain)
         
         # Try Open Graph tags first (most social media sites use these)
         og_title = soup.find('meta', property='og:title')
@@ -79,18 +84,36 @@ async def get_link_preview(request: LinkPreviewRequest):
         # Site name
         if og_site_name:
             preview.site_name = og_site_name.get('content')
-        else:
-            # Extract domain from URL
-            from urllib.parse import urlparse
-            domain = urlparse(url).netloc
-            preview.site_name = domain.replace('www.', '')
+        
+        # If we couldn't get any meaningful data, return basic preview
+        if not preview.title and not preview.description:
+            preview.title = domain
+            preview.description = "Link preview not available"
         
         return preview
         
     except requests.exceptions.Timeout:
-        raise HTTPException(status_code=408, detail="Request timeout")
-    except requests.exceptions.RequestException as e:
-        raise HTTPException(status_code=400, detail=f"Failed to fetch URL: {str(e)}")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error processing URL: {str(e)}")
+        # Return basic preview on timeout
+        return LinkPreviewResponse(
+            url=url,
+            title=domain,
+            description="Link preview not available (timeout)",
+            site_name=domain
+        )
+    except requests.exceptions.RequestException:
+        # Return basic preview on request errors (404, 403, etc.)
+        return LinkPreviewResponse(
+            url=url,
+            title=domain,
+            description="Link preview not available (access restricted or not found)",
+            site_name=domain
+        )
+    except Exception:
+        # Return basic preview on any other error
+        return LinkPreviewResponse(
+            url=url,
+            title=domain,
+            description="Link preview not available",
+            site_name=domain
+        )
 
