@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { FileText, Download, Calendar, Copy, Check } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { format } from 'date-fns';
 import { useTimezone } from '../contexts/TimezoneContext';
@@ -32,6 +33,7 @@ interface Week {
 
 const Reports = () => {
   const { timezone } = useTimezone();
+  const navigate = useNavigate();
   const [report, setReport] = useState<ReportData | null>(null);
   const [weeks, setWeeks] = useState<Week[]>([]);
   const [loading, setLoading] = useState(false);
@@ -372,6 +374,10 @@ const Reports = () => {
     }
   };
 
+  const goToEntry = (date: string) => {
+    navigate(`/day/${date}`);
+  };
+
   return (
     <div className="container mx-auto p-4 max-w-4xl">
       <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
@@ -662,7 +668,11 @@ const Reports = () => {
             ) : (
               <div className="space-y-4">
                 {allEntriesReport.entries.map((entry: any) => (
-                  <div key={entry.entry_id} className="border border-gray-200 rounded-lg p-4">
+                  <div 
+                    key={entry.entry_id} 
+                    onClick={() => goToEntry(entry.date)}
+                    className="border border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow cursor-pointer"
+                  >
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
@@ -693,7 +703,10 @@ const Reports = () => {
                       </div>
                       
                       <button
-                        onClick={() => copyEntry(entry)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          copyEntry(entry);
+                        }}
                         className={`flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors ${
                           copiedEntryId === entry.entry_id
                             ? 'bg-green-100 text-green-700'
