@@ -126,10 +126,6 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
           <h3 className="text-sm font-semibold text-gray-700 mb-2">Legend</h3>
           <div className="flex flex-wrap gap-4 text-sm text-gray-600">
             <div className="flex items-center gap-2">
-              <Skull className="h-4 w-4 text-gray-700 fill-gray-700" />
-              <span>Has /dev/null</span>
-            </div>
-            <div className="flex items-center gap-2">
               <Star className="h-4 w-4 text-green-500 fill-green-500 dramatic-pulse" />
               <span>Has important and completed</span>
             </div>
@@ -144,6 +140,10 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 bg-blue-500 rounded-full" />
               <span>Has notes</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Skull className="h-4 w-4 text-gray-700 fill-gray-700" />
+              <span>Nothing</span>
             </div>
           </div>
         </div>
