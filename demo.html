@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Notes - Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(to br, #f9fafb, #e5e7eb);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            background: white;
+            border-radius: 12px;
+            padding: 20px 30px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        h1 {
+            color: #1f2937;
+            font-size: 28px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            background: #dcfce7;
+            color: #166534;
+            font-weight: 500;
+        }
+        
+        .status.error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 20px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        h2 {
+            color: #1f2937;
+            margin-bottom: 16px;
+            font-size: 20px;
+        }
+        
+        .fire-rating {
+            display: flex;
+            gap: 8px;
+            margin: 16px 0;
+        }
+        
+        .fire {
+            font-size: 24px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            filter: grayscale(100%);
+            opacity: 0.3;
+        }
+        
+        .fire.active {
+            filter: grayscale(0%);
+            opacity: 1;
+        }
+        
+        .fire:hover {
+            transform: scale(1.2);
+        }
+        
+        .entry {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+        
+        .entry-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        
+        .entry-content {
+            color: #374151;
+            line-height: 1.6;
+        }
+        
+        .entry-content h1 {
+            font-size: 24px;
+            margin-bottom: 12px;
+        }
+        
+        .entry-content h2 {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+        
+        .entry-content ul {
+            margin-left: 20px;
+            margin-bottom: 10px;
+        }
+        
+        .entry-content p {
+            margin-bottom: 10px;
+        }
+        
+        .entry-content pre {
+            background: #1f2937;
+            color: #f9fafb;
+            padding: 12px;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        
+        .btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+        
+        .btn:hover {
+            background: #2563eb;
+        }
+        
+        .btn-danger {
+            background: #ef4444;
+        }
+        
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+        
+        textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 14px;
+            resize: vertical;
+        }
+        
+        .new-entry {
+            margin-top: 20px;
+        }
+        
+        .date-display {
+            font-size: 24px;
+            color: #1f2937;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+        
+        .notes-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .note-item {
+            padding: 12px;
+            border-bottom: 1px solid #e5e7eb;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .note-item:hover {
+            background: #f9fafb;
+        }
+        
+        .note-item.active {
+            background: #eff6ff;
+            border-left: 3px solid #3b82f6;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6b7280;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #9ca3af;
+        }
+        
+        .info-box {
+            background: #dbeafe;
+            border-left: 4px solid #3b82f6;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .info-box p {
+            color: #1e40af;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📝 Daily Notes</h1>
+            <div class="status" id="status">
+                <span>●</span>
+                <span id="statusText">Connecting...</span>
+            </div>
+        </header>
+        
+        <div class="info-box">
+            <p><strong>🚀 Demo Mode</strong> - Backend running on port 8001. This is a lightweight demo interface. For the full React app, install Node.js and run the frontend.</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="card">
+                <h2>📅 All Notes</h2>
+                <div id="notesList" class="notes-list">
+                    <div class="loading">Loading notes...</div>
+                </div>
+                <button class="btn" onclick="createNewNote()" style="margin-top: 16px; width: 100%;">+ New Note for Today</button>
+            </div>
+            
+            <div class="card">
+                <div id="dailyView">
+                    <div class="empty-state">
+                        Select a note or create a new one
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8001';
+        let currentNote = null;
+        let allNotes = [];
+
+        // Check API connection
+        async function checkConnection() {
+            try {
+                const response = await fetch(`${API_URL}/health`);
+                if (response.ok) {
+                    updateStatus(true, 'Connected');
+                    loadNotes();
+                } else {
+                    updateStatus(false, 'API Error');
+                }
+            } catch (error) {
+                updateStatus(false, 'Disconnected');
+            }
+        }
+
+        function updateStatus(connected, text) {
+            const status = document.getElementById('status');
+            const statusText = document.getElementById('statusText');
+            status.className = connected ? 'status' : 'status error';
+            statusText.textContent = text;
+        }
+
+        // Load all notes
+        async function loadNotes() {
+            try {
+                const response = await fetch(`${API_URL}/api/notes/`);
+                allNotes = await response.json();
+                renderNotesList();
+                
+                if (allNotes.length > 0) {
+                    loadNote(allNotes[0].date);
+                }
+            } catch (error) {
+                document.getElementById('notesList').innerHTML = '<div class="empty-state">Failed to load notes</div>';
+            }
+        }
+
+        function renderNotesList() {
+            const container = document.getElementById('notesList');
+            if (allNotes.length === 0) {
+                container.innerHTML = '<div class="empty-state">No notes yet</div>';
+                return;
+            }
+            
+            container.innerHTML = allNotes.map(note => `
+                <div class="note-item ${currentNote?.date === note.date ? 'active' : ''}" 
+                     onclick="loadNote('${note.date}')">
+                    <div>
+                        <div style="font-weight: 600;">${formatDate(note.date)}</div>
+                        <div style="font-size: 12px; color: #6b7280;">${note.entries.length} entries</div>
+                    </div>
+                    <div>${'🔥'.repeat(note.fire_rating)}</div>
+                </div>
+            `).join('');
+        }
+
+        // Load specific note
+        async function loadNote(date) {
+            try {
+                const response = await fetch(`${API_URL}/api/notes/${date}`);
+                currentNote = await response.json();
+                renderDailyView();
+                renderNotesList(); // Update active state
+            } catch (error) {
+                console.error('Failed to load note:', error);
+            }
+        }
+
+        function renderDailyView() {
+            const container = document.getElementById('dailyView');
+            
+            container.innerHTML = `
+                <div class="date-display">${formatDate(currentNote.date)}</div>
+                
+                <div>
+                    <strong>Fire Rating:</strong>
+                    <div class="fire-rating">
+                        ${[1,2,3,4,5].map(i => `
+                            <span class="fire ${i <= currentNote.fire_rating ? 'active' : ''}" 
+                                  onclick="updateFireRating(${i})">🔥</span>
+                        `).join('')}
+                    </div>
+                </div>
+                
+                <h2>Entries</h2>
+                <div id="entriesList">
+                    ${currentNote.entries.length === 0 
+                        ? '<div class="empty-state">No entries yet</div>'
+                        : currentNote.entries.map(entry => `
+                            <div class="entry">
+                                <div class="entry-header">
+                                    <span>📝 ${new Date(entry.created_at).toLocaleTimeString()}</span>
+                                    <button class="btn btn-danger" onclick="deleteEntry(${entry.id})" 
+                                            style="padding: 4px 12px; font-size: 12px;">Delete</button>
+                                </div>
+                                <div class="entry-content">${entry.content}</div>
+                            </div>
+                        `).join('')}
+                </div>
+                
+                <div class="new-entry">
+                    <h2>Add New Entry</h2>
+                    <textarea id="newEntryContent" placeholder="Write your note here... (HTML supported)"></textarea>
+                    <button class="btn" onclick="createEntry()" style="margin-top: 12px;">Add Entry</button>
+                </div>
+            `;
+        }
+
+        async function updateFireRating(rating) {
+            try {
+                await fetch(`${API_URL}/api/notes/${currentNote.date}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ fire_rating: rating === currentNote.fire_rating ? 0 : rating })
+                });
+                loadNote(currentNote.date);
+                loadNotes(); // Refresh list
+            } catch (error) {
+                alert('Failed to update fire rating');
+            }
+        }
+
+        async function createEntry() {
+            const content = document.getElementById('newEntryContent').value;
+            if (!content.trim()) {
+                alert('Please enter some content');
+                return;
+            }
+            
+            try {
+                await fetch(`${API_URL}/api/entries/note/${currentNote.date}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        content: content,
+                        content_type: 'rich_text',
+                        order_index: currentNote.entries.length
+                    })
+                });
+                loadNote(currentNote.date);
+                loadNotes(); // Refresh list
+            } catch (error) {
+                alert('Failed to create entry');
+            }
+        }
+
+        async function deleteEntry(entryId) {
+            if (!confirm('Delete this entry?')) return;
+            
+            try {
+                await fetch(`${API_URL}/api/entries/${entryId}`, {
+                    method: 'DELETE'
+                });
+                loadNote(currentNote.date);
+                loadNotes(); // Refresh list
+            } catch (error) {
+                alert('Failed to delete entry');
+            }
+        }
+
+        async function createNewNote() {
+            const today = new Date().toISOString().split('T')[0];
+            try {
+                await fetch(`${API_URL}/api/notes/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ date: today, fire_rating: 0 })
+                });
+                loadNotes();
+                loadNote(today);
+            } catch (error) {
+                alert('Failed to create note (might already exist)');
+                loadNotes();
+            }
+        }
+
+        function formatDate(dateStr) {
+            const date = new Date(dateStr + 'T00:00:00');
+            return date.toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+        }
+
+        // Initialize
+        checkConnection();
+    </script>
+</body>
+</html>
+
