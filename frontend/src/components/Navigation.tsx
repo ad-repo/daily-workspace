@@ -23,8 +23,8 @@ const Navigation = () => {
                 : 'text-gray-600 hover:bg-gray-100'
             }`}
           >
-            <BookOpen className="h-5 w-5" />
-            <span className="text-lg font-semibold">pull your shit together</span>
+            <span className="text-2xl leading-none">💻</span>
+            <span className="text-xl font-bold">pull your shit together</span>
           </Link>
 
           <div className="flex space-x-4">
@@ -36,7 +36,7 @@ const Navigation = () => {
                   : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
-              <Laptop className="h-5 w-5" />
+              <span className="text-lg leading-none">💻</span>
               <span className="font-medium">{dayName}</span>
             </Link>
 
