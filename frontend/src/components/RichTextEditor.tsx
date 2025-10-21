@@ -57,9 +57,11 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
       }),
       PreformattedText,
       Link.configure({
-        openOnClick: false,
+        openOnClick: true,
         HTMLAttributes: {
-          class: 'text-blue-600 underline cursor-pointer',
+          class: 'text-blue-600 underline cursor-pointer hover:text-blue-800',
+          target: '_blank',
+          rel: 'noopener noreferrer',
         },
       }),
       Image.configure({
