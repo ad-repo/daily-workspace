@@ -538,7 +538,7 @@ const Reports = () => {
             <h2 className="text-3xl font-bold text-gray-900">All Entries Report</h2>
           </div>
           <p className="text-gray-600 mb-4">
-            Generate a complete report of ALL entries ever created (not filtered by date or "Add to Report" checkbox).
+            Generate a report of all entries marked with "Add to Report" (not filtered by date or week).
           </p>
 
           <div className="flex gap-4 items-end mb-4">

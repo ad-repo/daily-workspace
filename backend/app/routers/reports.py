@@ -73,7 +73,7 @@ def generate_report(
 
 @router.get("/all-entries")
 def generate_all_entries_report(db: Session = Depends(get_db)):
-    """Generate a report of ALL entries (no date or filter restrictions)"""
+    """Generate a report of all entries marked for reports (no date restrictions)"""
     
     # Get all notes, ordered by date
     notes = db.query(models.DailyNote).order_by(models.DailyNote.date.asc()).all()
@@ -85,17 +85,18 @@ def generate_all_entries_report(db: Session = Depends(get_db)):
     
     for note in notes:
         for entry in note.entries:
-            # Include ALL entries (no filter)
-            report_data["entries"].append({
-                "date": note.date,
-                "entry_id": entry.id,
-                "content": entry.content,
-                "content_type": entry.content_type,
-                "labels": [{"name": label.name, "color": label.color} for label in entry.labels],
-                "created_at": entry.created_at.isoformat(),
-                "is_completed": bool(entry.is_completed),
-                "is_important": bool(entry.is_important)
-            })
+            # Only include entries marked for report
+            if entry.include_in_report:
+                report_data["entries"].append({
+                    "date": note.date,
+                    "entry_id": entry.id,
+                    "content": entry.content,
+                    "content_type": entry.content_type,
+                    "labels": [{"name": label.name, "color": label.color} for label in entry.labels],
+                    "created_at": entry.created_at.isoformat(),
+                    "is_completed": bool(entry.is_completed),
+                    "is_important": bool(entry.is_important)
+                })
     
     return report_data
 
