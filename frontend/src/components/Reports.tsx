@@ -227,7 +227,6 @@ const Reports = () => {
     tmp.innerHTML = html;
     
     const linkPreviews = tmp.querySelectorAll('[data-link-preview]');
-    console.log('Found link previews:', linkPreviews.length, 'in HTML:', html.substring(0, 200));
     
     linkPreviews.forEach((preview) => {
       const element = preview as HTMLElement;
@@ -238,11 +237,8 @@ const Reports = () => {
       const image = element.getAttribute('data-image') || element.getAttribute('image') || '';
       const siteName = element.getAttribute('data-site-name') || element.getAttribute('site_name') || element.getAttribute('site-name') || '';
       
-      console.log('Processing link preview:', { url, title, description, image, siteName });
-      
       // Skip if no valid URL
       if (!url || url === 'null' || url === 'undefined') {
-        console.log('Skipping invalid URL');
         return;
       }
       
