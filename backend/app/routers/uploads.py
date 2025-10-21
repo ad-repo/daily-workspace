@@ -1,9 +1,12 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
 import os
 import uuid
 from pathlib import Path
 import mimetypes
+import zipfile
+import io
+from datetime import datetime
 
 router = APIRouter()
 
@@ -70,3 +73,38 @@ async def get_file(filename: str):
         raise HTTPException(status_code=404, detail="File not found")
     
     return FileResponse(file_path)
+
+@router.get("/download-all")
+async def download_all_files():
+    """Download all uploaded files as a zip archive"""
+    if not UPLOAD_DIR.exists():
+        raise HTTPException(status_code=404, detail="Upload directory not found")
+    
+    # Get all files in the upload directory
+    files = list(UPLOAD_DIR.glob("*"))
+    
+    if not files:
+        raise HTTPException(status_code=404, detail="No files to download")
+    
+    # Create zip file in memory
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+        for file_path in files:
+            if file_path.is_file():
+                # Add file to zip with just the filename (no path)
+                zip_file.write(file_path, file_path.name)
+    
+    # Seek to beginning of buffer
+    zip_buffer.seek(0)
+    
+    # Generate filename with timestamp
+    timestamp = datetime.utcnow().strftime('%Y%m%d-%H%M%S')
+    filename = f"daily-workspace-files-{timestamp}.zip"
+    
+    return StreamingResponse(
+        zip_buffer,
+        media_type="application/zip",
+        headers={
+            "Content-Disposition": f"attachment; filename={filename}"
+        }
+    )

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Download, Upload, Settings as SettingsIcon, Clock } from 'lucide-react';
+import { Download, Upload, Settings as SettingsIcon, Clock, Archive } from 'lucide-react';
 import axios from 'axios';
 import { useTimezone } from '../contexts/TimezoneContext';
 
@@ -7,6 +7,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 const Settings = () => {
   const [isImporting, setIsImporting] = useState(false);
+  const [isDownloadingFiles, setIsDownloadingFiles] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const { timezone, setTimezone } = useTimezone();
 
@@ -59,6 +60,45 @@ const Settings = () => {
   const showMessage = (type: 'success' | 'error', text: string) => {
     setMessage({ type, text });
     setTimeout(() => setMessage(null), 5000);
+  };
+
+  const handleDownloadFiles = async () => {
+    setIsDownloadingFiles(true);
+    try {
+      const response = await axios.get(`${API_URL}/api/uploads/download-all`, {
+        responseType: 'blob',
+      });
+      
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      
+      // Extract filename from response headers or use default
+      const contentDisposition = response.headers['content-disposition'];
+      let filename = 'daily-workspace-files.zip';
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename="?(.+)"?/);
+        if (filenameMatch) {
+          filename = filenameMatch[1];
+        }
+      }
+      
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      
+      showMessage('success', 'All uploaded files downloaded successfully!');
+    } catch (error: any) {
+      console.error('Download files failed:', error);
+      if (error.response?.status === 404) {
+        showMessage('error', 'No uploaded files found to download');
+      } else {
+        showMessage('error', 'Failed to download files');
+      }
+    } finally {
+      setIsDownloadingFiles(false);
+    }
   };
 
   return (
@@ -160,18 +200,18 @@ const Settings = () => {
               Export your data to create a backup, or restore from a previous backup file.
             </p>
             
-            <div className="flex gap-4">
+            <div className="flex flex-wrap gap-4">
               <button
                 onClick={handleExport}
                 className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
               >
                 <Download className="h-5 w-5" />
-                Export Backup
+                Export Data
               </button>
 
               <label className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium cursor-pointer">
                 <Upload className="h-5 w-5" />
-                {isImporting ? 'Importing...' : 'Import Backup'}
+                {isImporting ? 'Importing...' : 'Import Data'}
                 <input
                   type="file"
                   accept=".json"
@@ -180,14 +220,28 @@ const Settings = () => {
                   className="hidden"
                 />
               </label>
+
+              <button
+                onClick={handleDownloadFiles}
+                disabled={isDownloadingFiles}
+                className="flex items-center gap-2 px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Archive className="h-5 w-5" />
+                {isDownloadingFiles ? 'Downloading...' : 'Download Files'}
+              </button>
             </div>
 
             <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-sm text-blue-800">
-                <strong>What's included:</strong> All notes, entries, labels, daily goals, search history, timestamps, 
-                and entry states (important, completed, add to report).
-                Uploaded files are stored separately on the server.
-              </p>
+              <div className="text-sm text-blue-800 space-y-2">
+                <p>
+                  <strong>Export/Import Data:</strong> All notes, entries, labels, daily goals, search history, timestamps, 
+                  and entry states (important, completed, add to report).
+                </p>
+                <p>
+                  <strong>Download Files:</strong> Downloads all uploaded images and files as a zip archive. 
+                  Use this with "Export Data" for a complete backup.
+                </p>
+              </div>
             </div>
           </div>
         </section>
