@@ -143,7 +143,6 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
             </div>
             <div className="flex items-center gap-2">
               <Skull className="h-4 w-4 text-gray-700 stroke-[2.5]" />
-              <span>Nothing</span>
             </div>
           </div>
         </div>
