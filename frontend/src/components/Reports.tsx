@@ -42,6 +42,7 @@ const Reports = () => {
   const [allEntriesReport, setAllEntriesReport] = useState<any | null>(null);
   const [loadingAll, setLoadingAll] = useState(false);
   const [copiedAllReport, setCopiedAllReport] = useState(false);
+  const [copiedAllSection, setCopiedAllSection] = useState<string | null>(null);
 
   useEffect(() => {
     loadAvailableWeeks();
@@ -306,6 +307,47 @@ const Reports = () => {
       await navigator.clipboard.writeText(text);
       setCopiedAllReport(true);
       setTimeout(() => setCopiedAllReport(false), 2000);
+    } catch (error) {
+      console.error('Failed to copy:', error);
+      alert('Failed to copy to clipboard');
+    }
+  };
+
+  const copyAllEntriesSection = async (section: 'completed' | 'in-progress') => {
+    if (!allEntriesReport) return;
+
+    const entries = section === 'completed' 
+      ? allEntriesReport.entries.filter((e: any) => e.is_completed)
+      : allEntriesReport.entries.filter((e: any) => !e.is_completed);
+
+    let text = section === 'completed' ? '✓ Completed\n\n' : '⚙ In Progress\n\n';
+    
+    if (entries.length === 0) {
+      text += `No ${section === 'completed' ? 'completed' : 'in progress'} items\n`;
+    } else {
+      let currentDate = '';
+      entries.forEach((entry: any) => {
+        if (entry.date !== currentDate) {
+          currentDate = entry.date;
+          text += `\n${currentDate}\n\n`;
+        }
+
+        const content = entry.content_type === 'code'
+          ? entry.content
+          : stripHtml(entry.content);
+
+        text += `${content}\n\n`;
+
+        if (entry.labels.length > 0) {
+          text += `Labels: ${entry.labels.map((l: any) => l.name).join(', ')}\n\n`;
+        }
+      });
+    }
+
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedAllSection(section);
+      setTimeout(() => setCopiedAllSection(null), 2000);
     } catch (error) {
       console.error('Failed to copy:', error);
       alert('Failed to copy to clipboard');
@@ -600,52 +642,163 @@ const Reports = () => {
                 No entries found.
               </div>
             ) : (
-              <div className="space-y-4">
-                {allEntriesReport.entries.map((entry: any) => (
-                  <div key={entry.entry_id} className="border border-gray-200 rounded-lg p-4">
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <span className="text-lg font-semibold text-gray-900">{entry.date}</span>
-                          <span className="text-sm text-gray-500">
-                            {formatTimestamp(entry.created_at, timezone, 'h:mm a')}
-                          </span>
-                          {entry.content_type === 'code' && (
-                            <span className="px-2 py-0.5 bg-gray-800 text-white text-xs rounded">Code</span>
-                          )}
-                          {entry.is_important && <span title="Important">⭐</span>}
-                          {entry.is_completed && <span title="Completed">✓</span>}
-                        </div>
-
-                        {entry.labels.length > 0 && (
-                          <div className="flex gap-2 flex-wrap mb-2">
-                            {entry.labels.map((label: any) => (
-                              <span
-                                key={label.name}
-                                className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium text-white"
-                                style={{ backgroundColor: label.color }}
-                              >
-                                {label.name}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {entry.content_type === 'code' ? (
-                      <pre className="text-sm bg-gray-900 text-white p-3 rounded overflow-x-auto">
-                        <code>{entry.content}</code>
-                      </pre>
-                    ) : (
-                      <div 
-                        className="prose max-w-none"
-                        dangerouslySetInnerHTML={{ __html: entry.content }}
-                      />
-                    )}
+              <>
+                {/* Completed Section */}
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-2xl font-bold text-green-700 flex items-center gap-2">
+                      <span className="text-2xl">✓</span> Completed
+                    </h3>
+                    <button
+                      onClick={() => copyAllEntriesSection('completed')}
+                      className="flex items-center gap-2 px-3 py-2 text-sm bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
+                      title="Copy completed section"
+                    >
+                      {copiedAllSection === 'completed' ? (
+                        <>
+                          <Check className="h-4 w-4" />
+                          Copied!
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="h-4 w-4" />
+                          Copy Section
+                        </>
+                      )}
+                    </button>
                   </div>
-                ))}
-              </div>
+
+                  {allEntriesReport.entries.filter((e: any) => e.is_completed).length === 0 ? (
+                    <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
+                      No completed items
+                    </div>
+                  ) : (
+                    <div className="space-y-4 mb-8">
+                      {allEntriesReport.entries.filter((e: any) => e.is_completed).map((entry: any) => (
+                        <div key={entry.entry_id} className="border border-gray-200 rounded-lg p-4 bg-green-50">
+                          <div className="flex items-start justify-between mb-2">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-3 mb-2">
+                                <span className="text-lg font-semibold text-gray-900">{entry.date}</span>
+                                <span className="text-sm text-gray-500">
+                                  {formatTimestamp(entry.created_at, timezone, 'h:mm a')}
+                                </span>
+                                {entry.content_type === 'code' && (
+                                  <span className="px-2 py-0.5 bg-gray-800 text-white text-xs rounded">Code</span>
+                                )}
+                                {entry.is_important && <span title="Important">⭐</span>}
+                              </div>
+
+                              {entry.labels.length > 0 && (
+                                <div className="flex gap-2 flex-wrap mb-2">
+                                  {entry.labels.map((label: any) => (
+                                    <span
+                                      key={label.name}
+                                      className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium text-white"
+                                      style={{ backgroundColor: label.color }}
+                                    >
+                                      {label.name}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {entry.content_type === 'code' ? (
+                            <pre className="text-sm bg-gray-900 text-white p-3 rounded overflow-x-auto">
+                              <code>{entry.content}</code>
+                            </pre>
+                          ) : (
+                            <div 
+                              className="prose max-w-none"
+                              dangerouslySetInnerHTML={{ __html: entry.content }}
+                            />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* In Progress Section */}
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-2xl font-bold text-blue-700 flex items-center gap-2">
+                      <span className="text-2xl">⚙</span> In Progress
+                    </h3>
+                    <button
+                      onClick={() => copyAllEntriesSection('in-progress')}
+                      className="flex items-center gap-2 px-3 py-2 text-sm bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
+                      title="Copy in progress section"
+                    >
+                      {copiedAllSection === 'in-progress' ? (
+                        <>
+                          <Check className="h-4 w-4" />
+                          Copied!
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="h-4 w-4" />
+                          Copy Section
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  {allEntriesReport.entries.filter((e: any) => !e.is_completed).length === 0 ? (
+                    <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
+                      No items in progress
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {allEntriesReport.entries.filter((e: any) => !e.is_completed).map((entry: any) => (
+                        <div key={entry.entry_id} className="border border-gray-200 rounded-lg p-4 bg-blue-50">
+                          <div className="flex items-start justify-between mb-2">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-3 mb-2">
+                                <span className="text-lg font-semibold text-gray-900">{entry.date}</span>
+                                <span className="text-sm text-gray-500">
+                                  {formatTimestamp(entry.created_at, timezone, 'h:mm a')}
+                                </span>
+                                {entry.content_type === 'code' && (
+                                  <span className="px-2 py-0.5 bg-gray-800 text-white text-xs rounded">Code</span>
+                                )}
+                                {entry.is_important && <span title="Important">⭐</span>}
+                              </div>
+
+                              {entry.labels.length > 0 && (
+                                <div className="flex gap-2 flex-wrap mb-2">
+                                  {entry.labels.map((label: any) => (
+                                    <span
+                                      key={label.name}
+                                      className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium text-white"
+                                      style={{ backgroundColor: label.color }}
+                                    >
+                                      {label.name}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {entry.content_type === 'code' ? (
+                            <pre className="text-sm bg-gray-900 text-white p-3 rounded overflow-x-auto">
+                              <code>{entry.content}</code>
+                            </pre>
+                          ) : (
+                            <div 
+                              className="prose max-w-none"
+                              dangerouslySetInnerHTML={{ __html: entry.content }}
+                            />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </>
             )}
           </div>
         )}
