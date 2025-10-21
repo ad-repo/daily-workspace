@@ -6,6 +6,7 @@ import type { NoteEntry } from '../types';
 import RichTextEditor from './RichTextEditor';
 import CodeEditor from './CodeEditor';
 import LabelSelector from './LabelSelector';
+import { useTimezone } from '../contexts/TimezoneContext';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -20,6 +21,7 @@ interface NoteEntryCardProps {
 }
 
 const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsChange, isSelected = false, onSelectionChange, selectionMode = false }: NoteEntryCardProps) => {
+  const { timezone } = useTimezone();
   const [content, setContent] = useState(entry.content);
   const [isSaving, setIsSaving] = useState(false);
   const [includeInReport, setIncludeInReport] = useState(entry.include_in_report || false);
@@ -135,7 +137,7 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsChange, isSelected =
             <div className="flex items-center gap-2 text-sm text-gray-500">
               <Clock className="h-4 w-4" />
               <span>
-                {formatInTimeZone(new Date(entry.created_at), 'America/New_York', 'h:mm a zzz')}
+                {formatInTimeZone(new Date(entry.created_at), timezone, 'h:mm a zzz')}
               </span>
               {isSaving && (
                 <span className="text-blue-600 ml-2">Saving...</span>

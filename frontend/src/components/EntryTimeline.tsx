@@ -2,12 +2,14 @@ import { useEffect, useState, useRef } from 'react';
 import { formatInTimeZone } from 'date-fns-tz';
 import { Check, Star, Code, FileText } from 'lucide-react';
 import type { NoteEntry } from '../types';
+import { useTimezone } from '../contexts/TimezoneContext';
 
 interface EntryTimelineProps {
   entries: NoteEntry[];
 }
 
 const EntryTimeline = ({ entries }: EntryTimelineProps) => {
+  const { timezone } = useTimezone();
   const [activeEntryId, setActiveEntryId] = useState<number | null>(null);
   const timelineRef = useRef<HTMLDivElement>(null);
 
@@ -64,7 +66,7 @@ const EntryTimeline = ({ entries }: EntryTimelineProps) => {
       <div className="space-y-1">
         {entries.map((entry, index) => {
           const isActive = entry.id === activeEntryId;
-          const time = formatInTimeZone(new Date(entry.created_at), 'America/New_York', 'h:mm a');
+          const time = formatInTimeZone(new Date(entry.created_at), timezone, 'h:mm a');
           
           return (
             <button

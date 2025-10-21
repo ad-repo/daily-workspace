@@ -4,9 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { formatInTimeZone } from 'date-fns-tz';
 import type { NoteEntry, Label } from '../types';
+import { useTimezone } from '../contexts/TimezoneContext';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-const TIMEZONE = 'America/New_York';
 
 interface SearchHistoryItem {
   query: string;
@@ -14,6 +14,7 @@ interface SearchHistoryItem {
 }
 
 const Search = () => {
+  const { timezone } = useTimezone();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLabels, setSelectedLabels] = useState<number[]>([]);
   const [allLabels, setAllLabels] = useState<Label[]>([]);
@@ -283,7 +284,7 @@ const Search = () => {
                           {date}
                         </span>
                         <span className="text-sm text-gray-500">
-                          {formatInTimeZone(new Date(entry.created_at), TIMEZONE, 'h:mm a zzz')}
+                          {formatInTimeZone(new Date(entry.created_at), timezone, 'h:mm a zzz')}
                         </span>
                         {entry.content_type === 'code' && (
                           <span className="px-2 py-0.5 bg-gray-800 text-white text-xs rounded">
