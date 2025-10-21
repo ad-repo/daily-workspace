@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Calendar, Laptop, Settings, FileText } from 'lucide-react';
+import { Calendar, Laptop, Settings, FileText, Search } from 'lucide-react';
 import { format } from 'date-fns';
 
 const Navigation = () => {
@@ -38,6 +38,18 @@ const Navigation = () => {
             >
               <Calendar className="h-5 w-5" />
               <span className="font-medium">Calendar</span>
+            </Link>
+
+            <Link
+              to="/search"
+              className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+                location.pathname === '/search'
+                  ? 'bg-blue-100 text-blue-700'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              <Search className="h-5 w-5" />
+              <span className="font-medium">Search</span>
             </Link>
 
             <Link

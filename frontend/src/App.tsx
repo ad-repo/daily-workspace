@@ -5,6 +5,7 @@ import DailyView from './components/DailyView';
 import Navigation from './components/Navigation';
 import Settings from './components/Settings';
 import Reports from './components/Reports';
+import Search from './components/Search';
 import { format } from 'date-fns';
 
 function App() {
@@ -37,6 +38,10 @@ function App() {
             <Route
               path="/reports"
               element={<Reports />}
+            />
+            <Route
+              path="/search"
+              element={<Search />}
             />
             <Route
               path="/settings"
