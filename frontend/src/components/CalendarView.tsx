@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import Calendar from 'react-calendar';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
+import { Star } from 'lucide-react';
 import { notesApi } from '../api';
 import type { DailyNote } from '../types';
 import 'react-calendar/dist/Calendar.css';
@@ -73,9 +74,14 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
     const note = notes.find(n => n.date === dateStr);
 
     if (note && note.entries.length > 0) {
+      const hasImportantEntries = note.entries.some(entry => entry.is_important);
+      
       return (
-        <div className="flex flex-col items-center justify-center mt-1">
+        <div className="flex flex-col items-center justify-center mt-1 gap-0.5">
           <div className="w-1.5 h-1.5 bg-blue-500 rounded-full" />
+          {hasImportantEntries && (
+            <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />
+          )}
         </div>
       );
     }
@@ -106,6 +112,10 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 bg-blue-500 rounded-full" />
               <span>Has notes</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+              <span>Has important entries</span>
             </div>
           </div>
         </div>
