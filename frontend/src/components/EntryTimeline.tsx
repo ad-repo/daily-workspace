@@ -13,6 +13,12 @@ const EntryTimeline = ({ entries }: EntryTimelineProps) => {
   const [activeEntryId, setActiveEntryId] = useState<number | null>(null);
   const timelineRef = useRef<HTMLDivElement>(null);
 
+  // Check if a string is only emojis (with optional spaces)
+  const isEmojiOnly = (str: string): boolean => {
+    const emojiRegex = /^[\p{Emoji}\p{Emoji_Modifier}\p{Emoji_Component}\p{Emoji_Modifier_Base}\p{Emoji_Presentation}\s]+$/u;
+    return emojiRegex.test(str.trim());
+  };
+
   useEffect(() => {
     const handleScroll = () => {
       // Find which entry is currently in view
@@ -99,15 +105,32 @@ const EntryTimeline = ({ entries }: EntryTimelineProps) => {
               
               {entry.labels.length > 0 && (
                 <div className="flex gap-1 flex-wrap mt-1.5">
-                  {entry.labels.slice(0, 2).map((label) => (
-                    <span
-                      key={label.id}
-                      className="inline-block px-2 py-0.5 rounded text-xs font-medium text-white"
-                      style={{ backgroundColor: label.color }}
-                    >
-                      {label.name}
-                    </span>
-                  ))}
+                  {entry.labels.slice(0, 2).map((label) => {
+                    const isEmoji = isEmojiOnly(label.name);
+                    
+                    if (isEmoji) {
+                      // Emoji label - transparent background
+                      return (
+                        <span
+                          key={label.id}
+                          className="inline-block px-1 text-base"
+                        >
+                          {label.name}
+                        </span>
+                      );
+                    }
+                    
+                    // Text label - colored background
+                    return (
+                      <span
+                        key={label.id}
+                        className="inline-block px-2 py-0.5 rounded text-xs font-medium text-white"
+                        style={{ backgroundColor: label.color }}
+                      >
+                        {label.name}
+                      </span>
+                    );
+                  })}
                   {entry.labels.length > 2 && (
                     <span className="text-xs text-gray-500 px-1">+{entry.labels.length - 2}</span>
                   )}
