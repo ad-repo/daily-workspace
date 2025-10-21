@@ -1,12 +1,14 @@
 import { useState } from 'react';
-import { Download, Upload, Settings as SettingsIcon } from 'lucide-react';
+import { Download, Upload, Settings as SettingsIcon, Clock } from 'lucide-react';
 import axios from 'axios';
+import { useTimezone } from '../contexts/TimezoneContext';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 const Settings = () => {
   const [isImporting, setIsImporting] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const { timezone, setTimezone } = useTimezone();
 
   const handleExport = async () => {
     try {
@@ -74,6 +76,78 @@ const Settings = () => {
             {message.text}
           </div>
         )}
+
+        {/* Timezone Section */}
+        <section className="mb-8">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <Clock className="h-5 w-5" />
+            Timezone
+          </h2>
+          <div className="bg-gray-50 rounded-lg p-6">
+            <p className="text-gray-600 mb-4">
+              Set your timezone for accurate time display throughout the app.
+            </p>
+            
+            <div className="max-w-md">
+              <label htmlFor="timezone" className="block text-sm font-medium text-gray-700 mb-2">
+                Select Timezone
+              </label>
+              <select
+                id="timezone"
+                value={timezone}
+                onChange={(e) => {
+                  setTimezone(e.target.value);
+                  showMessage('success', `Timezone updated to ${e.target.value}`);
+                }}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <optgroup label="US Timezones">
+                  <option value="America/New_York">Eastern (New York)</option>
+                  <option value="America/Chicago">Central (Chicago)</option>
+                  <option value="America/Denver">Mountain (Denver)</option>
+                  <option value="America/Phoenix">Mountain - No DST (Phoenix)</option>
+                  <option value="America/Los_Angeles">Pacific (Los Angeles)</option>
+                  <option value="America/Anchorage">Alaska (Anchorage)</option>
+                  <option value="Pacific/Honolulu">Hawaii (Honolulu)</option>
+                </optgroup>
+                <optgroup label="Canada">
+                  <option value="America/Toronto">Eastern (Toronto)</option>
+                  <option value="America/Winnipeg">Central (Winnipeg)</option>
+                  <option value="America/Edmonton">Mountain (Edmonton)</option>
+                  <option value="America/Vancouver">Pacific (Vancouver)</option>
+                </optgroup>
+                <optgroup label="Europe">
+                  <option value="Europe/London">London (GMT/BST)</option>
+                  <option value="Europe/Paris">Paris (CET/CEST)</option>
+                  <option value="Europe/Berlin">Berlin (CET/CEST)</option>
+                  <option value="Europe/Rome">Rome (CET/CEST)</option>
+                  <option value="Europe/Madrid">Madrid (CET/CEST)</option>
+                  <option value="Europe/Moscow">Moscow (MSK)</option>
+                </optgroup>
+                <optgroup label="Asia">
+                  <option value="Asia/Dubai">Dubai (GST)</option>
+                  <option value="Asia/Kolkata">India (IST)</option>
+                  <option value="Asia/Shanghai">China (CST)</option>
+                  <option value="Asia/Tokyo">Japan (JST)</option>
+                  <option value="Asia/Seoul">South Korea (KST)</option>
+                  <option value="Asia/Singapore">Singapore (SGT)</option>
+                  <option value="Asia/Hong_Kong">Hong Kong (HKT)</option>
+                </optgroup>
+                <optgroup label="Australia">
+                  <option value="Australia/Sydney">Sydney (AEDT/AEST)</option>
+                  <option value="Australia/Melbourne">Melbourne (AEDT/AEST)</option>
+                  <option value="Australia/Perth">Perth (AWST)</option>
+                </optgroup>
+                <optgroup label="Other">
+                  <option value="UTC">UTC</option>
+                </optgroup>
+              </select>
+              <p className="mt-2 text-sm text-gray-500">
+                Current timezone: <span className="font-medium">{timezone}</span>
+              </p>
+            </div>
+          </div>
+        </section>
 
         {/* Backup & Restore Section */}
         <section>

@@ -1,10 +1,15 @@
 import { Link, useLocation } from 'react-router-dom';
 import { Calendar, Laptop, Settings, FileText, Search } from 'lucide-react';
 import { format } from 'date-fns';
+import { formatInTimeZone } from 'date-fns-tz';
+import { useTimezone } from '../contexts/TimezoneContext';
 
 const Navigation = () => {
   const location = useLocation();
-  const today = format(new Date(), 'yyyy-MM-dd');
+  const { timezone } = useTimezone();
+  const now = new Date();
+  const today = formatInTimeZone(now, timezone, 'yyyy-MM-dd');
+  const dayName = formatInTimeZone(now, timezone, 'EEEE'); // Full day name like "Monday"
 
   return (
     <nav className="bg-white shadow-sm border-b border-gray-200">
@@ -25,7 +30,7 @@ const Navigation = () => {
               }`}
             >
               <Laptop className="h-5 w-5" />
-              <span className="font-medium">Today</span>
+              <span className="font-medium">{dayName}</span>
             </Link>
 
             <Link
