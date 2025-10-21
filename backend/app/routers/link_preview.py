@@ -28,11 +28,35 @@ async def get_link_preview(request: LinkPreviewRequest):
     domain = parsed_url.netloc.replace('www.', '')
     
     try:
+        # Special handling for Google Docs/Drive
+        is_google_doc = 'docs.google.com' in domain or 'drive.google.com' in domain
+        
         # Fetch the URL with a timeout
         headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
         }
-        response = requests.get(url, headers=headers, timeout=5, allow_redirects=True)
+        
+        # For Google Docs, try to get the export/preview page which might have more info
+        if is_google_doc and '/document/d/' in url:
+            # Try to extract document ID and get title from export page
+            import re
+            doc_id_match = re.search(r'/document/d/([a-zA-Z0-9-_]+)', url)
+            if doc_id_match:
+                doc_id = doc_id_match.group(1)
+                # Try the preview URL which sometimes has the title
+                preview_url = f'https://docs.google.com/document/d/{doc_id}/preview'
+                try:
+                    response = requests.get(preview_url, headers=headers, timeout=5, allow_redirects=True)
+                    if response.status_code != 200:
+                        # Fallback to original URL
+                        response = requests.get(url, headers=headers, timeout=5, allow_redirects=True)
+                except:
+                    response = requests.get(url, headers=headers, timeout=5, allow_redirects=True)
+            else:
+                response = requests.get(url, headers=headers, timeout=5, allow_redirects=True)
+        else:
+            response = requests.get(url, headers=headers, timeout=5, allow_redirects=True)
+            
         response.raise_for_status()
         
         # Parse HTML
@@ -58,7 +82,12 @@ async def get_link_preview(request: LinkPreviewRequest):
         elif twitter_title:
             preview.title = twitter_title.get('content')
         elif soup.title:
-            preview.title = soup.title.string
+            title_text = soup.title.string
+            # For Google Docs, clean up the title (it often has " - Google Docs" suffix)
+            if is_google_doc and title_text:
+                title_text = title_text.replace(' - Google Docs', '').replace(' - Google Drive', '').strip()
+                if title_text and title_text != 'Google Docs':
+                    preview.title = title_text
         
         # Description
         if og_description:
