@@ -82,8 +82,8 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
       return (
         <div className="flex flex-col items-center justify-center mt-1">
           {hasImportantEntries && hasCompletedEntries ? (
-            // Green star for both important and completed
-            <Star className="h-3 w-3 text-green-500 fill-green-500 animate-pulse" />
+            // Green star for both important and completed - dramatic pulse
+            <Star className="h-3 w-3 text-green-500 fill-green-500 dramatic-pulse" />
           ) : hasCompletedEntries ? (
             // Green checkmark for completed only - bouncing animation
             <Check className="h-3 w-3 text-green-500 stroke-[3] animate-bounce" />
@@ -122,7 +122,7 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
           <h3 className="text-sm font-semibold text-gray-700 mb-2">Legend</h3>
           <div className="flex flex-wrap gap-4 text-sm text-gray-600">
             <div className="flex items-center gap-2">
-              <Star className="h-4 w-4 text-green-500 fill-green-500 animate-pulse" />
+              <Star className="h-4 w-4 text-green-500 fill-green-500 dramatic-pulse" />
               <span>Important & completed</span>
             </div>
             <div className="flex items-center gap-2">
