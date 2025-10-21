@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Trash2, Clock, FileText, Star, Check, Copy, CheckCheck } from 'lucide-react';
+import { Trash2, Clock, FileText, Star, Check, Copy, CheckCheck, ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { format } from 'date-fns';
 import axios from 'axios';
 import type { NoteEntry } from '../types';
 import RichTextEditor from './RichTextEditor';
@@ -18,17 +20,22 @@ interface NoteEntryCardProps {
   isSelected?: boolean;
   onSelectionChange?: (id: number, selected: boolean) => void;
   selectionMode?: boolean;
+  currentDate?: string; // YYYY-MM-DD format
 }
 
-const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsChange, isSelected = false, onSelectionChange, selectionMode = false }: NoteEntryCardProps) => {
+const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsChange, isSelected = false, onSelectionChange, selectionMode = false, currentDate }: NoteEntryCardProps) => {
   const { timezone } = useTimezone();
+  const navigate = useNavigate();
   const [content, setContent] = useState(entry.content);
   const [isSaving, setIsSaving] = useState(false);
   const [includeInReport, setIncludeInReport] = useState(entry.include_in_report || false);
   const [isImportant, setIsImportant] = useState(entry.is_important || false);
   const [isCompleted, setIsCompleted] = useState(entry.is_completed || false);
   const [copied, setCopied] = useState(false);
+  const [isContinuing, setIsContinuing] = useState(false);
   const isCodeEntry = entry.content_type === 'code';
+  const today = format(new Date(), 'yyyy-MM-dd');
+  const isFromPastDay = currentDate && currentDate !== today;
 
   // Sync state with entry prop changes
   useEffect(() => {
@@ -121,6 +128,38 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsChange, isSelected =
     }
   };
 
+  const handleContinueToday = async () => {
+    setIsContinuing(true);
+    try {
+      const today = format(new Date(), 'yyyy-MM-dd');
+      
+      // Create new entry on today's date with same content and type
+      const response = await axios.post(`${API_URL}/api/entries/note/${today}`, {
+        content: content,
+        content_type: entry.content_type,
+        order_index: 0,
+        include_in_report: false,
+        is_important: false,
+        is_completed: false
+      });
+
+      // Copy labels to the new entry if any exist
+      if (entry.labels && entry.labels.length > 0) {
+        for (const label of entry.labels) {
+          await axios.post(`${API_URL}/api/labels/entry/${response.data.id}/label/${label.id}`);
+        }
+      }
+
+      // Navigate to today
+      navigate(`/day/${today}`);
+    } catch (error) {
+      console.error('Failed to continue entry to today:', error);
+      alert('Failed to copy entry to today');
+    } finally {
+      setIsContinuing(false);
+    }
+  };
+
   return (
     <div className={`bg-white rounded-lg shadow-lg overflow-hidden transition-all hover:shadow-xl ${isSelected ? 'ring-2 ring-blue-500' : ''}`}>
       <div className="p-6">
@@ -198,6 +237,21 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsChange, isSelected =
                 <Copy className="h-5 w-5" />
               )}
             </button>
+            
+            {isFromPastDay && (
+              <button
+                onClick={handleContinueToday}
+                disabled={isContinuing}
+                className={`p-2 rounded transition-colors ${
+                  isContinuing
+                    ? 'text-green-500'
+                    : 'text-gray-400 hover:text-green-600 hover:bg-green-50'
+                }`}
+                title={isContinuing ? "Copying to today..." : "Continue on today"}
+              >
+                <ArrowRight className="h-5 w-5" />
+              </button>
+            )}
             
             <button
               onClick={handleDelete}

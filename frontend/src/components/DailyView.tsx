@@ -326,6 +326,7 @@ const DailyView = () => {
                   selectionMode={selectionMode}
                   isSelected={selectedEntries.has(entry.id)}
                   onSelectionChange={handleSelectionChange}
+                  currentDate={date}
                 />
               </div>
             ))}
