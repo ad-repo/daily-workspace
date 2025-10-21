@@ -49,7 +49,7 @@ def update_entry(entry_id: int, entry_update: schemas.NoteEntryUpdate, db: Sessi
     update_data = entry_update.model_dump(exclude_unset=True)
     for key, value in update_data.items():
         # Handle boolean to integer conversion for SQLite
-        if key in ['include_in_report', 'is_important', 'is_completed']:
+        if key in ['include_in_report', 'is_important', 'is_completed', 'is_dev_null']:
             setattr(db_entry, key, 1 if value else 0)
         else:
             setattr(db_entry, key, value)
@@ -116,6 +116,7 @@ def merge_entries(merge_request: schemas.MergeEntriesRequest, db: Session = Depe
     is_important = any(entry.is_important for entry in entries)
     is_completed = all(entry.is_completed for entry in entries)  # All must be completed
     include_in_report = any(entry.include_in_report for entry in entries)
+    is_dev_null = any(entry.is_dev_null for entry in entries)  # If any is dev_null, merged is dev_null
     
     # Create the merged entry
     merged_entry = models.NoteEntry(
@@ -126,6 +127,7 @@ def merge_entries(merge_request: schemas.MergeEntriesRequest, db: Session = Depe
         include_in_report=1 if include_in_report else 0,
         is_important=1 if is_important else 0,
         is_completed=1 if is_completed else 0,
+        is_dev_null=1 if is_dev_null else 0,
         created_at=entries[0].created_at  # Use earliest created_at
     )
     

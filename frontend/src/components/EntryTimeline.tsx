@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { Check, Star, Code, FileText } from 'lucide-react';
+import { Check, Star, Code, FileText, Skull } from 'lucide-react';
 import type { NoteEntry } from '../types';
 import { useTimezone } from '../contexts/TimezoneContext';
 import { formatTimestamp } from '../utils/timezone';
@@ -12,6 +12,12 @@ const EntryTimeline = ({ entries }: EntryTimelineProps) => {
   const { timezone } = useTimezone();
   const [activeEntryId, setActiveEntryId] = useState<number | null>(null);
   const timelineRef = useRef<HTMLDivElement>(null);
+
+  // Check if a string is only emojis (with optional spaces)
+  const isEmojiOnly = (str: string): boolean => {
+    const emojiRegex = /^[\p{Emoji}\p{Emoji_Modifier}\p{Emoji_Component}\p{Emoji_Modifier_Base}\p{Emoji_Presentation}\s]+$/u;
+    return emojiRegex.test(str.trim());
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -83,6 +89,9 @@ const EntryTimeline = ({ entries }: EntryTimelineProps) => {
                   {time}
                 </span>
                 <div className="flex items-center gap-1">
+                  {entry.is_dev_null && (
+                    <Skull className="h-4 w-4 text-gray-700 stroke-[2.5]" />
+                  )}
                   {entry.is_completed && (
                     <Check className="h-4 w-4 text-green-500" />
                   )}
@@ -99,15 +108,32 @@ const EntryTimeline = ({ entries }: EntryTimelineProps) => {
               
               {entry.labels.length > 0 && (
                 <div className="flex gap-1 flex-wrap mt-1.5">
-                  {entry.labels.slice(0, 2).map((label) => (
-                    <span
-                      key={label.id}
-                      className="inline-block px-2 py-0.5 rounded text-xs font-medium text-white"
-                      style={{ backgroundColor: label.color }}
-                    >
-                      {label.name}
-                    </span>
-                  ))}
+                  {entry.labels.slice(0, 2).map((label) => {
+                    const isEmoji = isEmojiOnly(label.name);
+                    
+                    if (isEmoji) {
+                      // Emoji label - transparent background
+                      return (
+                        <span
+                          key={label.id}
+                          className="inline-block px-1 text-base"
+                        >
+                          {label.name}
+                        </span>
+                      );
+                    }
+                    
+                    // Text label - colored background (pill-shaped)
+                    return (
+                      <span
+                        key={label.id}
+                        className="inline-block px-2 py-0.5 rounded-full text-xs font-medium text-white"
+                        style={{ backgroundColor: label.color }}
+                      >
+                        {label.name}
+                      </span>
+                    );
+                  })}
                   {entry.labels.length > 2 && (
                     <span className="text-xs text-gray-500 px-1">+{entry.labels.length - 2}</span>
                   )}

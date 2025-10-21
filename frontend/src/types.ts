@@ -17,6 +17,7 @@ export interface NoteEntry {
   include_in_report: boolean;
   is_important: boolean;
   is_completed: boolean;
+  is_dev_null: boolean;
 }
 
 export interface DailyNote {
