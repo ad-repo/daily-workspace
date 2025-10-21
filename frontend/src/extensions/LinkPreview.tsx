@@ -90,6 +90,19 @@ export const LinkPreviewExtension = Node.create({
     return [
       {
         tag: 'div[data-link-preview]',
+        getAttrs: (node) => {
+          if (typeof node === 'string') return false;
+          const element = node as HTMLElement;
+          
+          // Support both old format (url, title) and new format (data-url, data-title)
+          return {
+            url: element.getAttribute('data-url') || element.getAttribute('url'),
+            title: element.getAttribute('data-title') || element.getAttribute('title'),
+            description: element.getAttribute('data-description') || element.getAttribute('description'),
+            image: element.getAttribute('data-image') || element.getAttribute('image'),
+            site_name: element.getAttribute('data-site-name') || element.getAttribute('site_name') || element.getAttribute('site-name'),
+          };
+        },
       },
     ];
   },

@@ -227,16 +227,22 @@ const Reports = () => {
     tmp.innerHTML = html;
     
     const linkPreviews = tmp.querySelectorAll('[data-link-preview]');
+    console.log('Found link previews:', linkPreviews.length, 'in HTML:', html.substring(0, 200));
+    
     linkPreviews.forEach((preview) => {
       const element = preview as HTMLElement;
-      const url = element.getAttribute('data-url') || '';
-      const title = element.getAttribute('data-title') || '';
-      const description = element.getAttribute('data-description') || '';
-      const image = element.getAttribute('data-image') || '';
-      const siteName = element.getAttribute('data-site-name') || '';
+      // Check both data-url and url (for backward compatibility with old saves)
+      const url = element.getAttribute('data-url') || element.getAttribute('url') || '';
+      const title = element.getAttribute('data-title') || element.getAttribute('title') || '';
+      const description = element.getAttribute('data-description') || element.getAttribute('description') || '';
+      const image = element.getAttribute('data-image') || element.getAttribute('image') || '';
+      const siteName = element.getAttribute('data-site-name') || element.getAttribute('site_name') || element.getAttribute('site-name') || '';
+      
+      console.log('Processing link preview:', { url, title, description, image, siteName });
       
       // Skip if no valid URL
       if (!url || url === 'null' || url === 'undefined') {
+        console.log('Skipping invalid URL');
         return;
       }
       
@@ -298,17 +304,16 @@ const Reports = () => {
         
         // Handle link preview divs (data-link-preview attribute)
         if (element.hasAttribute('data-link-preview')) {
-          // Find the link inside the preview
-          const link = element.querySelector('a');
-          if (link) {
-            const href = link.getAttribute('href');
-            const title = link.querySelector('h3')?.textContent?.trim();
-            const description = link.querySelector('p.text-sm')?.textContent?.trim();
-            
+          // Try to get attributes directly (supports both old and new format)
+          const url = element.getAttribute('data-url') || element.getAttribute('url') || '';
+          const title = element.getAttribute('data-title') || element.getAttribute('title') || '';
+          const description = element.getAttribute('data-description') || element.getAttribute('description') || '';
+          
+          if (url) {
             result += '\n[Link Preview]\n';
             if (title) result += `Title: ${title}\n`;
             if (description) result += `Description: ${description}\n`;
-            if (href) result += `URL: ${href}\n`;
+            result += `URL: ${url}\n`;
             result += '\n';
           }
           return; // Don't process children since we've extracted what we need
