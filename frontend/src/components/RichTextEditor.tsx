@@ -144,9 +144,10 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
         
         return false;
       },
-      handlePaste: (view, event) => {
+      handlePaste: async (view, event) => {
         const items = event.clipboardData?.items;
         if (items) {
+          // Check for images first
           for (let i = 0; i < items.length; i++) {
             if (items[i].type.indexOf('image') !== -1) {
               event.preventDefault();
@@ -172,6 +173,38 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
             }
           }
         }
+        
+        // Check for URLs in text
+        const text = event.clipboardData?.getData('text/plain');
+        if (text) {
+          // Simple URL detection - matches http(s) URLs
+          const urlRegex = /^https?:\/\/[^\s]+$/;
+          if (urlRegex.test(text.trim())) {
+            event.preventDefault();
+            
+            // Try to fetch link preview
+            fetchLinkPreview(text.trim())
+              .then(preview => {
+                if (preview && editor) {
+                  // Insert link preview card
+                  editor.chain().focus().insertContent({
+                    type: 'linkPreview',
+                    attrs: preview,
+                  }).run();
+                } else {
+                  // Fallback to regular link if preview fails
+                  editor?.chain().focus().insertContent(`<a href="${text.trim()}" target="_blank" rel="noopener noreferrer">${text.trim()}</a> `).run();
+                }
+              })
+              .catch(() => {
+                // Fallback to regular link on error
+                editor?.chain().focus().insertContent(`<a href="${text.trim()}" target="_blank" rel="noopener noreferrer">${text.trim()}</a> `).run();
+              });
+            
+            return true;
+          }
+        }
+        
         return false;
       },
     },
