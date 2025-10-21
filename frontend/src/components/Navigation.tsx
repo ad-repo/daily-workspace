@@ -22,6 +22,7 @@ const Navigation = () => {
                 ? 'bg-blue-100 text-blue-700'
                 : 'text-gray-600 hover:bg-gray-100'
             }`}
+            title="- Kamesh"
           >
             <Laptop className="h-6 w-6" />
             <span className="text-xl font-bold">pull your shit together</span>
