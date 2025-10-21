@@ -721,7 +721,7 @@ const Reports = () => {
                       </pre>
                     ) : (
                       <div 
-                        className="prose max-w-none"
+                        className="text-gray-800 leading-relaxed [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-lg [&_img]:my-2 [&_a]:text-blue-600 [&_a]:underline [&_p]:mb-2 [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:mb-2 [&_h2]:text-xl [&_h2]:font-bold [&_h2]:mb-2 [&_ul]:list-disc [&_ul]:ml-6 [&_ol]:list-decimal [&_ol]:ml-6"
                         dangerouslySetInnerHTML={{ __html: entry.content }}
                       />
                     )}
