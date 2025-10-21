@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Calendar, BookOpen, Settings, FileText } from 'lucide-react';
+import { Calendar, Laptop, Settings, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 
 const Navigation = () => {
@@ -23,7 +23,7 @@ const Navigation = () => {
                   : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
-              <BookOpen className="h-5 w-5" />
+              <Laptop className="h-5 w-5" />
               <span className="font-medium">Today</span>
             </Link>
 
