@@ -182,22 +182,21 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsChange, isSelected =
                 <span className="text-blue-600 ml-2">Saving...</span>
               )}
             </div>
-            
-            <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={includeInReport}
-                onChange={handleReportToggle}
-                className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
-              />
-              <span className="flex items-center gap-1 text-gray-700 pointer-events-none">
-                <FileText className="h-4 w-4" />
-                Add to Report
-              </span>
-            </label>
           </div>
 
           <div className="flex items-center gap-2">
+            <button
+              onClick={handleReportToggle}
+              className={`p-2 rounded transition-colors ${
+                includeInReport 
+                  ? 'text-blue-500 hover:text-blue-600' 
+                  : 'text-gray-400 hover:text-blue-500'
+              }`}
+              title={includeInReport ? "Remove from report" : "Add to report"}
+            >
+              <FileText className="h-5 w-5" />
+            </button>
+            
             <button
               onClick={handleCompletedToggle}
               className={`p-2 rounded transition-colors ${
