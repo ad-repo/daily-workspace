@@ -243,7 +243,7 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsChange, isSelected =
               onClick={handleDevNullToggle}
               className={`p-2 rounded transition-colors ${
                 isDevNull 
-                  ? 'text-gray-800 hover:text-gray-900' 
+                  ? 'text-gray-500 hover:text-gray-600' 
                   : 'text-gray-400 hover:text-gray-600'
               }`}
               title={isDevNull ? "Remove from /dev/null" : "Mark as /dev/null"}
