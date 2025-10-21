@@ -173,3 +173,30 @@ code {
   color: #ef4444;
 }
 
+/* Star with rays animation */
+@keyframes star-rays {
+  0%, 100% {
+    filter: drop-shadow(0 0 2px currentColor) drop-shadow(0 0 4px currentColor);
+  }
+  50% {
+    filter: drop-shadow(0 0 4px currentColor) drop-shadow(0 0 8px currentColor) drop-shadow(0 0 12px currentColor);
+  }
+}
+
+.star-rays {
+  animation: star-rays 2s ease-in-out infinite;
+}
+
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spin-rays {
+  animation: spin-slow 4s linear infinite;
+}
+

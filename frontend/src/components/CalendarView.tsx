@@ -82,14 +82,14 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
       return (
         <div className="flex flex-col items-center justify-center mt-1">
           {hasImportantEntries && hasCompletedEntries ? (
-            // Green pulsing star for both important and completed
-            <Star className="h-3 w-3 text-green-500 fill-green-500 animate-pulse" />
+            // Green pulsing star for both important and completed - with rays
+            <Star className="h-3 w-3 text-green-500 fill-green-500 star-rays spin-rays" />
           ) : hasCompletedEntries ? (
             // Green checkmark for completed only - bouncing animation
             <Check className="h-3 w-3 text-green-500 stroke-[3] animate-bounce" />
           ) : hasImportantEntries ? (
-            // Yellow star for important only
-            <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />
+            // Yellow star for important only - with rays
+            <Star className="h-3 w-3 text-yellow-500 fill-yellow-500 star-rays spin-rays" />
           ) : (
             // Blue dot for regular notes
             <div className="w-1.5 h-1.5 bg-blue-500 rounded-full" />
@@ -122,7 +122,7 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
           <h3 className="text-sm font-semibold text-gray-700 mb-2">Legend</h3>
           <div className="flex flex-wrap gap-4 text-sm text-gray-600">
             <div className="flex items-center gap-2">
-              <Star className="h-4 w-4 text-green-500 fill-green-500 animate-pulse" />
+              <Star className="h-4 w-4 text-green-500 fill-green-500 star-rays spin-rays" />
               <span>Important & completed</span>
             </div>
             <div className="flex items-center gap-2">
@@ -130,7 +130,7 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
               <span>Has completed entries</span>
             </div>
             <div className="flex items-center gap-2">
-              <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+              <Star className="h-4 w-4 text-yellow-500 fill-yellow-500 star-rays spin-rays" />
               <span>Has important entries</span>
             </div>
             <div className="flex items-center gap-2">
