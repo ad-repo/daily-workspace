@@ -219,6 +219,58 @@ const Reports = () => {
     return tmp.textContent || tmp.innerText || '';
   };
 
+  const extractContentWithLinks = (html: string) => {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    
+    let result = '';
+    
+    // Process all nodes
+    const processNode = (node: Node) => {
+      if (node.nodeType === Node.TEXT_NODE) {
+        const text = node.textContent?.trim();
+        if (text) result += text + ' ';
+      } else if (node.nodeType === Node.ELEMENT_NODE) {
+        const element = node as HTMLElement;
+        
+        // Handle links
+        if (element.tagName === 'A') {
+          const href = element.getAttribute('href');
+          const text = element.textContent?.trim();
+          if (href) {
+            result += `${text || href} (${href}) `;
+          }
+        }
+        // Handle images
+        else if (element.tagName === 'IMG') {
+          const src = element.getAttribute('src');
+          const alt = element.getAttribute('alt');
+          if (src) {
+            result += `[Image: ${alt || src}] `;
+          }
+        }
+        // Handle line breaks
+        else if (element.tagName === 'BR') {
+          result += '\n';
+        }
+        // Handle paragraphs and divs
+        else if (element.tagName === 'P' || element.tagName === 'DIV') {
+          Array.from(node.childNodes).forEach(processNode);
+          result += '\n';
+        }
+        // Recursively process other elements
+        else {
+          Array.from(node.childNodes).forEach(processNode);
+        }
+      }
+    };
+    
+    Array.from(tmp.childNodes).forEach(processNode);
+    
+    // Clean up multiple spaces and newlines
+    return result.replace(/\s+/g, ' ').replace(/\n\s+/g, '\n').trim();
+  };
+
   const copySection = async (section: 'completed' | 'in-progress') => {
     if (!report) return;
 
@@ -240,7 +292,7 @@ const Reports = () => {
 
         const content = entry.content_type === 'code'
           ? entry.content
-          : stripHtml(entry.content);
+          : extractContentWithLinks(entry.content);
 
         text += `${content}\n\n`;
 
@@ -271,7 +323,7 @@ const Reports = () => {
       allEntriesReport.entries.forEach((entry: any, index: number) => {
         const content = entry.content_type === 'code'
           ? entry.content
-          : stripHtml(entry.content);
+          : extractContentWithLinks(entry.content);
 
         text += content;
         
@@ -295,7 +347,7 @@ const Reports = () => {
   const copyEntry = async (entry: any) => {
     const content = entry.content_type === 'code'
       ? entry.content
-      : stripHtml(entry.content);
+      : extractContentWithLinks(entry.content);
 
     let text = `${entry.date}\n`;
     text += `${new Date(entry.created_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`;
