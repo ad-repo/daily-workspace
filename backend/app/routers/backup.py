@@ -270,7 +270,8 @@ async def import_data(
             else:
                 new_label = models.Label(
                     name=label_data["name"],
-                    color=label_data.get("color", "#3b82f6")
+                    color=label_data.get("color", "#3b82f6"),
+                    created_at=datetime.fromisoformat(label_data["created_at"]) if "created_at" in label_data else datetime.utcnow()
                 )
                 db.add(new_label)
                 db.flush()
@@ -295,6 +296,11 @@ async def import_data(
                     note = existing_note
                     note.fire_rating = note_data.get("fire_rating", 0)
                     note.daily_goal = note_data.get("daily_goal", "")
+                    # Preserve timestamps from backup
+                    if "created_at" in note_data:
+                        note.created_at = datetime.fromisoformat(note_data["created_at"])
+                    if "updated_at" in note_data:
+                        note.updated_at = datetime.fromisoformat(note_data["updated_at"])
                 else:
                     stats["notes_skipped"] += 1
                     continue
@@ -302,7 +308,9 @@ async def import_data(
                 note = models.DailyNote(
                     date=note_data["date"],
                     fire_rating=note_data.get("fire_rating", 0),
-                    daily_goal=note_data.get("daily_goal", "")
+                    daily_goal=note_data.get("daily_goal", ""),
+                    created_at=datetime.fromisoformat(note_data["created_at"]) if "created_at" in note_data else datetime.utcnow(),
+                    updated_at=datetime.fromisoformat(note_data["updated_at"]) if "updated_at" in note_data else datetime.utcnow()
                 )
                 db.add(note)
                 stats["notes_imported"] += 1
@@ -318,7 +326,9 @@ async def import_data(
                     order_index=entry_data.get("order_index", 0),
                     include_in_report=1 if entry_data.get("include_in_report", False) else 0,
                     is_important=1 if entry_data.get("is_important", False) else 0,
-                    is_completed=1 if entry_data.get("is_completed", False) else 0
+                    is_completed=1 if entry_data.get("is_completed", False) else 0,
+                    created_at=datetime.fromisoformat(entry_data["created_at"]) if "created_at" in entry_data else datetime.utcnow(),
+                    updated_at=datetime.fromisoformat(entry_data["updated_at"]) if "updated_at" in entry_data else datetime.utcnow()
                 )
                 db.add(entry)
                 db.flush()
