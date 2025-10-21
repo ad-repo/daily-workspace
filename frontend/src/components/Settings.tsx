@@ -184,8 +184,8 @@ const Settings = () => {
 
             <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
               <p className="text-sm text-blue-800">
-                <strong>What's included:</strong> All notes, entries, labels, fire ratings, and timestamps.
-                Images are referenced but stored separately in the server.
+                <strong>What's included:</strong> All notes, entries, labels, daily goals, search history, and timestamps.
+                Uploaded files are stored separately on the server.
               </p>
             </div>
           </div>
