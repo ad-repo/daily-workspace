@@ -90,7 +90,7 @@ const Reports = () => {
   const exportAllEntriesReport = () => {
     if (!allEntriesReport) return;
 
-    let markdown = `# All Entries Report\n\n`;
+    let markdown = `# Selected Entries Report\n\n`;
     markdown += `**Generated:** ${new Date(allEntriesReport.generated_at).toLocaleString()}\n\n`;
     markdown += `**Total Entries:** ${allEntriesReport.entries.length}\n\n`;
     markdown += `---\n\n`;
@@ -590,12 +590,12 @@ const Reports = () => {
         )}
       </div>
 
-      {/* All Entries Report Section */}
+      {/* Selected Entries Report Section */}
       <div className="bg-white rounded-lg shadow-lg p-6 mt-6">
         <div className="mb-6">
           <div className="flex items-center gap-3 mb-4">
             <FileText className="h-8 w-8 text-gray-700" />
-            <h2 className="text-3xl font-bold text-gray-900">All Entries Report</h2>
+            <h2 className="text-3xl font-bold text-gray-900">Selected Entries Report</h2>
           </div>
           <p className="text-gray-600 mb-4">
             Generate a report of all entries marked with "Add to Report" (not filtered by date or week).
@@ -607,7 +607,7 @@ const Reports = () => {
               disabled={loadingAll}
               className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loadingAll ? 'Generating...' : 'Generate All Entries Report'}
+              {loadingAll ? 'Generating...' : 'Generate'}
             </button>
 
             {allEntriesReport && (
