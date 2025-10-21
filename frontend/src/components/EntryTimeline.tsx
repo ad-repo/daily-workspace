@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { Check, Star, Code, FileText } from 'lucide-react';
+import { Check, Star, Code, FileText, Skull } from 'lucide-react';
 import type { NoteEntry } from '../types';
 import { useTimezone } from '../contexts/TimezoneContext';
 import { formatTimestamp } from '../utils/timezone';
@@ -89,6 +89,9 @@ const EntryTimeline = ({ entries }: EntryTimelineProps) => {
                   {time}
                 </span>
                 <div className="flex items-center gap-1">
+                  {entry.is_dev_null && (
+                    <Skull className="h-4 w-4 text-gray-700 stroke-[2.5]" />
+                  )}
                   {entry.is_completed && (
                     <Check className="h-4 w-4 text-green-500" />
                   )}
