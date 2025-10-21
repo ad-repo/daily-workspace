@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Trash2, Clock, FileText, Star, Check, Copy, CheckCheck, ArrowRight } from 'lucide-react';
+import { Trash2, Clock, FileText, Star, Check, Copy, CheckCheck, ArrowRight, Skull } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import axios from 'axios';
@@ -31,6 +31,7 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsChange, isSelected =
   const [includeInReport, setIncludeInReport] = useState(entry.include_in_report || false);
   const [isImportant, setIsImportant] = useState(entry.is_important || false);
   const [isCompleted, setIsCompleted] = useState(entry.is_completed || false);
+  const [isDevNull, setIsDevNull] = useState(entry.is_dev_null || false);
   const [copied, setCopied] = useState(false);
   const [isContinuing, setIsContinuing] = useState(false);
   const isCodeEntry = entry.content_type === 'code';
@@ -43,6 +44,7 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsChange, isSelected =
     setIncludeInReport(entry.include_in_report || false);
     setIsImportant(entry.is_important || false);
     setIsCompleted(entry.is_completed || false);
+    setIsDevNull(entry.is_dev_null || false);
   }, [entry]);
 
   const handleContentChange = async (newContent: string) => {
@@ -105,6 +107,22 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsChange, isSelected =
     } catch (error) {
       console.error('Failed to update completed status:', error);
       setIsCompleted(!newValue); // Revert on error
+    }
+  };
+
+  const handleDevNullToggle = async () => {
+    const newValue = !isDevNull;
+    setIsDevNull(newValue);
+    
+    try {
+      await axios.patch(`${API_URL}/api/entries/${entry.id}`, {
+        is_dev_null: newValue
+      });
+      // Reload the note to sync data
+      onLabelsChange();
+    } catch (error) {
+      console.error('Failed to update dev_null status:', error);
+      setIsDevNull(!newValue); // Revert on error
     }
   };
 
@@ -219,6 +237,18 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsChange, isSelected =
               title={isImportant ? "Mark as not important" : "Mark as important"}
             >
               <Star className={`h-5 w-5 ${isImportant ? 'fill-current' : ''}`} />
+            </button>
+            
+            <button
+              onClick={handleDevNullToggle}
+              className={`p-2 rounded transition-colors ${
+                isDevNull 
+                  ? 'text-gray-800 hover:text-gray-900' 
+                  : 'text-gray-400 hover:text-gray-600'
+              }`}
+              title={isDevNull ? "Remove from /dev/null" : "Mark as /dev/null"}
+            >
+              <Skull className={`h-5 w-5 ${isDevNull ? 'fill-current' : ''}`} />
             </button>
             
             <button

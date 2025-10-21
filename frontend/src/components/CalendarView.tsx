@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import Calendar from 'react-calendar';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
-import { Star, Check } from 'lucide-react';
+import { Star, Check, Skull } from 'lucide-react';
 import { notesApi } from '../api';
 import type { DailyNote } from '../types';
 import 'react-calendar/dist/Calendar.css';
@@ -76,12 +76,16 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
 
     // Only show indicator if there are actual entries OR a daily goal
     if (note && (note.entries.length > 0 || (note.daily_goal && note.daily_goal.trim() !== ''))) {
+      const hasDevNullEntries = note.entries.some(entry => entry.is_dev_null);
       const hasImportantEntries = note.entries.some(entry => entry.is_important);
       const hasCompletedEntries = note.entries.some(entry => entry.is_completed);
       
       return (
         <div className="flex flex-col items-center justify-center mt-1">
-          {hasImportantEntries && hasCompletedEntries ? (
+          {hasDevNullEntries ? (
+            // Skull emoji overrides all other indicators
+            <Skull className="h-3 w-3 text-gray-700 fill-gray-700" />
+          ) : hasImportantEntries && hasCompletedEntries ? (
             // Green star for both important and completed - dramatic pulse
             <Star className="h-3 w-3 text-green-500 fill-green-500 dramatic-pulse" />
           ) : hasCompletedEntries ? (
@@ -121,6 +125,10 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
         <div className="mt-6 p-4 bg-gray-50 rounded-lg">
           <h3 className="text-sm font-semibold text-gray-700 mb-2">Legend</h3>
           <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+            <div className="flex items-center gap-2">
+              <Skull className="h-4 w-4 text-gray-700 fill-gray-700" />
+              <span>Has /dev/null</span>
+            </div>
             <div className="flex items-center gap-2">
               <Star className="h-4 w-4 text-green-500 fill-green-500 dramatic-pulse" />
               <span>Has important and completed</span>
