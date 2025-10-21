@@ -123,7 +123,7 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
           <div className="flex flex-wrap gap-4 text-sm text-gray-600">
             <div className="flex items-center gap-2">
               <Star className="h-4 w-4 text-green-500 fill-green-500 dramatic-pulse" />
-              <span>Important & completed</span>
+              <span>Has important and completed</span>
             </div>
             <div className="flex items-center gap-2">
               <Check className="h-4 w-4 text-green-500 stroke-[3] animate-bounce" />
