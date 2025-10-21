@@ -84,7 +84,7 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
         <div className="flex flex-col items-center justify-center mt-1">
           {hasDevNullEntries ? (
             // Skull emoji overrides all other indicators
-            <Skull className="h-3 w-3 text-gray-700 fill-gray-700" />
+            <Skull className="h-3 w-3 text-gray-700 stroke-[2.5]" />
           ) : hasImportantEntries && hasCompletedEntries ? (
             // Green star for both important and completed - dramatic pulse
             <Star className="h-3 w-3 text-green-500 fill-green-500 dramatic-pulse" />
@@ -142,7 +142,7 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
               <span>Has notes</span>
             </div>
             <div className="flex items-center gap-2">
-              <Skull className="h-4 w-4 text-gray-700 fill-gray-700" />
+              <Skull className="h-4 w-4 text-gray-700 stroke-[2.5]" />
               <span>Nothing</span>
             </div>
           </div>
