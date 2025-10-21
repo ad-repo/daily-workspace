@@ -117,3 +117,24 @@ class SearchResult(NoteEntryBase):
     class Config:
         from_attributes = True
 
+# Service Credential Schemas
+class ServiceCredentialBase(BaseModel):
+    service_name: str  # google, jira, slack
+    credentials: str  # JSON string
+    config: str = "{}"  # JSON string for additional config
+
+class ServiceCredentialCreate(ServiceCredentialBase):
+    pass
+
+class ServiceCredentialUpdate(BaseModel):
+    credentials: Optional[str] = None
+    config: Optional[str] = None
+
+class ServiceCredential(ServiceCredentialBase):
+    id: int
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+

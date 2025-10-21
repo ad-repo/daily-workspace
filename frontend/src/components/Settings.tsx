@@ -1,15 +1,156 @@
-import { useState } from 'react';
-import { Download, Upload, Settings as SettingsIcon, Clock, Archive } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Download, Upload, Settings as SettingsIcon, Clock, Archive, Key, Eye, EyeOff } from 'lucide-react';
 import axios from 'axios';
 import { useTimezone } from '../contexts/TimezoneContext';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
+interface ServiceConfig {
+  google: { apiKey: string; accessToken: string };
+  jira: { email: string; apiToken: string; jiraUrl: string };
+  slack: { token: string };
+}
 
 const Settings = () => {
   const [isImporting, setIsImporting] = useState(false);
   const [isDownloadingFiles, setIsDownloadingFiles] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const { timezone, setTimezone } = useTimezone();
+  
+  // Service credentials state
+  const [serviceConfig, setServiceConfig] = useState<ServiceConfig>({
+    google: { apiKey: '', accessToken: '' },
+    jira: { email: '', apiToken: '', jiraUrl: '' },
+    slack: { token: '' },
+  });
+  const [showTokens, setShowTokens] = useState({
+    googleApiKey: false,
+    googleAccessToken: false,
+    jiraApiToken: false,
+    slackToken: false,
+  });
+  const [isSavingCredentials, setIsSavingCredentials] = useState(false);
+
+  // Load service credentials on mount
+  useEffect(() => {
+    loadServiceCredentials();
+  }, []);
+
+  const loadServiceCredentials = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/api/credentials/`);
+      const credentials = response.data;
+      
+      const newConfig: ServiceConfig = {
+        google: { apiKey: '', accessToken: '' },
+        jira: { email: '', apiToken: '', jiraUrl: '' },
+        slack: { token: '' },
+      };
+      
+      credentials.forEach((cred: any) => {
+        try {
+          const parsedCreds = JSON.parse(cred.credentials);
+          const parsedConfig = JSON.parse(cred.config || '{}');
+          
+          if (cred.service_name === 'google') {
+            newConfig.google = {
+              apiKey: parsedCreds.api_key || '',
+              accessToken: parsedCreds.access_token || '',
+            };
+          } else if (cred.service_name === 'jira') {
+            newConfig.jira = {
+              email: parsedCreds.email || '',
+              apiToken: parsedCreds.api_token || '',
+              jiraUrl: parsedConfig.jira_url || '',
+            };
+          } else if (cred.service_name === 'slack') {
+            newConfig.slack = {
+              token: parsedCreds.token || '',
+            };
+          }
+        } catch (e) {
+          console.error(`Failed to parse credentials for ${cred.service_name}`, e);
+        }
+      });
+      
+      setServiceConfig(newConfig);
+    } catch (error) {
+      console.error('Failed to load service credentials:', error);
+    }
+  };
+
+  const saveServiceCredential = async (serviceName: string) => {
+    setIsSavingCredentials(true);
+    try {
+      let credentials = {};
+      let config = {};
+      
+      if (serviceName === 'google') {
+        credentials = {
+          api_key: serviceConfig.google.apiKey,
+          access_token: serviceConfig.google.accessToken,
+        };
+      } else if (serviceName === 'jira') {
+        credentials = {
+          email: serviceConfig.jira.email,
+          api_token: serviceConfig.jira.apiToken,
+        };
+        config = {
+          jira_url: serviceConfig.jira.jiraUrl,
+        };
+      } else if (serviceName === 'slack') {
+        credentials = {
+          token: serviceConfig.slack.token,
+        };
+      }
+      
+      await axios.post(`${API_URL}/api/credentials/`, {
+        service_name: serviceName,
+        credentials: JSON.stringify(credentials),
+        config: JSON.stringify(config),
+      });
+      
+      showMessage('success', `${serviceName.charAt(0).toUpperCase() + serviceName.slice(1)} credentials saved successfully!`);
+    } catch (error: any) {
+      console.error(`Failed to save ${serviceName} credentials:`, error);
+      showMessage('error', error.response?.data?.detail || `Failed to save ${serviceName} credentials`);
+    } finally {
+      setIsSavingCredentials(false);
+    }
+  };
+
+  const deleteServiceCredential = async (serviceName: string) => {
+    if (!window.confirm(`Are you sure you want to delete ${serviceName} credentials?`)) {
+      return;
+    }
+    
+    try {
+      await axios.delete(`${API_URL}/api/credentials/${serviceName}`);
+      
+      // Clear the form
+      if (serviceName === 'google') {
+        setServiceConfig(prev => ({
+          ...prev,
+          google: { apiKey: '', accessToken: '' },
+        }));
+      } else if (serviceName === 'jira') {
+        setServiceConfig(prev => ({
+          ...prev,
+          jira: { email: '', apiToken: '', jiraUrl: '' },
+        }));
+      } else if (serviceName === 'slack') {
+        setServiceConfig(prev => ({
+          ...prev,
+          slack: { token: '' },
+        }));
+      }
+      
+      showMessage('success', `${serviceName.charAt(0).toUpperCase() + serviceName.slice(1)} credentials deleted`);
+    } catch (error: any) {
+      console.error(`Failed to delete ${serviceName} credentials:`, error);
+      showMessage('error', error.response?.data?.detail || `Failed to delete ${serviceName} credentials`);
+    }
+  };
 
   const handleExport = async () => {
     try {
@@ -185,6 +326,225 @@ const Settings = () => {
               <p className="mt-2 text-sm text-gray-500">
                 Current timezone: <span className="font-medium">{timezone}</span>
               </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Service Credentials Section */}
+        <section className="mb-8">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <Key className="h-5 w-5" />
+            Service Credentials
+          </h2>
+          <div className="bg-gray-50 rounded-lg p-6 space-y-6">
+            <p className="text-gray-600 mb-4">
+              Configure API credentials for authenticated link previews from Google Docs, Jira, and Slack.
+            </p>
+
+            {/* Google Docs Section */}
+            <div className="border border-gray-200 rounded-lg p-4 bg-white">
+              <h3 className="font-semibold text-gray-800 mb-3">Google Docs</h3>
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    API Key (for public/domain docs)
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showTokens.googleApiKey ? 'text' : 'password'}
+                      value={serviceConfig.google.apiKey}
+                      onChange={(e) => setServiceConfig(prev => ({
+                        ...prev,
+                        google: { ...prev.google, apiKey: e.target.value }
+                      }))}
+                      placeholder="Enter Google API Key"
+                      className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowTokens(prev => ({ ...prev, googleApiKey: !prev.googleApiKey }))}
+                      className="absolute right-2 top-2 text-gray-500 hover:text-gray-700"
+                    >
+                      {showTokens.googleApiKey ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Access Token (OAuth, for private docs)
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showTokens.googleAccessToken ? 'text' : 'password'}
+                      value={serviceConfig.google.accessToken}
+                      onChange={(e) => setServiceConfig(prev => ({
+                        ...prev,
+                        google: { ...prev.google, accessToken: e.target.value }
+                      }))}
+                      placeholder="Enter OAuth Access Token"
+                      className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowTokens(prev => ({ ...prev, googleAccessToken: !prev.googleAccessToken }))}
+                      className="absolute right-2 top-2 text-gray-500 hover:text-gray-700"
+                    >
+                      {showTokens.googleAccessToken ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    </button>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => saveServiceCredential('google')}
+                    disabled={isSavingCredentials}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                  >
+                    Save Google Credentials
+                  </button>
+                  {(serviceConfig.google.apiKey || serviceConfig.google.accessToken) && (
+                    <button
+                      onClick={() => deleteServiceCredential('google')}
+                      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                    >
+                      Delete
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Jira Section */}
+            <div className="border border-gray-200 rounded-lg p-4 bg-white">
+              <h3 className="font-semibold text-gray-800 mb-3">Jira</h3>
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Jira URL
+                  </label>
+                  <input
+                    type="text"
+                    value={serviceConfig.jira.jiraUrl}
+                    onChange={(e) => setServiceConfig(prev => ({
+                      ...prev,
+                      jira: { ...prev.jira, jiraUrl: e.target.value }
+                    }))}
+                    placeholder="https://your-domain.atlassian.net"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    value={serviceConfig.jira.email}
+                    onChange={(e) => setServiceConfig(prev => ({
+                      ...prev,
+                      jira: { ...prev.jira, email: e.target.value }
+                    }))}
+                    placeholder="your-email@example.com"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    API Token
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showTokens.jiraApiToken ? 'text' : 'password'}
+                      value={serviceConfig.jira.apiToken}
+                      onChange={(e) => setServiceConfig(prev => ({
+                        ...prev,
+                        jira: { ...prev.jira, apiToken: e.target.value }
+                      }))}
+                      placeholder="Enter Jira API Token"
+                      className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowTokens(prev => ({ ...prev, jiraApiToken: !prev.jiraApiToken }))}
+                      className="absolute right-2 top-2 text-gray-500 hover:text-gray-700"
+                    >
+                      {showTokens.jiraApiToken ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    </button>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => saveServiceCredential('jira')}
+                    disabled={isSavingCredentials}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                  >
+                    Save Jira Credentials
+                  </button>
+                  {(serviceConfig.jira.email || serviceConfig.jira.apiToken) && (
+                    <button
+                      onClick={() => deleteServiceCredential('jira')}
+                      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                    >
+                      Delete
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Slack Section */}
+            <div className="border border-gray-200 rounded-lg p-4 bg-white">
+              <h3 className="font-semibold text-gray-800 mb-3">Slack</h3>
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Bot/User Token
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showTokens.slackToken ? 'text' : 'password'}
+                      value={serviceConfig.slack.token}
+                      onChange={(e) => setServiceConfig(prev => ({
+                        ...prev,
+                        slack: { token: e.target.value }
+                      }))}
+                      placeholder="xoxb-... or xoxp-..."
+                      className="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowTokens(prev => ({ ...prev, slackToken: !prev.slackToken }))}
+                      className="absolute right-2 top-2 text-gray-500 hover:text-gray-700"
+                    >
+                      {showTokens.slackToken ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    </button>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => saveServiceCredential('slack')}
+                    disabled={isSavingCredentials}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                  >
+                    Save Slack Credentials
+                  </button>
+                  {serviceConfig.slack.token && (
+                    <button
+                      onClick={() => deleteServiceCredential('slack')}
+                      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                    >
+                      Delete
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="text-sm text-blue-800 space-y-2">
+                <p><strong>Google Docs:</strong> Get API key from Google Cloud Console or use OAuth access token</p>
+                <p><strong>Jira:</strong> Create an API token at id.atlassian.com/manage-profile/security/api-tokens</p>
+                <p><strong>Slack:</strong> Create a bot or get user token from api.slack.com/apps</p>
+              </div>
             </div>
           </div>
         </section>

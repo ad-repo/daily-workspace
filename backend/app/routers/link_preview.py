@@ -1,9 +1,14 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+from sqlalchemy.orm import Session
 from pydantic import BaseModel, HttpUrl
 import requests
 from bs4 import BeautifulSoup
 from typing import Optional
 import re
+import json
+from urllib.parse import urlparse, urljoin
+from app.database import get_db
+from app import models
 
 router = APIRouter()
 
@@ -17,16 +22,236 @@ class LinkPreviewResponse(BaseModel):
     image: Optional[str] = None
     site_name: Optional[str] = None
 
+def get_service_credentials(service_name: str, db: Session) -> Optional[dict]:
+    """Get credentials for a service from database"""
+    credential = db.query(models.ServiceCredential).filter(
+        models.ServiceCredential.service_name == service_name
+    ).first()
+    
+    if credential:
+        try:
+            creds = json.loads(credential.credentials)
+            config = json.loads(credential.config)
+            return {"credentials": creds, "config": config}
+        except json.JSONDecodeError:
+            return None
+    return None
+
+def fetch_google_doc_preview(url: str, doc_id: str, credentials: Optional[dict]) -> Optional[LinkPreviewResponse]:
+    """Fetch preview for Google Docs using API if credentials are available"""
+    if not credentials or not credentials.get("credentials"):
+        return None
+    
+    try:
+        # Try to use Google Drive API to get file metadata
+        creds_data = credentials["credentials"]
+        
+        # Support for API key or OAuth token
+        api_key = creds_data.get("api_key")
+        access_token = creds_data.get("access_token")
+        
+        if api_key:
+            # Use API key for public or domain-shared docs
+            api_url = f"https://www.googleapis.com/drive/v3/files/{doc_id}"
+            params = {
+                "key": api_key,
+                "fields": "name,description,thumbnailLink,iconLink"
+            }
+            response = requests.get(api_url, params=params, timeout=5)
+        elif access_token:
+            # Use OAuth access token for private docs
+            api_url = f"https://www.googleapis.com/drive/v3/files/{doc_id}"
+            headers = {"Authorization": f"Bearer {access_token}"}
+            params = {"fields": "name,description,thumbnailLink,iconLink"}
+            response = requests.get(api_url, headers=headers, params=params, timeout=5)
+        else:
+            return None
+        
+        if response.status_code == 200:
+            data = response.json()
+            return LinkPreviewResponse(
+                url=url,
+                title=data.get("name", "Google Doc"),
+                description=data.get("description", ""),
+                image=data.get("thumbnailLink") or data.get("iconLink"),
+                site_name="Google Docs"
+            )
+    except Exception as e:
+        print(f"Error fetching Google Doc preview: {e}")
+    
+    return None
+
+def fetch_jira_issue_preview(url: str, issue_key: str, credentials: Optional[dict]) -> Optional[LinkPreviewResponse]:
+    """Fetch preview for Jira issue using API"""
+    if not credentials or not credentials.get("credentials"):
+        return None
+    
+    try:
+        creds_data = credentials["credentials"]
+        config_data = credentials.get("config", {})
+        
+        jira_url = config_data.get("jira_url")
+        email = creds_data.get("email")
+        api_token = creds_data.get("api_token")
+        
+        if not all([jira_url, email, api_token]):
+            return None
+        
+        # Fetch issue details from Jira API
+        api_url = f"{jira_url}/rest/api/3/issue/{issue_key}"
+        auth = (email, api_token)
+        response = requests.get(api_url, auth=auth, timeout=5)
+        
+        if response.status_code == 200:
+            data = response.json()
+            fields = data.get("fields", {})
+            
+            # Extract relevant information
+            summary = fields.get("summary", issue_key)
+            description = fields.get("description", "")
+            
+            # Try to get plain text description
+            if isinstance(description, dict):
+                # Jira's new format (Atlassian Document Format)
+                description_text = ""
+                for content in description.get("content", []):
+                    if content.get("type") == "paragraph":
+                        for text_node in content.get("content", []):
+                            if text_node.get("type") == "text":
+                                description_text += text_node.get("text", "")
+                description = description_text[:200]
+            
+            issue_type = fields.get("issuetype", {}).get("name", "Issue")
+            status = fields.get("status", {}).get("name", "")
+            
+            preview_desc = f"[{issue_type}] {status}"
+            if description:
+                preview_desc += f" - {description}"
+            
+            # Try to get issue type icon
+            icon_url = fields.get("issuetype", {}).get("iconUrl")
+            
+            return LinkPreviewResponse(
+                url=url,
+                title=f"{issue_key}: {summary}",
+                description=preview_desc,
+                image=icon_url,
+                site_name="Jira"
+            )
+    except Exception as e:
+        print(f"Error fetching Jira preview: {e}")
+    
+    return None
+
+def fetch_slack_message_preview(url: str, credentials: Optional[dict]) -> Optional[LinkPreviewResponse]:
+    """Fetch preview for Slack message using API"""
+    if not credentials or not credentials.get("credentials"):
+        return None
+    
+    try:
+        creds_data = credentials["credentials"]
+        token = creds_data.get("token")  # Bot token or user token
+        
+        if not token:
+            return None
+        
+        # Extract channel and message timestamp from Slack URL
+        # Format: https://workspace.slack.com/archives/CHANNEL_ID/pMESSAGE_TS
+        match = re.search(r'/archives/([^/]+)/p(\d+)', url)
+        if not match:
+            return None
+        
+        channel_id = match.group(1)
+        message_ts = match.group(2)
+        # Convert message timestamp format (remove 'p' prefix and add decimal point)
+        message_ts = f"{message_ts[:10]}.{message_ts[10:]}"
+        
+        # Fetch message using Slack API
+        api_url = "https://slack.com/api/conversations.history"
+        headers = {"Authorization": f"Bearer {token}"}
+        params = {
+            "channel": channel_id,
+            "latest": message_ts,
+            "limit": 1,
+            "inclusive": "true"
+        }
+        
+        response = requests.get(api_url, headers=headers, params=params, timeout=5)
+        
+        if response.status_code == 200:
+            data = response.json()
+            if data.get("ok") and data.get("messages"):
+                message = data["messages"][0]
+                text = message.get("text", "")
+                user = message.get("user", "Unknown")
+                
+                # Try to get user info
+                user_info_url = "https://slack.com/api/users.info"
+                user_params = {"user": user}
+                user_response = requests.get(user_info_url, headers=headers, params=user_params, timeout=5)
+                
+                username = user
+                user_image = None
+                if user_response.status_code == 200:
+                    user_data = user_response.json()
+                    if user_data.get("ok") and user_data.get("user"):
+                        username = user_data["user"].get("real_name") or user_data["user"].get("name", user)
+                        user_image = user_data["user"].get("profile", {}).get("image_72")
+                
+                return LinkPreviewResponse(
+                    url=url,
+                    title=f"Message from {username}",
+                    description=text[:200] + ("..." if len(text) > 200 else ""),
+                    image=user_image,
+                    site_name="Slack"
+                )
+    except Exception as e:
+        print(f"Error fetching Slack preview: {e}")
+    
+    return None
+
 @router.post("/preview", response_model=LinkPreviewResponse)
-async def get_link_preview(request: LinkPreviewRequest):
+async def get_link_preview(request: LinkPreviewRequest, db: Session = Depends(get_db)):
     """Fetch metadata for a given URL"""
     url = str(request.url)
     
     # Extract domain info for fallback
-    from urllib.parse import urlparse
     parsed_url = urlparse(url)
     domain = parsed_url.netloc.replace('www.', '')
     
+    # Try authenticated fetching for specific services first
+    # Google Docs
+    if 'docs.google.com' in domain or 'drive.google.com' in domain:
+        doc_id_match = re.search(r'/document/d/([a-zA-Z0-9-_]+)', url)
+        if doc_id_match:
+            doc_id = doc_id_match.group(1)
+            google_creds = get_service_credentials("google", db)
+            if google_creds:
+                auth_preview = fetch_google_doc_preview(url, doc_id, google_creds)
+                if auth_preview:
+                    return auth_preview
+    
+    # Jira
+    if 'atlassian.net' in domain or 'jira' in domain:
+        # Extract issue key (e.g., PROJ-123)
+        issue_match = re.search(r'/browse/([A-Z]+-\d+)', url)
+        if issue_match:
+            issue_key = issue_match.group(1)
+            jira_creds = get_service_credentials("jira", db)
+            if jira_creds:
+                auth_preview = fetch_jira_issue_preview(url, issue_key, jira_creds)
+                if auth_preview:
+                    return auth_preview
+    
+    # Slack
+    if 'slack.com' in domain:
+        slack_creds = get_service_credentials("slack", db)
+        if slack_creds:
+            auth_preview = fetch_slack_message_preview(url, slack_creds)
+            if auth_preview:
+                return auth_preview
+    
+    # Fallback to standard HTML scraping for all other URLs or if auth failed
     try:
         # Special handling for Google Docs/Drive
         is_google_doc = 'docs.google.com' in domain or 'drive.google.com' in domain

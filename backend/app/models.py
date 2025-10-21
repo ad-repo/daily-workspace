@@ -79,3 +79,14 @@ class SearchHistory(Base):
     query = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
+class ServiceCredential(Base):
+    """Model for storing service API credentials/tokens"""
+    __tablename__ = "service_credentials"
+
+    id = Column(Integer, primary_key=True, index=True)
+    service_name = Column(String, unique=True, index=True, nullable=False)  # google, jira, slack
+    credentials = Column(Text, nullable=False)  # JSON string of credentials
+    config = Column(Text, default="{}")  # JSON string for additional config (e.g., Jira URL)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
