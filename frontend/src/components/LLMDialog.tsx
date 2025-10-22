@@ -23,7 +23,7 @@ const LLMDialog = ({ isOpen, onClose, entryIds }: LLMDialogProps) => {
   const [showPrompt, setShowPrompt] = useState(false);
   const [loading, setLoading] = useState(false);
   const [models, setModels] = useState<Model[]>([]);
-  const [selectedModel, setSelectedModel] = useState('mixtral:8x7b');
+  const [selectedModel, setSelectedModel] = useState('mistral:latest');
   const [loadingModels, setLoadingModels] = useState(false);
 
   useEffect(() => {

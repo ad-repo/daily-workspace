@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from pydantic import BaseModel
 from app.database import get_db
 from app import models
@@ -16,7 +16,7 @@ OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 class LLMRequest(BaseModel):
     entry_ids: list[int]  # Support multiple entries
     additional_prompt: str = ""
-    model: str = "mixtral:8x7b"
+    model: str = "mistral:latest"
 
 class LLMResponse(BaseModel):
     response: str
@@ -108,8 +108,11 @@ async def query_llm(request: LLMRequest, db: Session = Depends(get_db)):
     if not request.entry_ids:
         raise HTTPException(status_code=400, detail="No entry IDs provided")
     
-    # Get all entries
-    entries = db.query(models.NoteEntry).filter(
+    # Get all entries, eagerly load daily_note and labels
+    entries = db.query(models.NoteEntry).options(
+        joinedload(models.NoteEntry.daily_note),
+        joinedload(models.NoteEntry.labels)
+    ).filter(
         models.NoteEntry.id.in_(request.entry_ids)
     ).order_by(models.NoteEntry.created_at).all()
     

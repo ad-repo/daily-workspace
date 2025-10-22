@@ -9,8 +9,14 @@ services:
     volumes:
       - ollama_data:/root/.ollama
     restart: unless-stopped
-    # Pull default model on startup (mixtral:8x7b ~26GB, optimized for MacBook Pro/Max/Ultra)
-    entrypoint: ["/bin/sh", "-c", "ollama serve & sleep 5 && ollama pull mixtral:8x7b && wait"]
+    mem_limit: 8g
+    memswap_limit: 8g
+    shm_size: 2g
+    environment:
+      - OLLAMA_MAX_LOADED_MODELS=1
+      - OLLAMA_NUM_PARALLEL=1
+    # Pull default model on startup (mistral ~4.4GB, good balance of speed and quality)
+    entrypoint: ["/bin/sh", "-c", "ollama serve & sleep 5 && ollama pull mistral && wait"]
 
   backend:
     build:
