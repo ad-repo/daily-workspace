@@ -144,7 +144,7 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
         
         return false;
       },
-      handlePaste: async (view, event) => {
+      handlePaste: (view, event) => {
         const items = event.clipboardData?.items;
         if (items) {
           // Check for images first
