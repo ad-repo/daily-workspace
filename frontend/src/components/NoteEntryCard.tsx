@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Trash2, Clock, FileText, Star, Check, Copy, CheckCheck, ArrowRight, Skull } from 'lucide-react';
+import { Trash2, Clock, FileText, Star, Check, Copy, CheckCheck, ArrowRight, Skull, Brain } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import axios from 'axios';
@@ -7,6 +7,7 @@ import type { NoteEntry } from '../types';
 import RichTextEditor from './RichTextEditor';
 import CodeEditor from './CodeEditor';
 import LabelSelector from './LabelSelector';
+import LLMDialog from './LLMDialog';
 import { useTimezone } from '../contexts/TimezoneContext';
 import { formatTimestamp } from '../utils/timezone';
 
@@ -34,6 +35,7 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsChange, isSelected =
   const [isDevNull, setIsDevNull] = useState(entry.is_dev_null || false);
   const [copied, setCopied] = useState(false);
   const [isContinuing, setIsContinuing] = useState(false);
+  const [isLLMDialogOpen, setIsLLMDialogOpen] = useState(false);
   const isCodeEntry = entry.content_type === 'code';
   const today = format(new Date(), 'yyyy-MM-dd');
   const isFromPastDay = currentDate && currentDate !== today;
@@ -267,6 +269,14 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsChange, isSelected =
               )}
             </button>
             
+            <button
+              onClick={() => setIsLLMDialogOpen(true)}
+              className="p-2 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded transition-colors"
+              title="Ask AI about this entry"
+            >
+              <Brain className="h-5 w-5" />
+            </button>
+            
             {isFromPastDay && (
               <button
                 onClick={handleContinueToday}
@@ -314,6 +324,13 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsChange, isSelected =
           />
         )}
       </div>
+      
+      {/* LLM Dialog */}
+      <LLMDialog
+        isOpen={isLLMDialogOpen}
+        onClose={() => setIsLLMDialogOpen(false)}
+        entryId={entry.id}
+      />
     </div>
   );
 };

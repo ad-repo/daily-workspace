@@ -1,6 +1,17 @@
 version: '3.8'
 
 services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: pull-your-poop-together-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+    # Pull default model on startup (mixtral:8x7b ~26GB, optimized for MacBook Pro/Max/Ultra)
+    entrypoint: ["/bin/sh", "-c", "ollama serve & sleep 5 && ollama pull mixtral:8x7b && wait"]
+
   backend:
     build:
       context: ./backend
@@ -10,10 +21,13 @@ services:
       - "8000:8000"
     environment:
       - DATABASE_URL=sqlite:///./data/daily_notes.db
+      - OLLAMA_BASE_URL=http://ollama:11434
     volumes:
       - ./backend/data:/app/data
       - ./backend:/app
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    depends_on:
+      - ollama
     restart: unless-stopped
 
   frontend:
@@ -34,4 +48,5 @@ services:
 
 volumes:
   backend_data:
+  ollama_data:
 
