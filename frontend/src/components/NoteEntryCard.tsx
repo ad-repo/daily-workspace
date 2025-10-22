@@ -329,7 +329,7 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsChange, isSelected =
       <LLMDialog
         isOpen={isLLMDialogOpen}
         onClose={() => setIsLLMDialogOpen(false)}
-        entryId={entry.id}
+        entryIds={[entry.id]}
       />
     </div>
   );

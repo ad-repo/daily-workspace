@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { format, parse, addDays, subDays } from 'date-fns';
-import { ChevronLeft, ChevronRight, Plus, Code, CheckSquare, Combine } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Code, CheckSquare, Combine, Brain } from 'lucide-react';
 import axios from 'axios';
 import { notesApi, entriesApi } from '../api';
 import type { DailyNote, NoteEntry } from '../types';
 import NoteEntryCard from './NoteEntryCard';
 import LabelSelector from './LabelSelector';
 import EntryTimeline from './EntryTimeline';
+import LLMDialog from './LLMDialog';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -21,6 +22,7 @@ const DailyView = () => {
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedEntries, setSelectedEntries] = useState<Set<number>>(new Set());
   const [isMerging, setIsMerging] = useState(false);
+  const [isLLMDialogOpen, setIsLLMDialogOpen] = useState(false);
 
   useEffect(() => {
     if (date) {
@@ -327,16 +329,28 @@ const DailyView = () => {
                     Cancel
                   </button>
                   <button
-                    onClick={handleMergeEntries}
-                    disabled={selectedEntries.size < 2 || isMerging}
+                    onClick={() => setIsLLMDialogOpen(true)}
+                    disabled={selectedEntries.size === 0}
                     className={`flex-1 px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 ${
-                      selectedEntries.size >= 2 && !isMerging
+                      selectedEntries.size > 0
                         ? 'bg-purple-600 text-white hover:bg-purple-700'
                         : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     }`}
                   >
+                    <Brain className="h-5 w-5" />
+                    {`Ask AI (${selectedEntries.size})`}
+                  </button>
+                  <button
+                    onClick={handleMergeEntries}
+                    disabled={selectedEntries.size < 2 || isMerging}
+                    className={`flex-1 px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2 ${
+                      selectedEntries.size >= 2 && !isMerging
+                        ? 'bg-blue-600 text-white hover:bg-blue-700'
+                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    }`}
+                  >
                     <Combine className="h-5 w-5" />
-                    {isMerging ? 'Merging...' : `Merge ${selectedEntries.size} Entries`}
+                    {isMerging ? 'Merging...' : `Merge ${selectedEntries.size}`}
                   </button>
                 </>
               )}
@@ -358,6 +372,13 @@ const DailyView = () => {
           </>
         )}
       </div>
+      
+      {/* LLM Dialog for multi-select */}
+      <LLMDialog
+        isOpen={isLLMDialogOpen}
+        onClose={() => setIsLLMDialogOpen(false)}
+        entryIds={Array.from(selectedEntries)}
+      />
     </div>
     </div>
   );

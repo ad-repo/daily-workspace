@@ -7,7 +7,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 interface LLMDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  entryId: number;
+  entryIds: number[];  // Support multiple entries
 }
 
 interface Model {
@@ -16,9 +16,11 @@ interface Model {
   modified: string;
 }
 
-const LLMDialog = ({ isOpen, onClose, entryId }: LLMDialogProps) => {
+const LLMDialog = ({ isOpen, onClose, entryIds }: LLMDialogProps) => {
   const [prompt, setPrompt] = useState('');
   const [response, setResponse] = useState('');
+  const [fullPrompt, setFullPrompt] = useState('');
+  const [showPrompt, setShowPrompt] = useState(false);
   const [loading, setLoading] = useState(false);
   const [models, setModels] = useState<Model[]>([]);
   const [selectedModel, setSelectedModel] = useState('mixtral:8x7b');
@@ -57,12 +59,14 @@ const LLMDialog = ({ isOpen, onClose, entryId }: LLMDialogProps) => {
     setLoading(true);
     try {
       const result = await axios.post(`${API_URL}/api/llm/query`, {
-        entry_id: entryId,
+        entry_ids: entryIds,
         additional_prompt: prompt,
         model: selectedModel
       });
       
       setResponse(result.data.response);
+      setFullPrompt(result.data.prompt);
+      setShowPrompt(false); // Collapse by default
     } catch (error) {
       console.error('LLM query failed:', error);
       setResponse('Error: Failed to get response from LLM. Please try again.');
@@ -149,6 +153,26 @@ const LLMDialog = ({ isOpen, onClose, entryId }: LLMDialogProps) => {
               The full entry content (text, labels, metadata) will be sent to the AI automatically.
             </p>
           </div>
+
+          {/* Prompt Sent (Collapsible) */}
+          {fullPrompt && (
+            <div>
+              <button
+                onClick={() => setShowPrompt(!showPrompt)}
+                className="w-full flex items-center justify-between text-sm font-medium text-gray-700 mb-2 hover:text-gray-900"
+              >
+                <span>Prompt Sent to AI ({entryIds.length} {entryIds.length === 1 ? 'entry' : 'entries'})</span>
+                <span className="text-gray-400">{showPrompt ? '▼' : '▶'}</span>
+              </button>
+              {showPrompt && (
+                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 mb-4 max-h-60 overflow-y-auto">
+                  <pre className="text-xs text-gray-700 whitespace-pre-wrap font-mono">
+                    {fullPrompt}
+                  </pre>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Response */}
           {response && (

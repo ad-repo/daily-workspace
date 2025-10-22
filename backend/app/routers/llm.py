@@ -14,13 +14,14 @@ router = APIRouter()
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 
 class LLMRequest(BaseModel):
-    entry_id: int
+    entry_ids: list[int]  # Support multiple entries
     additional_prompt: str = ""
     model: str = "mixtral:8x7b"
 
 class LLMResponse(BaseModel):
     response: str
     model: str
+    prompt: str  # The full prompt sent to LLM
 
 class ModelInfo(BaseModel):
     name: str
@@ -104,51 +105,67 @@ def html_to_markdown(html_content: str) -> str:
 async def query_llm(request: LLMRequest, db: Session = Depends(get_db)):
     """Send entry data to LLM with optional additional prompt"""
     
-    # Get the entry
-    entry = db.query(models.NoteEntry).filter(models.NoteEntry.id == request.entry_id).first()
-    if not entry:
-        raise HTTPException(status_code=404, detail="Entry not found")
+    if not request.entry_ids:
+        raise HTTPException(status_code=400, detail="No entry IDs provided")
     
-    # Get the daily note for date context
-    daily_note = entry.daily_note
+    # Get all entries
+    entries = db.query(models.NoteEntry).filter(
+        models.NoteEntry.id.in_(request.entry_ids)
+    ).order_by(models.NoteEntry.created_at).all()
     
-    # Convert content to markdown
-    if entry.content_type == 'code':
-        content_md = f"```\n{entry.content}\n```"
-    else:
-        content_md = html_to_markdown(entry.content)
+    if not entries:
+        raise HTTPException(status_code=404, detail="No entries found")
     
     # Build the prompt
-    prompt_parts = [
-        f"# Entry from {daily_note.date}",
-        f"Created: {entry.created_at.strftime('%Y-%m-%d %H:%M:%S')}",
-    ]
+    prompt_parts = []
     
-    # Add metadata
-    metadata = []
-    if entry.is_important:
-        metadata.append("⭐ Important")
-    if entry.is_completed:
-        metadata.append("✓ Completed")
-    if entry.include_in_report:
-        metadata.append("📄 In Report")
-    if entry.is_dev_null:
-        metadata.append("💀 /dev/null")
+    if len(entries) > 1:
+        prompt_parts.append(f"# Analysis of {len(entries)} Entries\n")
     
-    if metadata:
-        prompt_parts.append(f"Status: {' | '.join(metadata)}")
-    
-    # Add labels
-    if entry.labels:
-        label_names = [label.name for label in entry.labels]
-        prompt_parts.append(f"Labels: {', '.join(label_names)}")
-    
-    # Add daily goal if present
-    if daily_note.daily_goal:
-        prompt_parts.append(f"\nDaily Goal: {daily_note.daily_goal}")
-    
-    # Add content
-    prompt_parts.append(f"\n## Content\n\n{content_md}")
+    # Process each entry
+    for idx, entry in enumerate(entries, 1):
+        daily_note = entry.daily_note
+        
+        # Convert content to markdown
+        if entry.content_type == 'code':
+            content_md = f"```\n{entry.content}\n```"
+        else:
+            content_md = html_to_markdown(entry.content)
+        
+        # Entry header
+        if len(entries) > 1:
+            prompt_parts.append(f"\n## Entry {idx} - {daily_note.date}")
+        else:
+            prompt_parts.append(f"# Entry from {daily_note.date}")
+        
+        prompt_parts.append(f"Created: {entry.created_at.strftime('%Y-%m-%d %H:%M:%S')}")
+        
+        # Add metadata
+        metadata = []
+        if entry.is_important:
+            metadata.append("⭐ Important")
+        if entry.is_completed:
+            metadata.append("✓ Completed")
+        if entry.include_in_report:
+            metadata.append("📄 In Report")
+        if entry.is_dev_null:
+            metadata.append("💀 /dev/null")
+        
+        if metadata:
+            prompt_parts.append(f"Status: {' | '.join(metadata)}")
+        
+        # Add labels
+        if entry.labels:
+            label_names = [label.name for label in entry.labels]
+            prompt_parts.append(f"Labels: {', '.join(label_names)}")
+        
+        # Add daily goal if present
+        if daily_note.daily_goal:
+            prompt_parts.append(f"Daily Goal: {daily_note.daily_goal}")
+        
+        # Add content
+        prompt_parts.append(f"\n### Content\n\n{content_md}\n")
+        prompt_parts.append("---")
     
     # Add user's additional prompt
     if request.additional_prompt:
@@ -171,7 +188,8 @@ async def query_llm(request: LLMRequest, db: Session = Depends(get_db)):
         
         return LLMResponse(
             response=response['message']['content'],
-            model=request.model
+            model=request.model,
+            prompt=full_prompt
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"LLM query failed: {str(e)}")
