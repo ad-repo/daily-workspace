@@ -1,4 +1,5 @@
 import { useEditor, EditorContent } from '@tiptap/react';
+import { useEffect, useState } from 'react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import Image from '@tiptap/extension-image';
@@ -41,6 +42,13 @@ const PreformattedText = Node.create({
   marks: '',
   code: true,
   defining: true,
+  addAttributes() {
+    return {
+      class: {
+        default: 'preformatted whitespace-pre-wrap font-mono text-sm p-3 rounded border border-gray-200',
+      },
+    };
+  },
   parseHTML() {
     return [{ tag: 'pre', preserveWhitespace: 'full' }];
   },
@@ -51,6 +59,7 @@ const PreformattedText = Node.create({
 
 const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }: RichTextEditorProps) => {
   const lowlight = createLowlight(common);
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
   
   const editor = useEditor({
     extensions: [
@@ -90,6 +99,16 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
       attributes: {
         class: 'prose max-w-none focus:outline-none',
       },
+        handleClick: (view, pos, event) => {
+          const target = event.target as HTMLElement | null;
+          if (target && target.tagName === 'IMG') {
+            event.preventDefault();
+            const src = (target as HTMLImageElement).src;
+            if (src) setLightboxSrc(src);
+            return true;
+          }
+          return false;
+        },
       handleDrop: (view, event, slice, moved) => {
         event.preventDefault();
         
@@ -144,7 +163,7 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
         
         return false;
       },
-      handlePaste: async (view, event) => {
+      handlePaste: (view, event) => {
         const items = event.clipboardData?.items;
         if (items) {
           // Check for images first
@@ -213,6 +232,80 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
   if (!editor) {
     return null;
   }
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setLightboxSrc(null);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  const handlePreformattedClick = () => {
+    const { empty } = editor.state.selection;
+    // If inside preformatted, unwrap to paragraph
+    if (editor.isActive('preformattedText')) {
+      editor.chain().focus().setParagraph().run();
+      return;
+    }
+    // If selection exists, convert selected block(s) to preformatted
+    if (!empty) {
+      editor
+        .chain()
+        .focus()
+        .command(({ state, tr, dispatch }) => {
+          const { from, to } = state.selection;
+          const text = state.doc.textBetween(from, to, '\n');
+          const preNode = state.schema.nodes.preformattedText.create({}, state.schema.text(text));
+          tr.replaceRangeWith(from, to, preNode);
+          // If inserted at the very start, ensure a paragraph exists above to allow cursor before the box
+          if (from <= 2) {
+            tr.insert(1, state.schema.nodes.paragraph.create());
+          }
+          if (dispatch) dispatch(tr);
+          return true;
+        })
+        .run();
+      return;
+    }
+    // Otherwise set current block to preformatted
+    editor.chain().focus().setNode('preformattedText').run();
+  };
+
+  const handleCodeBlockClick = () => {
+    const { empty } = editor.state.selection;
+    // If inside a code block, unwrap by converting the block to a paragraph
+    if (editor.isActive('codeBlock')) {
+      const unwrapped = editor
+        .chain()
+        .focus()
+        .command(({ state, tr }) => {
+          const { $from } = state.selection;
+          for (let depth = $from.depth; depth > 0; depth--) {
+            const node = $from.node(depth);
+            if (node.type.name === 'codeBlock') {
+              const pos = $from.before(depth);
+              tr.setNodeMarkup(pos, state.schema.nodes.paragraph);
+              return true;
+            }
+          }
+          return false;
+        })
+        .run();
+      if (!unwrapped) {
+        // Fallback to default toggle if direct unwrap failed
+        editor.chain().focus().toggleCodeBlock().run();
+      }
+      return;
+    }
+    // If selection exists, convert selected block(s) to code block
+    if (!empty) {
+      editor.chain().focus().setCodeBlock().run();
+      return;
+    }
+    // Otherwise, toggle code block on current block
+    editor.chain().focus().toggleCodeBlock().run();
+  };
 
   const addLink = () => {
     const url = window.prompt('Enter URL:');
@@ -325,7 +418,10 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
     title: string;
   }) => (
     <button
-      onClick={onClick}
+      onMouseDown={(e) => {
+        e.preventDefault();
+        onClick();
+      }}
       className={`p-2 rounded hover:bg-gray-200 transition-colors ${
         active ? 'bg-gray-300 text-blue-600' : 'text-gray-700'
       }`}
@@ -417,7 +513,7 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
         </ToolbarButton>
 
         <ToolbarButton
-          onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+          onClick={handleCodeBlockClick}
           active={editor.isActive('codeBlock')}
           title="Code Block"
         >
@@ -425,7 +521,7 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
         </ToolbarButton>
 
         <ToolbarButton
-          onClick={() => editor.chain().focus().setNode('preformattedText').run()}
+          onClick={handlePreformattedClick}
           active={editor.isActive('preformattedText')}
           title="Preformatted Text"
         >
@@ -469,6 +565,20 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
 
       {/* Editor */}
       <EditorContent editor={editor} className="prose max-w-none" />
+
+      {lightboxSrc && (
+        <div
+          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
+          onClick={() => setLightboxSrc(null)}
+        >
+          <img
+            src={lightboxSrc}
+            className="max-w-[90vw] max-h-[90vh] rounded-lg shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+            alt="Preview"
+          />
+        </div>
+      )}
     </div>
   );
 };
