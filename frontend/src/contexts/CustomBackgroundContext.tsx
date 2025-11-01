@@ -60,7 +60,7 @@ export const CustomBackgroundProvider: React.FC<{ children: ReactNode }> = ({ ch
   // Fetch uploaded images from backend
   const fetchUploadedImages = async (): Promise<void> => {
     try {
-      const response = await axios.get(`${API_URL}/api/holiday-backgrounds/list`);
+      const response = await axios.get(`${API_URL}/api/background-images/list`);
       setUploadedImages(response.data || []);
     } catch (error) {
       console.error('[CustomBackground] Failed to fetch uploaded images:', error);

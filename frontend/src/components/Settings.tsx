@@ -216,7 +216,7 @@ const Settings = () => {
         const formData = new FormData();
         formData.append('file', file);
 
-        await axios.post(`${API_URL}/api/holiday-backgrounds/upload`, formData, {
+        await axios.post(`${API_URL}/api/background-images/upload`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
@@ -238,7 +238,7 @@ const Settings = () => {
 
   const handleDeleteCustomBgImage = async (imageId: string) => {
     try {
-      await axios.delete(`${API_URL}/api/holiday-backgrounds/${imageId}`);
+      await axios.delete(`${API_URL}/api/background-images/${imageId}`);
       await fetchCustomBgUploadedImages();
       showMessage('success', 'Image deleted successfully');
     } catch (error: any) {

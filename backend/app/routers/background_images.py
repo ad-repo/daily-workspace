@@ -8,8 +8,8 @@ import json
 
 router = APIRouter()
 
-# Directory to store holiday background images
-BACKGROUNDS_DIR = Path("data/holiday-backgrounds")
+# Directory to store background images
+BACKGROUNDS_DIR = Path("data/background-images")
 BACKGROUNDS_DIR.mkdir(parents=True, exist_ok=True)
 
 # Metadata file to track uploaded images
@@ -29,7 +29,7 @@ def save_metadata(metadata: List[Dict]):
 
 @router.post("/upload")
 async def upload_background_image(file: UploadFile = File(...)):
-    """Upload a holiday background image"""
+    """Upload a background image"""
     # Validate file type
     if not file.content_type or not file.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="File must be an image")
@@ -55,7 +55,7 @@ async def upload_background_image(file: UploadFile = File(...)):
         "id": unique_id,
         "filename": unique_filename,
         "original_filename": file.filename,
-        "url": f"/api/holiday-backgrounds/image/{unique_filename}",
+        "url": f"/api/background-images/image/{unique_filename}",
         "content_type": file.content_type,
         "size": len(contents)
     }
@@ -66,12 +66,12 @@ async def upload_background_image(file: UploadFile = File(...)):
 
 @router.get("/list")
 async def list_background_images() -> List[Dict]:
-    """Get list of all uploaded holiday background images"""
+    """Get list of all uploaded background images"""
     return load_metadata()
 
 @router.get("/image/{filename}")
 async def get_background_image(filename: str):
-    """Get a specific holiday background image"""
+    """Get a specific background image"""
     file_path = BACKGROUNDS_DIR / filename
     
     if not file_path.exists():
@@ -81,7 +81,7 @@ async def get_background_image(filename: str):
 
 @router.delete("/{image_id}")
 async def delete_background_image(image_id: str):
-    """Delete a holiday background image"""
+    """Delete a background image"""
     metadata = load_metadata()
     
     # Find the image in metadata
