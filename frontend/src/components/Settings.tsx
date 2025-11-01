@@ -4,7 +4,10 @@ import axios from 'axios';
 import { useTimezone } from '../contexts/TimezoneContext';
 import { useTheme, Theme } from '../contexts/ThemeContext';
 import { useHoliday } from '../contexts/HolidayContext';
+import { useCustomBackground } from '../contexts/CustomBackgroundContext';
 import CustomThemeCreator from './CustomThemeCreator';
+import HolidayBackgroundSettings from './HolidayBackgroundSettings';
+import CustomBackgroundSettings from './CustomBackgroundSettings';
 
 interface Label {
   id: number;
@@ -33,17 +36,27 @@ const Settings = () => {
     setDaysAhead: setHolidayDaysAhead, 
     refreshImage: refreshHolidayImage, 
     isLoading: isHolidayLoading,
-    uploadedImages: holidayUploadedImages,
-    fetchUploadedImages: fetchHolidayUploadedImages,
-    imageSource: holidayImageSource,
-    setImageSource: setHolidayImageSource,
     autoRotate: holidayAutoRotate,
     toggleAutoRotate: toggleHolidayAutoRotate,
   } = useHoliday();
+  
+  const {
+    enabled: customBgEnabled,
+    toggleEnabled: toggleCustomBgEnabled,
+    currentImage: customBgCurrentImage,
+    uploadedImages: customBgUploadedImages,
+    fetchUploadedImages: fetchCustomBgUploadedImages,
+    nextImage: nextCustomBgImage,
+    autoRotate: customBgAutoRotate,
+    toggleAutoRotate: toggleCustomBgAutoRotate,
+    rotationInterval: customBgRotationInterval,
+    setRotationInterval: setCustomBgRotationInterval,
+  } = useCustomBackground();
+  
   const [labels, setLabels] = useState<Label[]>([]);
   const [deletingLabelId, setDeletingLabelId] = useState<number | null>(null);
   const [labelSearchQuery, setLabelSearchQuery] = useState('');
-  const [isUploadingHolidayImage, setIsUploadingHolidayImage] = useState(false);
+  const [isUploadingCustomBgImage, setIsUploadingCustomBgImage] = useState(false);
   const [labelSortBy, setLabelSortBy] = useState<'name' | 'usage'>('name');
   const [isEditingTimezone, setIsEditingTimezone] = useState(false);
   const [jsonFile, setJsonFile] = useState<File | null>(null);
@@ -205,11 +218,11 @@ const Settings = () => {
     }
   };
 
-  const handleHolidayImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCustomBgImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
 
-    setIsUploadingHolidayImage(true);
+    setIsUploadingCustomBgImage(true);
     try {
       // Upload all selected files
       for (const file of Array.from(files)) {
@@ -224,22 +237,22 @@ const Settings = () => {
       }
 
       // Refresh the list of uploaded images
-      await fetchHolidayUploadedImages();
+      await fetchCustomBgUploadedImages();
       showMessage('success', `Successfully uploaded ${files.length} image(s)`);
     } catch (error: any) {
       console.error('Failed to upload images:', error);
       showMessage('error', error.response?.data?.detail || 'Failed to upload images');
     } finally {
-      setIsUploadingHolidayImage(false);
+      setIsUploadingCustomBgImage(false);
       // Reset the input
       event.target.value = '';
     }
   };
 
-  const handleDeleteHolidayImage = async (imageId: string) => {
+  const handleDeleteCustomBgImage = async (imageId: string) => {
     try {
       await axios.delete(`${API_URL}/api/holiday-backgrounds/${imageId}`);
-      await fetchHolidayUploadedImages();
+      await fetchCustomBgUploadedImages();
       showMessage('success', 'Image deleted successfully');
     } catch (error: any) {
       console.error('Failed to delete image:', error);
@@ -542,361 +555,16 @@ const Settings = () => {
           </div>
         </section>
 
+
         {/* Holiday Background Section */}
-        <section className="mb-8">
-          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2" style={{ color: 'var(--color-text-primary)' }}>
-            <Calendar className="h-5 w-5" />
-            Holiday Background
-          </h2>
-          <div className="p-6 rounded-lg" style={{ backgroundColor: 'var(--color-bg-tertiary)' }}>
-            <p className="mb-4" style={{ color: 'var(--color-text-secondary)' }}>
-              Automatically display festive background images based on upcoming holidays. Images rotate every hour for variety.
-            </p>
+        <HolidayBackgroundSettings />
 
-            {/* Enable/Disable Toggle */}
-            <div className="mb-6 flex items-center justify-between p-4 rounded-lg" style={{ backgroundColor: 'var(--color-bg-primary)' }}>
-              <div className="flex items-center gap-3">
-                <Image className="h-5 w-5" style={{ color: 'var(--color-text-secondary)' }} />
-                <div>
-                  <div className="font-semibold" style={{ color: 'var(--color-text-primary)' }}>
-                    Enable Holiday Backgrounds
-                  </div>
-                  <div className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-                    Show themed backgrounds for upcoming holidays
-                  </div>
-                </div>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={holidayEnabled}
-                  onChange={toggleHolidayEnabled}
-                  className="sr-only peer"
-                />
-                <div
-                  className="w-11 h-6 rounded-full peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-offset-2 transition-colors"
-                  style={{
-                    backgroundColor: holidayEnabled ? 'var(--color-accent)' : 'var(--color-border-secondary)',
-                  }}
-                  onFocus={(e) => {
-                    e.currentTarget.style.boxShadow = `0 0 0 2px var(--color-accent)`;
-                  }}
-                  onBlur={(e) => {
-                    e.currentTarget.style.boxShadow = 'none';
-                  }}
-                >
-                  <div
-                    className="absolute top-0.5 left-0.5 bg-white rounded-full h-5 w-5 transition-transform"
-                    style={{
-                      transform: holidayEnabled ? 'translateX(20px)' : 'translateX(0)',
-                    }}
-                  />
-                </div>
-              </label>
-            </div>
-
-            {/* Days Ahead Setting */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text-primary)' }}>
-                Days ahead to detect holidays:
-              </label>
-              <div className="flex items-center gap-3">
-                <input
-                  type="number"
-                  min="0"
-                  max="30"
-                  value={daysAhead}
-                  onChange={(e) => setHolidayDaysAhead(parseInt(e.target.value, 10) || 7)}
-                  disabled={!holidayEnabled}
-                  className="px-4 py-2 rounded-lg focus:outline-none disabled:opacity-50"
-                  style={{
-                    backgroundColor: 'var(--color-bg-primary)',
-                    color: 'var(--color-text-primary)',
-                    border: '1px solid var(--color-border-primary)',
-                    width: '100px',
-                  }}
-                  onFocus={(e) => {
-                    e.currentTarget.style.borderColor = 'var(--color-accent)';
-                    e.currentTarget.style.boxShadow = '0 0 0 2px var(--color-accent)';
-                  }}
-                  onBlur={(e) => {
-                    e.currentTarget.style.borderColor = 'var(--color-border-primary)';
-                    e.currentTarget.style.boxShadow = 'none';
-                  }}
-                />
-                <span className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-                  days (0-30)
-                </span>
-              </div>
-              <p className="text-xs mt-2" style={{ color: 'var(--color-text-tertiary)' }}>
-                Set to 0 for today only, or higher to detect upcoming holidays
-              </p>
-            </div>
-
-            {/* Auto-Rotate Toggle */}
-            <div className="mb-6 flex items-center justify-between p-4 rounded-lg" style={{ backgroundColor: 'var(--color-bg-primary)' }}>
-              <div className="flex items-center gap-3">
-                <RefreshCw className="h-5 w-5" style={{ color: 'var(--color-text-secondary)' }} />
-                <div>
-                  <div className="font-semibold" style={{ color: 'var(--color-text-primary)' }}>
-                    Auto-Rotate Images
-                  </div>
-                  <div className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-                    Automatically change background every hour
-                  </div>
-                </div>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={holidayAutoRotate}
-                  onChange={toggleHolidayAutoRotate}
-                  disabled={!holidayEnabled}
-                  className="sr-only peer"
-                />
-                <div
-                  className="w-11 h-6 rounded-full peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-offset-2 transition-colors"
-                  style={{
-                    backgroundColor: holidayAutoRotate ? 'var(--color-accent)' : 'var(--color-border-secondary)',
-                    opacity: !holidayEnabled ? 0.5 : 1,
-                  }}
-                  onFocus={(e) => {
-                    if (holidayEnabled) {
-                      e.currentTarget.style.boxShadow = `0 0 0 2px var(--color-accent)`;
-                    }
-                  }}
-                  onBlur={(e) => {
-                    e.currentTarget.style.boxShadow = 'none';
-                  }}
-                >
-                  <div
-                    className="absolute top-0.5 left-0.5 bg-white rounded-full h-5 w-5 transition-transform"
-                    style={{
-                      transform: holidayAutoRotate ? 'translateX(20px)' : 'translateX(0)',
-                    }}
-                  />
-                </div>
-              </label>
-            </div>
-
-            {/* Current Holiday Display */}
-            {holidayEnabled && (
-              <div
-                className="mb-6 p-4 rounded-lg"
-                style={{
-                  backgroundColor: 'var(--color-bg-primary)',
-                  border: '1px solid var(--color-border-primary)',
-                }}
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-sm font-medium mb-1" style={{ color: 'var(--color-text-secondary)' }}>
-                      Upcoming Holiday:
-                    </div>
-                    {isHolidayLoading ? (
-                      <div className="text-sm" style={{ color: 'var(--color-text-tertiary)' }}>
-                        Checking for holidays...
-                      </div>
-                    ) : currentHoliday ? (
-                      <div>
-                        <div className="font-semibold text-lg" style={{ color: 'var(--color-text-primary)' }}>
-                          {currentHoliday.name}
-                        </div>
-                        <div className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-                          {new Date(currentHoliday.date).toLocaleDateString('en-US', {
-                            weekday: 'long',
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric',
-                          })}
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="text-sm" style={{ color: 'var(--color-text-tertiary)' }}>
-                        {daysAhead === 0 
-                          ? 'No holiday today' 
-                          : `No upcoming holidays within ${daysAhead} days`}
-                      </div>
-                    )}
-                  </div>
-                  {currentHoliday && (
-                    <button
-                      onClick={refreshHolidayImage}
-                      disabled={isHolidayLoading}
-                      className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
-                      style={{
-                        backgroundColor: 'var(--color-accent)',
-                        color: 'var(--color-accent-text)',
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!isHolidayLoading) {
-                          e.currentTarget.style.backgroundColor = 'var(--color-accent-hover)';
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!isHolidayLoading) {
-                          e.currentTarget.style.backgroundColor = 'var(--color-accent)';
-                        }
-                      }}
-                      title="Load a new random image"
-                    >
-                      <RefreshCw className="h-4 w-4" />
-                      Refresh Image
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Image Source Selection */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text-primary)' }}>
-                Image Source:
-              </label>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setHolidayImageSource('uploaded')}
-                  disabled={!holidayEnabled}
-                  className="flex-1 px-4 py-3 rounded-lg transition-all disabled:opacity-50"
-                  style={{
-                    backgroundColor: holidayImageSource === 'uploaded' ? 'var(--color-accent)' : 'var(--color-bg-primary)',
-                    color: holidayImageSource === 'uploaded' ? 'var(--color-accent-text)' : 'var(--color-text-primary)',
-                    border: holidayImageSource === 'uploaded' ? 'none' : '1px solid var(--color-border-primary)',
-                  }}
-                >
-                  <div className="text-sm font-medium">My Images</div>
-                  <div className="text-xs opacity-75">Use uploaded images</div>
-                </button>
-                <button
-                  onClick={() => setHolidayImageSource('picsum')}
-                  disabled={!holidayEnabled}
-                  className="flex-1 px-4 py-3 rounded-lg transition-all disabled:opacity-50"
-                  style={{
-                    backgroundColor: holidayImageSource === 'picsum' ? 'var(--color-accent)' : 'var(--color-bg-primary)',
-                    color: holidayImageSource === 'picsum' ? 'var(--color-accent-text)' : 'var(--color-text-primary)',
-                    border: holidayImageSource === 'picsum' ? 'none' : '1px solid var(--color-border-primary)',
-                  }}
-                >
-                  <div className="text-sm font-medium">Random</div>
-                  <div className="text-xs opacity-75">Use Picsum Photos</div>
-                </button>
-                <button
-                  onClick={() => setHolidayImageSource('both')}
-                  disabled={!holidayEnabled}
-                  className="flex-1 px-4 py-3 rounded-lg transition-all disabled:opacity-50"
-                  style={{
-                    backgroundColor: holidayImageSource === 'both' ? 'var(--color-accent)' : 'var(--color-bg-primary)',
-                    color: holidayImageSource === 'both' ? 'var(--color-accent-text)' : 'var(--color-text-primary)',
-                    border: holidayImageSource === 'both' ? 'none' : '1px solid var(--color-border-primary)',
-                  }}
-                >
-                  <div className="text-sm font-medium">Mix Both</div>
-                  <div className="text-xs opacity-75">Alternate sources</div>
-                </button>
-              </div>
-            </div>
-
-            {/* Upload Images Section */}
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-3">
-                <label className="block text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
-                  Your Holiday Images: ({holidayUploadedImages.length})
-                </label>
-                <label className="cursor-pointer">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    onChange={handleHolidayImageUpload}
-                    disabled={!holidayEnabled || isUploadingHolidayImage}
-                    className="hidden"
-                  />
-                  <div
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
-                    style={{
-                      backgroundColor: 'var(--color-accent)',
-                      color: 'var(--color-accent-text)',
-                      opacity: (!holidayEnabled || isUploadingHolidayImage) ? 0.5 : 1,
-                    }}
-                  >
-                    <Upload className="h-4 w-4" />
-                    {isUploadingHolidayImage ? 'Uploading...' : 'Upload Images'}
-                  </div>
-                </label>
-              </div>
-
-              {/* Image Grid */}
-              {holidayUploadedImages.length > 0 && (
-                <div className="grid grid-cols-3 gap-3">
-                  {holidayUploadedImages.map((image) => (
-                    <div
-                      key={image.id}
-                      className="relative group rounded-lg overflow-hidden"
-                      style={{
-                        backgroundColor: 'var(--color-bg-primary)',
-                        border: '1px solid var(--color-border-primary)',
-                      }}
-                    >
-                      <img
-                        src={`${API_URL}${image.url}`}
-                        alt={image.original_filename}
-                        className="w-full h-32 object-cover"
-                      />
-                      <button
-                        onClick={() => handleDeleteHolidayImage(image.id)}
-                        className="absolute top-2 right-2 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                        style={{
-                          backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                          color: 'white',
-                        }}
-                        title="Delete image"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                      <div
-                        className="absolute bottom-0 left-0 right-0 p-2 text-xs truncate"
-                        style={{
-                          backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                          color: 'white',
-                        }}
-                      >
-                        {image.original_filename}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {holidayUploadedImages.length === 0 && (
-                <div
-                  className="p-6 text-center rounded-lg"
-                  style={{
-                    backgroundColor: 'var(--color-bg-primary)',
-                    border: '1px dashed var(--color-border-primary)',
-                  }}
-                >
-                  <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-                    No images uploaded yet. Upload your own holiday-themed images to use as backgrounds!
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* Info Box */}
-            <div
-              className="p-4 rounded-lg"
-              style={{
-                backgroundColor: `${getComputedStyle(document.documentElement).getPropertyValue('--color-info')}15`,
-                border: '1px solid var(--color-info)',
-              }}
-            >
-              <p className="text-sm" style={{ color: 'var(--color-info)' }}>
-                <strong>How it works:</strong> Holiday backgrounds appear at low opacity (20%) so they don't interfere with readability. 
-                Images automatically rotate every hour for variety. You can use your own uploaded images, random images from Picsum Photos, or mix both!
-              </p>
-            </div>
-          </div>
-        </section>
+        {/* Custom Background Images Section */}
+        <CustomBackgroundSettings 
+          onUpload={handleCustomBgImageUpload}
+          onDelete={handleDeleteCustomBgImage}
+          isUploading={isUploadingCustomBgImage}
+        />
 
         {/* Label Management Section */}
         <section className="mb-8">

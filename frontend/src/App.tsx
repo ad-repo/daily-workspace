@@ -10,7 +10,9 @@ import { format } from 'date-fns';
 import { TimezoneProvider } from './contexts/TimezoneContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { HolidayProvider } from './contexts/HolidayContext';
+import { CustomBackgroundProvider } from './contexts/CustomBackgroundContext';
 import HolidayBackground from './components/HolidayBackground';
+import CustomBackground from './components/CustomBackground';
 
 function App() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -20,10 +22,12 @@ function App() {
     <ThemeProvider>
       <TimezoneProvider>
         <HolidayProvider>
-          <Router>
-            <div className="min-h-screen" style={{ backgroundColor: 'var(--color-bg-secondary)', position: 'relative' }}>
-              <HolidayBackground />
-              <Navigation />
+          <CustomBackgroundProvider>
+            <Router>
+              <div className="min-h-screen" style={{ backgroundColor: 'var(--color-bg-secondary)', position: 'relative' }}>
+                <HolidayBackground />
+                <CustomBackground />
+                <Navigation />
             <div className="container mx-auto px-4 py-6 max-w-7xl">
             <Routes>
             <Route
@@ -59,6 +63,7 @@ function App() {
           </div>
         </div>
           </Router>
+          </CustomBackgroundProvider>
         </HolidayProvider>
       </TimezoneProvider>
     </ThemeProvider>
