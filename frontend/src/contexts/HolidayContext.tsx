@@ -15,7 +15,19 @@ interface HolidayBackgroundState {
   date: string | null;
   imageUrl: string | null;
   lastRotation: number | null;
+  currentImageIndex: number; // Track which uploaded image is shown
 }
+
+interface UploadedImage {
+  id: string;
+  filename: string;
+  original_filename: string;
+  url: string;
+  content_type: string;
+  size: number;
+}
+
+type ImageSource = 'uploaded' | 'picsum' | 'both';
 
 interface HolidayContextType {
   enabled: boolean;
@@ -26,6 +38,10 @@ interface HolidayContextType {
   setDaysAhead: (days: number) => void;
   refreshImage: () => void;
   isLoading: boolean;
+  uploadedImages: UploadedImage[];
+  fetchUploadedImages: () => Promise<void>;
+  imageSource: ImageSource;
+  setImageSource: (source: ImageSource) => void;
 }
 
 const HolidayContext = createContext<HolidayContextType | undefined>(undefined);
@@ -34,6 +50,7 @@ const STORAGE_KEYS = {
   ENABLED: 'holiday_background_enabled',
   DAYS_AHEAD: 'holiday_background_days_ahead',
   CURRENT: 'holiday_background_current',
+  IMAGE_SOURCE: 'holiday_background_image_source',
 };
 
 const DEFAULT_DAYS_AHEAD = 7;
@@ -58,25 +75,65 @@ export const HolidayProvider: React.FC<{ children: ReactNode }> = ({ children })
       try {
         return JSON.parse(stored);
       } catch {
-        return { name: null, date: null, imageUrl: null, lastRotation: null };
+        return { name: null, date: null, imageUrl: null, lastRotation: null, currentImageIndex: 0 };
       }
     }
-    return { name: null, date: null, imageUrl: null, lastRotation: null };
+    return { name: null, date: null, imageUrl: null, lastRotation: null, currentImageIndex: 0 };
   });
 
   const [isLoading, setIsLoading] = useState(false);
+  const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
+  const [imageSource, setImageSourceState] = useState<ImageSource>(() => {
+    const stored = localStorage.getItem(STORAGE_KEYS.IMAGE_SOURCE);
+    return (stored as ImageSource) || 'both';
+  });
 
-  // Generate image URL with holiday-specific seed
-  const generateImageUrl = (holidayName: string, forceRandom: boolean = false): string => {
-    // Create a seed based on holiday name and current hour (or random if forced)
-    const timeSeed = forceRandom 
-      ? Math.floor(Math.random() * 1000000) // Random number for manual refresh
-      : Math.floor(Date.now() / (1000 * 60 * 60)); // Hour-based for automatic rotation
-    const seed = `${holidayName.replace(/\s+/g, '-').toLowerCase()}-${timeSeed}`;
+  // Fetch uploaded images from backend
+  const fetchUploadedImages = async (): Promise<void> => {
+    try {
+      const response = await axios.get(`${API_URL}/api/holiday-backgrounds/list`);
+      setUploadedImages(response.data || []);
+    } catch (error) {
+      console.error('Failed to fetch uploaded images:', error);
+      setUploadedImages([]);
+    }
+  };
+
+  // Generate image URL based on source preference
+  const generateImageUrl = (holidayName: string, forceNext: boolean = false): string => {
+    // Determine which source to use
+    let useSource: 'uploaded' | 'picsum' = 'picsum';
     
-    // Use Picsum Photos with seed for consistent but rotating images
-    // Seed ensures same holiday gets similar-feeling images, hour rotation adds variety
-    return `https://picsum.photos/seed/${encodeURIComponent(seed)}/1920/1080`;
+    if (imageSource === 'uploaded' && uploadedImages.length > 0) {
+      useSource = 'uploaded';
+    } else if (imageSource === 'both' && uploadedImages.length > 0) {
+      // Alternate or randomly choose
+      useSource = Math.random() > 0.5 ? 'uploaded' : 'picsum';
+    } else if (imageSource === 'picsum' || uploadedImages.length === 0) {
+      useSource = 'picsum';
+    }
+
+    if (useSource === 'uploaded' && uploadedImages.length > 0) {
+      // Cycle through uploaded images
+      let nextIndex = backgroundState.currentImageIndex;
+      
+      if (forceNext) {
+        nextIndex = (backgroundState.currentImageIndex + 1) % uploadedImages.length;
+      }
+      
+      // Update the current index
+      setBackgroundState(prev => ({ ...prev, currentImageIndex: nextIndex }));
+      
+      return `${API_URL}${uploadedImages[nextIndex].url}`;
+    } else {
+      // Use Picsum Photos with seed
+      const timeSeed = forceNext 
+        ? Math.floor(Math.random() * 1000000) // Random number for manual refresh
+        : Math.floor(Date.now() / (1000 * 60 * 60)); // Hour-based for automatic rotation
+      const seed = `${holidayName.replace(/\s+/g, '-').toLowerCase()}-${timeSeed}`;
+      
+      return `https://picsum.photos/seed/${encodeURIComponent(seed)}/1920/1080`;
+    }
   };
 
   // Fetch current holiday from backend
@@ -184,12 +241,23 @@ export const HolidayProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
   };
 
+  // Update image source
+  const setImageSource = (source: ImageSource) => {
+    setImageSourceState(source);
+    localStorage.setItem(STORAGE_KEYS.IMAGE_SOURCE, source);
+  };
+
   // Force refresh image
   const refreshImage = () => {
     if (currentHoliday) {
-      updateBackgroundImage(currentHoliday, true); // Force random image
+      updateBackgroundImage(currentHoliday, true); // Force next image
     }
   };
+
+  // Fetch uploaded images on mount
+  useEffect(() => {
+    fetchUploadedImages();
+  }, []);
 
   // Initial check on mount
   useEffect(() => {
@@ -220,6 +288,10 @@ export const HolidayProvider: React.FC<{ children: ReactNode }> = ({ children })
         setDaysAhead,
         refreshImage,
         isLoading,
+        uploadedImages,
+        fetchUploadedImages,
+        imageSource,
+        setImageSource,
       }}
     >
       {children}

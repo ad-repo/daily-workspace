@@ -25,10 +25,23 @@ const Settings = () => {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const { timezone, setTimezone } = useTimezone();
   const { currentTheme, setTheme, availableThemes, customThemes, deleteCustomTheme } = useTheme();
-  const { enabled: holidayEnabled, daysAhead, currentHoliday, toggleEnabled: toggleHolidayEnabled, setDaysAhead: setHolidayDaysAhead, refreshImage: refreshHolidayImage, isLoading: isHolidayLoading } = useHoliday();
+  const { 
+    enabled: holidayEnabled, 
+    daysAhead, 
+    currentHoliday, 
+    toggleEnabled: toggleHolidayEnabled, 
+    setDaysAhead: setHolidayDaysAhead, 
+    refreshImage: refreshHolidayImage, 
+    isLoading: isHolidayLoading,
+    uploadedImages: holidayUploadedImages,
+    fetchUploadedImages: fetchHolidayUploadedImages,
+    imageSource: holidayImageSource,
+    setImageSource: setHolidayImageSource,
+  } = useHoliday();
   const [labels, setLabels] = useState<Label[]>([]);
   const [deletingLabelId, setDeletingLabelId] = useState<number | null>(null);
   const [labelSearchQuery, setLabelSearchQuery] = useState('');
+  const [isUploadingHolidayImage, setIsUploadingHolidayImage] = useState(false);
   const [labelSortBy, setLabelSortBy] = useState<'name' | 'usage'>('name');
   const [isEditingTimezone, setIsEditingTimezone] = useState(false);
   const [jsonFile, setJsonFile] = useState<File | null>(null);
@@ -187,6 +200,48 @@ const Settings = () => {
       showMessage('error', error.response?.data?.detail || 'Failed to delete label');
     } finally {
       setDeletingLabelId(null);
+    }
+  };
+
+  const handleHolidayImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    setIsUploadingHolidayImage(true);
+    try {
+      // Upload all selected files
+      for (const file of Array.from(files)) {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        await axios.post(`${API_URL}/api/holiday-backgrounds/upload`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+      }
+
+      // Refresh the list of uploaded images
+      await fetchHolidayUploadedImages();
+      showMessage('success', `Successfully uploaded ${files.length} image(s)`);
+    } catch (error: any) {
+      console.error('Failed to upload images:', error);
+      showMessage('error', error.response?.data?.detail || 'Failed to upload images');
+    } finally {
+      setIsUploadingHolidayImage(false);
+      // Reset the input
+      event.target.value = '';
+    }
+  };
+
+  const handleDeleteHolidayImage = async (imageId: string) => {
+    try {
+      await axios.delete(`${API_URL}/api/holiday-backgrounds/${imageId}`);
+      await fetchHolidayUploadedImages();
+      showMessage('success', 'Image deleted successfully');
+    } catch (error: any) {
+      console.error('Failed to delete image:', error);
+      showMessage('error', error.response?.data?.detail || 'Failed to delete image');
     }
   };
 
@@ -645,6 +700,140 @@ const Settings = () => {
               </div>
             )}
 
+            {/* Image Source Selection */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text-primary)' }}>
+                Image Source:
+              </label>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setHolidayImageSource('uploaded')}
+                  disabled={!holidayEnabled}
+                  className="flex-1 px-4 py-3 rounded-lg transition-all disabled:opacity-50"
+                  style={{
+                    backgroundColor: holidayImageSource === 'uploaded' ? 'var(--color-accent)' : 'var(--color-bg-primary)',
+                    color: holidayImageSource === 'uploaded' ? 'var(--color-accent-text)' : 'var(--color-text-primary)',
+                    border: holidayImageSource === 'uploaded' ? 'none' : '1px solid var(--color-border-primary)',
+                  }}
+                >
+                  <div className="text-sm font-medium">My Images</div>
+                  <div className="text-xs opacity-75">Use uploaded images</div>
+                </button>
+                <button
+                  onClick={() => setHolidayImageSource('picsum')}
+                  disabled={!holidayEnabled}
+                  className="flex-1 px-4 py-3 rounded-lg transition-all disabled:opacity-50"
+                  style={{
+                    backgroundColor: holidayImageSource === 'picsum' ? 'var(--color-accent)' : 'var(--color-bg-primary)',
+                    color: holidayImageSource === 'picsum' ? 'var(--color-accent-text)' : 'var(--color-text-primary)',
+                    border: holidayImageSource === 'picsum' ? 'none' : '1px solid var(--color-border-primary)',
+                  }}
+                >
+                  <div className="text-sm font-medium">Random</div>
+                  <div className="text-xs opacity-75">Use Picsum Photos</div>
+                </button>
+                <button
+                  onClick={() => setHolidayImageSource('both')}
+                  disabled={!holidayEnabled}
+                  className="flex-1 px-4 py-3 rounded-lg transition-all disabled:opacity-50"
+                  style={{
+                    backgroundColor: holidayImageSource === 'both' ? 'var(--color-accent)' : 'var(--color-bg-primary)',
+                    color: holidayImageSource === 'both' ? 'var(--color-accent-text)' : 'var(--color-text-primary)',
+                    border: holidayImageSource === 'both' ? 'none' : '1px solid var(--color-border-primary)',
+                  }}
+                >
+                  <div className="text-sm font-medium">Mix Both</div>
+                  <div className="text-xs opacity-75">Alternate sources</div>
+                </button>
+              </div>
+            </div>
+
+            {/* Upload Images Section */}
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-3">
+                <label className="block text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
+                  Your Holiday Images: ({holidayUploadedImages.length})
+                </label>
+                <label className="cursor-pointer">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handleHolidayImageUpload}
+                    disabled={!holidayEnabled || isUploadingHolidayImage}
+                    className="hidden"
+                  />
+                  <div
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
+                    style={{
+                      backgroundColor: 'var(--color-accent)',
+                      color: 'var(--color-accent-text)',
+                      opacity: (!holidayEnabled || isUploadingHolidayImage) ? 0.5 : 1,
+                    }}
+                  >
+                    <Upload className="h-4 w-4" />
+                    {isUploadingHolidayImage ? 'Uploading...' : 'Upload Images'}
+                  </div>
+                </label>
+              </div>
+
+              {/* Image Grid */}
+              {holidayUploadedImages.length > 0 && (
+                <div className="grid grid-cols-3 gap-3">
+                  {holidayUploadedImages.map((image) => (
+                    <div
+                      key={image.id}
+                      className="relative group rounded-lg overflow-hidden"
+                      style={{
+                        backgroundColor: 'var(--color-bg-primary)',
+                        border: '1px solid var(--color-border-primary)',
+                      }}
+                    >
+                      <img
+                        src={`${API_URL}${image.url}`}
+                        alt={image.original_filename}
+                        className="w-full h-32 object-cover"
+                      />
+                      <button
+                        onClick={() => handleDeleteHolidayImage(image.id)}
+                        className="absolute top-2 right-2 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                        style={{
+                          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                          color: 'white',
+                        }}
+                        title="Delete image"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                      <div
+                        className="absolute bottom-0 left-0 right-0 p-2 text-xs truncate"
+                        style={{
+                          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                          color: 'white',
+                        }}
+                      >
+                        {image.original_filename}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {holidayUploadedImages.length === 0 && (
+                <div
+                  className="p-6 text-center rounded-lg"
+                  style={{
+                    backgroundColor: 'var(--color-bg-primary)',
+                    border: '1px dashed var(--color-border-primary)',
+                  }}
+                >
+                  <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+                    No images uploaded yet. Upload your own holiday-themed images to use as backgrounds!
+                  </p>
+                </div>
+              )}
+            </div>
+
             {/* Info Box */}
             <div
               className="p-4 rounded-lg"
@@ -655,7 +844,7 @@ const Settings = () => {
             >
               <p className="text-sm" style={{ color: 'var(--color-info)' }}>
                 <strong>How it works:</strong> Holiday backgrounds appear at low opacity (20%) so they don't interfere with readability. 
-                Images automatically rotate every hour for variety. Uses Picsum Photos for images and Nager.Date for holiday data (both free services).
+                Images automatically rotate every hour for variety. You can use your own uploaded images, random images from Picsum Photos, or mix both!
               </p>
             </div>
           </div>
