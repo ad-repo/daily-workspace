@@ -3,10 +3,8 @@ import { Download, Upload, Settings as SettingsIcon, Clock, Archive, FileCode, T
 import axios from 'axios';
 import { useTimezone } from '../contexts/TimezoneContext';
 import { useTheme, Theme } from '../contexts/ThemeContext';
-import { useHoliday } from '../contexts/HolidayContext';
 import { useCustomBackground } from '../contexts/CustomBackgroundContext';
 import CustomThemeCreator from './CustomThemeCreator';
-import HolidayBackgroundSettings from './HolidayBackgroundSettings';
 import CustomBackgroundSettings from './CustomBackgroundSettings';
 
 interface Label {
@@ -28,17 +26,6 @@ const Settings = () => {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const { timezone, setTimezone } = useTimezone();
   const { currentTheme, setTheme, availableThemes, customThemes, deleteCustomTheme } = useTheme();
-  const { 
-    enabled: holidayEnabled, 
-    daysAhead, 
-    currentHoliday, 
-    toggleEnabled: toggleHolidayEnabled, 
-    setDaysAhead: setHolidayDaysAhead, 
-    refreshImage: refreshHolidayImage, 
-    isLoading: isHolidayLoading,
-    autoRotate: holidayAutoRotate,
-    toggleAutoRotate: toggleHolidayAutoRotate,
-  } = useHoliday();
   
   const {
     enabled: customBgEnabled,
@@ -555,9 +542,6 @@ const Settings = () => {
           </div>
         </section>
 
-
-        {/* Holiday Background Section */}
-        <HolidayBackgroundSettings />
 
         {/* Custom Background Images Section */}
         <CustomBackgroundSettings 

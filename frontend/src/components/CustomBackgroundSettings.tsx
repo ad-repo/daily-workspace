@@ -25,11 +25,11 @@ const CustomBackgroundSettings = ({ onUpload, onDelete, isUploading }: CustomBac
     <section className="mb-8">
       <h2 className="text-xl font-semibold mb-4 flex items-center gap-2" style={{ color: 'var(--color-text-primary)' }}>
         <Image className="h-5 w-5" />
-        Custom Background Images
+        Background Images
       </h2>
       <div className="p-6 rounded-lg" style={{ backgroundColor: 'var(--color-bg-tertiary)' }}>
         <p className="mb-4" style={{ color: 'var(--color-text-secondary)' }}>
-          Upload your own images to use as backgrounds. Works independently of holiday backgrounds.
+          Upload your own images to display as rotating backgrounds at low opacity (20%).
         </p>
 
         {/* Enable/Disable Toggle */}
@@ -38,7 +38,7 @@ const CustomBackgroundSettings = ({ onUpload, onDelete, isUploading }: CustomBac
             <Image className="h-5 w-5" style={{ color: 'var(--color-text-secondary)' }} />
             <div>
               <div className="font-semibold" style={{ color: 'var(--color-text-primary)' }}>
-                Enable Custom Backgrounds
+                Enable Background Images
               </div>
               <div className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
                 Display your uploaded images as backgrounds
@@ -286,8 +286,8 @@ const CustomBackgroundSettings = ({ onUpload, onDelete, isUploading }: CustomBac
           }}
         >
           <p className="text-sm" style={{ color: 'var(--color-info)' }}>
-            <strong>Tips:</strong> Upload images up to 10MB each. Custom backgrounds appear at 20% opacity and work independently
-            of holiday backgrounds. If both features are enabled, custom backgrounds take priority when available.
+            <strong>Tips:</strong> Upload images up to 10MB each. Backgrounds appear at 20% opacity so they don't interfere with readability.
+            Multiple images will automatically rotate at your chosen interval, or you can manually cycle through them.
           </p>
         </div>
       </div>
