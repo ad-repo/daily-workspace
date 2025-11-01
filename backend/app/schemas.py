@@ -19,6 +19,7 @@ class Label(LabelBase):
 
 # Entry Schemas
 class NoteEntryBase(BaseModel):
+    title: str = ""
     content: str
     content_type: str = "rich_text"
     order_index: int = 0
@@ -27,6 +28,7 @@ class NoteEntryCreate(NoteEntryBase):
     pass
 
 class NoteEntryUpdate(BaseModel):
+    title: Optional[str] = None
     content: Optional[str] = None
     content_type: Optional[str] = None
     order_index: Optional[int] = None

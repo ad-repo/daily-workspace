@@ -5,6 +5,7 @@ from app.database import get_db
 from app import models
 import json
 import io
+import os
 from datetime import datetime
 import re
 from html import unescape
@@ -21,7 +22,7 @@ async def export_data(db: Session = Depends(get_db)):
     search_history = db.query(models.SearchHistory).order_by(models.SearchHistory.created_at.desc()).all()
     
     export_data = {
-        "version": "3.0",
+        "version": "4.0",
         "exported_at": datetime.utcnow().isoformat(),
         "search_history": [
             {
@@ -49,6 +50,7 @@ async def export_data(db: Session = Depends(get_db)):
                 "labels": [label.id for label in note.labels],
                 "entries": [
                     {
+                        "title": entry.title if hasattr(entry, 'title') else "",
                         "content": entry.content,
                         "content_type": entry.content_type,
                         "order_index": entry.order_index,
@@ -75,7 +77,7 @@ async def export_data(db: Session = Depends(get_db)):
         io.BytesIO(json_data.encode()),
         media_type="application/json",
         headers={
-            "Content-Disposition": f"attachment; filename=pull-your-poop-together-backup-{datetime.utcnow().strftime('%Y%m%d-%H%M%S')}.json"
+            "Content-Disposition": f"attachment; filename=track-the-thing-backup-{datetime.utcnow().strftime('%Y%m%d-%H%M%S')}.json"
         }
     )
 
@@ -144,7 +146,7 @@ async def export_markdown(db: Session = Depends(get_db)):
     
     # Build markdown content
     markdown_lines = []
-    markdown_lines.append("# Daily Workspace Export")
+    markdown_lines.append("# Track the Thing Export")
     markdown_lines.append(f"\nExported: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}\n")
     markdown_lines.append("---\n")
     
@@ -174,7 +176,9 @@ async def export_markdown(db: Session = Depends(get_db)):
         # Add entries
         if note.entries:
             for idx, entry in enumerate(note.entries, 1):
-                markdown_lines.append(f"\n### Entry {idx}")
+                # Use title if available, otherwise use generic "Entry X"
+                entry_title = entry.title if hasattr(entry, 'title') and entry.title else f"Entry {idx}"
+                markdown_lines.append(f"\n### {entry_title}")
                 markdown_lines.append(f"*Created: {entry.created_at.strftime('%Y-%m-%d %H:%M:%S')}*\n")
                 
                 # Add entry metadata
@@ -214,7 +218,7 @@ async def export_markdown(db: Session = Depends(get_db)):
         io.BytesIO(markdown_content.encode('utf-8')),
         media_type="text/markdown",
         headers={
-            "Content-Disposition": f"attachment; filename=daily-workspace-{datetime.utcnow().strftime('%Y%m%d-%H%M%S')}.md"
+            "Content-Disposition": f"attachment; filename=track-the-thing-{datetime.utcnow().strftime('%Y%m%d-%H%M%S')}.md"
         }
     )
 
@@ -324,6 +328,7 @@ async def import_data(
             for entry_data in note_data.get("entries", []):
                 entry = models.NoteEntry(
                     daily_note_id=note.id,
+                    title=entry_data.get("title", ""),
                     content=entry_data["content"],
                     content_type=entry_data.get("content_type", "rich_text"),
                     order_index=entry_data.get("order_index", 0),
@@ -371,4 +376,217 @@ async def import_data(
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Import failed: {str(e)}")
+
+@router.post("/full-restore")
+async def full_restore(
+    backup_file: UploadFile = File(...),
+    files_archive: UploadFile = File(...),
+    replace: bool = False,
+    db: Session = Depends(get_db)
+):
+    """
+    Full restore: Import both JSON backup and files archive in one operation.
+    This ensures a complete machine-to-machine migration.
+    """
+    import zipfile
+    from pathlib import Path
+    
+    # Validate file types
+    if not backup_file.filename or not backup_file.filename.endswith('.json'):
+        raise HTTPException(status_code=400, detail="Backup file must be a JSON file")
+    
+    if not files_archive.filename or not files_archive.filename.endswith('.zip'):
+        raise HTTPException(status_code=400, detail="Files archive must be a ZIP file")
+    
+    stats = {
+        "data_restore": {},
+        "files_restore": {},
+        "success": False,
+        "message": ""
+    }
+    
+    try:
+        # Step 1: Restore data from JSON
+        content = await backup_file.read()
+        data = json.loads(content)
+        
+        # Validate data structure
+        if "version" not in data or "notes" not in data:
+            raise HTTPException(status_code=400, detail="Invalid backup file format")
+        
+        data_stats = {
+            "labels_imported": 0,
+            "notes_imported": 0,
+            "entries_imported": 0,
+            "labels_skipped": 0,
+            "notes_skipped": 0,
+            "search_history_imported": 0
+        }
+        
+        # Import search history
+        search_history_data = data.get("search_history", [])
+        for history_item in search_history_data:
+            existing = db.query(models.SearchHistory).filter(
+                models.SearchHistory.query == history_item["query"],
+                models.SearchHistory.created_at == datetime.fromisoformat(history_item["created_at"])
+            ).first()
+            
+            if not existing:
+                new_history = models.SearchHistory(
+                    query=history_item["query"],
+                    created_at=datetime.fromisoformat(history_item["created_at"])
+                )
+                db.add(new_history)
+                data_stats["search_history_imported"] += 1
+        
+        db.commit()
+        
+        # Import labels
+        label_id_mapping = {}
+        labels_data = data.get("labels", data.get("tags", []))
+        for label_data in labels_data:
+            existing_label = db.query(models.Label).filter(models.Label.name == label_data["name"]).first()
+            if existing_label:
+                label_id_mapping[label_data["id"]] = existing_label.id
+                data_stats["labels_skipped"] += 1
+            else:
+                new_label = models.Label(
+                    name=label_data["name"],
+                    color=label_data.get("color", "#3b82f6"),
+                    created_at=datetime.fromisoformat(label_data["created_at"]) if "created_at" in label_data else datetime.utcnow()
+                )
+                db.add(new_label)
+                db.flush()
+                label_id_mapping[label_data["id"]] = new_label.id
+                data_stats["labels_imported"] += 1
+        
+        db.commit()
+        
+        # Import notes
+        for note_data in data["notes"]:
+            existing_note = db.query(models.DailyNote).filter(
+                models.DailyNote.date == note_data["date"]
+            ).first()
+            
+            if existing_note:
+                if replace:
+                    db.query(models.NoteEntry).filter(
+                        models.NoteEntry.daily_note_id == existing_note.id
+                    ).delete()
+                    existing_note.labels.clear()
+                    note = existing_note
+                    note.fire_rating = note_data.get("fire_rating", 0)
+                    note.daily_goal = note_data.get("daily_goal", "")
+                    if "created_at" in note_data:
+                        note.created_at = datetime.fromisoformat(note_data["created_at"])
+                    if "updated_at" in note_data:
+                        note.updated_at = datetime.fromisoformat(note_data["updated_at"])
+                else:
+                    data_stats["notes_skipped"] += 1
+                    continue
+            else:
+                note = models.DailyNote(
+                    date=note_data["date"],
+                    fire_rating=note_data.get("fire_rating", 0),
+                    daily_goal=note_data.get("daily_goal", ""),
+                    created_at=datetime.fromisoformat(note_data["created_at"]) if "created_at" in note_data else datetime.utcnow(),
+                    updated_at=datetime.fromisoformat(note_data["updated_at"]) if "updated_at" in note_data else datetime.utcnow()
+                )
+                db.add(note)
+                data_stats["notes_imported"] += 1
+            
+            db.flush()
+            
+            # Add entries
+            for entry_data in note_data.get("entries", []):
+                entry = models.NoteEntry(
+                    daily_note_id=note.id,
+                    title=entry_data.get("title", ""),
+                    content=entry_data["content"],
+                    content_type=entry_data.get("content_type", "rich_text"),
+                    order_index=entry_data.get("order_index", 0),
+                    include_in_report=1 if entry_data.get("include_in_report", False) else 0,
+                    is_important=1 if entry_data.get("is_important", False) else 0,
+                    is_completed=1 if entry_data.get("is_completed", False) else 0,
+                    is_dev_null=1 if entry_data.get("is_dev_null", False) else 0,
+                    created_at=datetime.fromisoformat(entry_data["created_at"]) if "created_at" in entry_data else datetime.utcnow(),
+                    updated_at=datetime.fromisoformat(entry_data["updated_at"]) if "updated_at" in entry_data else datetime.utcnow()
+                )
+                db.add(entry)
+                db.flush()
+                
+                # Add entry labels
+                for old_label_id in entry_data.get("labels", []):
+                    if old_label_id in label_id_mapping:
+                        label = db.query(models.Label).filter(
+                            models.Label.id == label_id_mapping[old_label_id]
+                        ).first()
+                        if label and label not in entry.labels:
+                            entry.labels.append(label)
+                
+                data_stats["entries_imported"] += 1
+            
+            # Add note labels
+            note_labels = note_data.get("labels", note_data.get("tags", []))
+            for old_label_id in note_labels:
+                if old_label_id in label_id_mapping:
+                    label = db.query(models.Label).filter(
+                        models.Label.id == label_id_mapping[old_label_id]
+                    ).first()
+                    if label and label not in note.labels:
+                        note.labels.append(label)
+        
+        db.commit()
+        stats["data_restore"] = data_stats
+        
+        # Step 2: Restore files from ZIP
+        files_content = await files_archive.read()
+        zip_buffer = io.BytesIO(files_content)
+        
+        files_restored = 0
+        files_skipped = 0
+        
+        UPLOAD_DIR = Path("data/uploads")
+        UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+        
+        with zipfile.ZipFile(zip_buffer, 'r') as zip_file:
+            if zip_file.testzip() is not None:
+                raise HTTPException(status_code=400, detail="Corrupted ZIP file")
+            
+            for file_info in zip_file.filelist:
+                if file_info.is_dir():
+                    continue
+                
+                filename = os.path.basename(file_info.filename)
+                target_path = UPLOAD_DIR / filename
+                
+                if target_path.exists():
+                    files_skipped += 1
+                    continue
+                
+                with zip_file.open(file_info) as source:
+                    with open(target_path, 'wb') as target:
+                        target.write(source.read())
+                files_restored += 1
+        
+        stats["files_restore"] = {
+            "restored": files_restored,
+            "skipped": files_skipped,
+            "total": files_restored + files_skipped
+        }
+        
+        stats["success"] = True
+        stats["message"] = f"Full restore completed: {data_stats['entries_imported']} entries and {files_restored} files restored"
+        
+        return stats
+        
+    except json.JSONDecodeError:
+        db.rollback()
+        raise HTTPException(status_code=400, detail="Invalid JSON file")
+    except zipfile.BadZipFile:
+        db.rollback()
+        raise HTTPException(status_code=400, detail="Invalid ZIP file")
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Full restore failed: {str(e)}")
 

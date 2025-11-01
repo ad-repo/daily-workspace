@@ -1,6 +1,6 @@
 # Documentation Index 📚
 
-Quick navigation for Pull Your Shit Together documentation.
+Quick navigation for Track the Thing documentation.
 
 ## 🚀 Getting Started
 

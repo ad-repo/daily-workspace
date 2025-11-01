@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Trash2, Clock, FileText, Star, Check, Copy, CheckCheck, ArrowRight, Skull } from 'lucide-react';
+import { Trash2, Clock, FileText, Star, Check, Copy, CheckCheck, ArrowRight, Skull, ArrowUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import axios from 'axios';
@@ -16,16 +16,18 @@ interface NoteEntryCardProps {
   entry: NoteEntry;
   onUpdate: (id: number, content: string) => void;
   onDelete: (id: number) => void;
-  onLabelsChange: () => void;
+  onLabelsUpdate: (entryId: number, labels: any[]) => void;
+  onMoveToTop?: (id: number) => void;
   isSelected?: boolean;
   onSelectionChange?: (id: number, selected: boolean) => void;
   selectionMode?: boolean;
   currentDate?: string; // YYYY-MM-DD format
 }
 
-const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsChange, isSelected = false, onSelectionChange, selectionMode = false, currentDate }: NoteEntryCardProps) => {
+const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onMoveToTop, isSelected = false, onSelectionChange, selectionMode = false, currentDate }: NoteEntryCardProps) => {
   const { timezone } = useTimezone();
   const navigate = useNavigate();
+  const [title, setTitle] = useState(entry.title || '');
   const [content, setContent] = useState(entry.content);
   const [isSaving, setIsSaving] = useState(false);
   const [includeInReport, setIncludeInReport] = useState(entry.include_in_report || false);
@@ -34,18 +36,40 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsChange, isSelected =
   const [isDevNull, setIsDevNull] = useState(entry.is_dev_null || false);
   const [copied, setCopied] = useState(false);
   const [isContinuing, setIsContinuing] = useState(false);
+  const [isMoving, setIsMoving] = useState(false);
   const isCodeEntry = entry.content_type === 'code';
   const today = format(new Date(), 'yyyy-MM-dd');
   const isFromPastDay = currentDate && currentDate !== today;
 
   // Sync state with entry prop changes
   useEffect(() => {
+    setTitle(entry.title || '');
     setContent(entry.content);
     setIncludeInReport(entry.include_in_report || false);
     setIsImportant(entry.is_important || false);
     setIsCompleted(entry.is_completed || false);
     setIsDevNull(entry.is_dev_null || false);
   }, [entry]);
+
+  const handleTitleChange = async (newTitle: string) => {
+    setTitle(newTitle);
+    setIsSaving(true);
+
+    // Debounce the save
+    const timeoutId = setTimeout(async () => {
+      try {
+        await axios.patch(`${API_URL}/api/entries/${entry.id}`, {
+          title: newTitle
+        });
+        setIsSaving(false);
+      } catch (error) {
+        console.error('Failed to update title:', error);
+        setIsSaving(false);
+      }
+    }, 1000);
+
+    return () => clearTimeout(timeoutId);
+  };
 
   const handleContentChange = async (newContent: string) => {
     setContent(newContent);
@@ -61,9 +85,7 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsChange, isSelected =
   };
 
   const handleDelete = () => {
-    if (window.confirm('Are you sure you want to delete this entry?')) {
-      onDelete(entry.id);
-    }
+    onDelete(entry.id);
   };
 
   const handleReportToggle = async () => {
@@ -153,6 +175,7 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsChange, isSelected =
       
       // Create new entry on today's date with same content and type
       const response = await axios.post(`${API_URL}/api/entries/note/${today}`, {
+        title: title,
         content: content,
         content_type: entry.content_type,
         order_index: 0,
@@ -178,8 +201,32 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsChange, isSelected =
     }
   };
 
+  const handleMoveToTop = async () => {
+    setIsMoving(true);
+    try {
+      await axios.post(`${API_URL}/api/entries/${entry.id}/move-to-top`);
+      
+      // Call the parent's callback to refresh the list
+      if (onMoveToTop) {
+        onMoveToTop(entry.id);
+      }
+    } catch (error) {
+      console.error('Failed to move entry to top:', error);
+      alert('Failed to move entry to top');
+    } finally {
+      setIsMoving(false);
+    }
+  };
+
   return (
-    <div className={`bg-white rounded-lg shadow-lg overflow-hidden transition-all hover:shadow-xl ${isSelected ? 'ring-2 ring-blue-500' : ''}`}>
+    <div 
+      className={`rounded-lg shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl ${isSelected ? 'ring-2' : ''}`}
+      style={{
+        backgroundColor: 'var(--color-card-bg)',
+        borderColor: isSelected ? 'var(--color-accent)' : 'var(--color-card-border)',
+        boxShadow: isSelected ? '0 0 0 2px var(--color-accent)' : undefined
+      }}
+    >
       <div className="p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-4">
@@ -191,7 +238,7 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsChange, isSelected =
                 className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
               />
             )}
-            <div className="flex items-center gap-2 text-sm text-gray-500">
+            <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--color-text-tertiary)' }}>
               <Clock className="h-4 w-4" />
               <span>
                 {formatTimestamp(entry.created_at, timezone, 'h:mm a zzz')}
@@ -205,11 +252,16 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsChange, isSelected =
           <div className="flex items-center gap-2">
             <button
               onClick={handleReportToggle}
-              className={`p-2 rounded transition-colors ${
-                includeInReport 
-                  ? 'text-blue-500 hover:text-blue-600' 
-                  : 'text-gray-400 hover:text-blue-500'
-              }`}
+              className="p-2 rounded transition-colors"
+              style={{ color: includeInReport ? 'var(--color-info)' : 'var(--color-text-tertiary)' }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = includeInReport ? 'transparent' : 'rgba(59, 130, 246, 0.1)';
+                if (!includeInReport) e.currentTarget.style.color = 'var(--color-info)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+                if (!includeInReport) e.currentTarget.style.color = 'var(--color-text-tertiary)';
+              }}
               title={includeInReport ? "Remove from report" : "Add to report"}
             >
               <FileText className="h-5 w-5" />
@@ -217,11 +269,16 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsChange, isSelected =
             
             <button
               onClick={handleCompletedToggle}
-              className={`p-2 rounded transition-colors ${
-                isCompleted 
-                  ? 'text-green-500 hover:text-green-600' 
-                  : 'text-gray-400 hover:text-green-500'
-              }`}
+              className="p-2 rounded transition-colors"
+              style={{ color: isCompleted ? 'var(--color-success)' : 'var(--color-text-tertiary)' }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = isCompleted ? 'transparent' : 'rgba(16, 185, 129, 0.1)';
+                if (!isCompleted) e.currentTarget.style.color = 'var(--color-success)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+                if (!isCompleted) e.currentTarget.style.color = 'var(--color-text-tertiary)';
+              }}
               title={isCompleted ? "Mark as not completed" : "Mark as completed"}
             >
               <Check className={`h-5 w-5 ${isCompleted ? 'stroke-[3]' : ''}`} />
@@ -229,11 +286,16 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsChange, isSelected =
             
             <button
               onClick={handleImportantToggle}
-              className={`p-2 rounded transition-colors ${
-                isImportant 
-                  ? 'text-yellow-500 hover:text-yellow-600' 
-                  : 'text-gray-400 hover:text-yellow-500'
-              }`}
+              className="p-2 rounded transition-colors"
+              style={{ color: isImportant ? 'var(--color-warning)' : 'var(--color-text-tertiary)' }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = isImportant ? 'transparent' : 'rgba(245, 158, 11, 0.1)';
+                if (!isImportant) e.currentTarget.style.color = 'var(--color-warning)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+                if (!isImportant) e.currentTarget.style.color = 'var(--color-text-tertiary)';
+              }}
               title={isImportant ? "Mark as not important" : "Mark as important"}
             >
               <Star className={`h-5 w-5 ${isImportant ? 'fill-current' : ''}`} />
@@ -241,11 +303,16 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsChange, isSelected =
             
             <button
               onClick={handleDevNullToggle}
-              className={`p-2 rounded transition-colors ${
-                isDevNull 
-                  ? 'text-gray-700 hover:text-gray-800' 
-                  : 'text-gray-400 hover:text-gray-600'
-              }`}
+              className="p-2 rounded transition-colors"
+              style={{ color: isDevNull ? 'var(--color-text-primary)' : 'var(--color-text-tertiary)' }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgba(107, 114, 128, 0.1)';
+                if (!isDevNull) e.currentTarget.style.color = 'var(--color-text-secondary)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+                if (!isDevNull) e.currentTarget.style.color = 'var(--color-text-tertiary)';
+              }}
               title={isDevNull ? "Remove from /dev/null" : "Mark as /dev/null"}
             >
               <Skull className={`h-5 w-5 ${isDevNull ? 'stroke-[2.5]' : ''}`} />
@@ -253,11 +320,20 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsChange, isSelected =
             
             <button
               onClick={handleCopy}
-              className={`p-2 rounded transition-colors ${
-                copied 
-                  ? 'text-green-500' 
-                  : 'text-gray-400 hover:text-blue-600 hover:bg-blue-50'
-              }`}
+              className="p-2 rounded transition-colors"
+              style={{ color: copied ? 'var(--color-success)' : 'var(--color-text-tertiary)' }}
+              onMouseEnter={(e) => {
+                if (!copied) {
+                  e.currentTarget.style.backgroundColor = 'rgba(59, 130, 246, 0.1)';
+                  e.currentTarget.style.color = 'var(--color-accent)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!copied) {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = 'var(--color-text-tertiary)';
+                }
+              }}
               title={copied ? "Copied!" : "Copy content"}
             >
               {copied ? (
@@ -271,11 +347,20 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsChange, isSelected =
               <button
                 onClick={handleContinueToday}
                 disabled={isContinuing}
-                className={`p-2 rounded transition-colors ${
-                  isContinuing
-                    ? 'text-green-500'
-                    : 'text-gray-400 hover:text-green-600 hover:bg-green-50'
-                }`}
+                className="p-2 rounded transition-colors"
+                style={{ color: isContinuing ? 'var(--color-success)' : 'var(--color-text-tertiary)' }}
+                onMouseEnter={(e) => {
+                  if (!isContinuing) {
+                    e.currentTarget.style.backgroundColor = 'rgba(16, 185, 129, 0.1)';
+                    e.currentTarget.style.color = 'var(--color-success)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isContinuing) {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.color = 'var(--color-text-tertiary)';
+                  }
+                }}
                 title={isContinuing ? "Copying to today..." : "Continue on today"}
               >
                 <ArrowRight className="h-5 w-5" />
@@ -283,8 +368,39 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsChange, isSelected =
             )}
             
             <button
+              onClick={handleMoveToTop}
+              disabled={isMoving}
+              className="p-2 rounded transition-colors"
+              style={{ color: isMoving ? 'var(--color-accent)' : 'var(--color-text-tertiary)' }}
+              onMouseEnter={(e) => {
+                if (!isMoving) {
+                  e.currentTarget.style.backgroundColor = 'rgba(59, 130, 246, 0.1)';
+                  e.currentTarget.style.color = 'var(--color-accent)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isMoving) {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = 'var(--color-text-tertiary)';
+                }
+              }}
+              title={isMoving ? "Moving to top..." : "Move to top"}
+            >
+              <ArrowUp className="h-5 w-5" />
+            </button>
+            
+            <button
               onClick={handleDelete}
-              className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+              className="p-2 rounded transition-colors"
+              style={{ color: 'var(--color-text-tertiary)' }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = 'var(--color-error)';
+                e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = 'var(--color-text-tertiary)';
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }}
               title="Delete entry"
             >
               <Trash2 className="h-4 w-4" />
@@ -292,12 +408,28 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsChange, isSelected =
           </div>
         </div>
 
+        {/* Title Input */}
+        <div className="mb-4">
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => handleTitleChange(e.target.value)}
+            placeholder="Add a title..."
+            className="w-full text-lg font-semibold border-none focus:outline-none focus:ring-0 px-0"
+            style={{ 
+              backgroundColor: 'transparent',
+              color: 'var(--color-text-primary)',
+            }}
+          />
+        </div>
+
         {/* Entry Labels */}
-        <div className="mb-4 pb-4 border-b border-gray-200">
+        <div className="mb-4 pb-4" style={{ borderBottom: '1px solid var(--color-border-primary)' }}>
           <LabelSelector
             entryId={entry.id}
             selectedLabels={entry.labels || []}
-            onLabelsChange={onLabelsChange}
+            onLabelsChange={() => {}}
+            onOptimisticUpdate={(labels) => onLabelsUpdate(entry.id, labels)}
           />
         </div>
 
@@ -310,7 +442,7 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsChange, isSelected =
           <RichTextEditor
             content={content}
             onChange={handleContentChange}
-            placeholder="Write your notes here..."
+            placeholder="Add content..."
           />
         )}
       </div>

@@ -12,82 +12,66 @@ const Navigation = () => {
   const dayName = formatInTimeZone(now, timezone, 'EEEE'); // Full day name like "Monday"
 
   return (
-    <nav className="bg-white shadow-sm border-b border-gray-200">
+    <nav className="shadow-sm" style={{ backgroundColor: 'var(--color-card-bg)', borderBottom: '1px solid var(--color-border-primary)' }}>
       <div className="container mx-auto px-4 max-w-7xl">
         <div className="flex items-center justify-between h-16">
           <Link 
             to="/" 
-            className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
-              location.pathname === '/'
-                ? 'bg-blue-100 text-blue-700'
-                : 'text-gray-600 hover:bg-gray-100'
-            }`}
-            title="- Kamesh"
+            className="flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors"
+            style={{
+              backgroundColor: location.pathname === '/' ? 'var(--color-accent)' : 'transparent',
+              color: location.pathname === '/' ? 'var(--color-accent-text)' : 'var(--color-text-secondary)'
+            }}
+            onMouseEnter={(e) => {
+              if (location.pathname !== '/') {
+                e.currentTarget.style.backgroundColor = 'var(--color-bg-hover)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (location.pathname !== '/') {
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }
+            }}
+            title="Track the Thing"
           >
             <Laptop className="h-6 w-6" />
-            <span className="text-xl font-bold">pull your shit together</span>
+            <span className="text-xl font-bold">Track the Thing</span>
           </Link>
 
           <div className="flex space-x-4">
-            <Link
-              to={`/day/${today}`}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
-                location.pathname.includes('/day')
-                  ? 'bg-blue-100 text-blue-700'
-                  : 'text-gray-600 hover:bg-gray-100'
-              }`}
-            >
-              <Laptop className="h-5 w-5" />
-              <span className="font-medium">{dayName}</span>
-            </Link>
-
-            <Link
-              to="/calendar"
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
-                location.pathname === '/calendar'
-                  ? 'bg-blue-100 text-blue-700'
-                  : 'text-gray-600 hover:bg-gray-100'
-              }`}
-            >
-              <Calendar className="h-5 w-5" />
-              <span className="font-medium">Calendar</span>
-            </Link>
-
-            <Link
-              to="/search"
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
-                location.pathname === '/search'
-                  ? 'bg-blue-100 text-blue-700'
-                  : 'text-gray-600 hover:bg-gray-100'
-              }`}
-            >
-              <Search className="h-5 w-5" />
-              <span className="font-medium">Search</span>
-            </Link>
-
-            <Link
-              to="/reports"
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
-                location.pathname === '/reports'
-                  ? 'bg-blue-100 text-blue-700'
-                  : 'text-gray-600 hover:bg-gray-100'
-              }`}
-            >
-              <FileText className="h-5 w-5" />
-              <span className="font-medium">Reports</span>
-            </Link>
-
-            <Link
-              to="/settings"
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
-                location.pathname === '/settings'
-                  ? 'bg-blue-100 text-blue-700'
-                  : 'text-gray-600 hover:bg-gray-100'
-              }`}
-            >
-              <Settings className="h-5 w-5" />
-              <span className="font-medium">Settings</span>
-            </Link>
+            {[
+              { to: `/day/${today}`, icon: BookOpen, label: dayName, path: '/day/' },
+              { to: '/calendar', icon: Calendar, label: 'Calendar', path: '/calendar' },
+              { to: '/search', icon: Search, label: 'Search', path: '/search' },
+              { to: '/reports', icon: FileText, label: 'Reports', path: '/reports' },
+              { to: '/settings', icon: Settings, label: 'Settings', path: '/settings' },
+            ].map(({ to, icon: Icon, label, path }) => {
+              const isActive = path === '/day/' ? location.pathname.includes('/day') : location.pathname === path;
+              return (
+                <Link
+                  key={to}
+                  to={to}
+                  className="flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors"
+                  style={{
+                    backgroundColor: isActive ? 'var(--color-accent)' : 'transparent',
+                    color: isActive ? 'var(--color-accent-text)' : 'var(--color-text-secondary)'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isActive) {
+                      e.currentTarget.style.backgroundColor = 'var(--color-bg-hover)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isActive) {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                    }
+                  }}
+                >
+                  <Icon className="h-5 w-5" />
+                  <span className="font-medium">{label}</span>
+                </Link>
+              );
+            })}
           </div>
         </div>
       </div>

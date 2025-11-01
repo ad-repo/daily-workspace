@@ -98,7 +98,20 @@ const CodeEditor = ({ content, onChange }: CodeEditorProps) => {
           value={editContent}
           onChange={handleTextareaChange}
           rows={15}
-          className="w-full p-4 font-mono text-sm bg-gray-900 text-gray-100 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
+          className="w-full p-4 font-mono text-sm rounded-lg focus:outline-none resize-y"
+          style={{
+            backgroundColor: 'var(--color-bg-tertiary)',
+            color: 'var(--color-text-primary)',
+            border: '1px solid var(--color-border-primary)',
+          }}
+          onFocus={(e) => {
+            e.currentTarget.style.borderColor = 'var(--color-accent)';
+            e.currentTarget.style.boxShadow = '0 0 0 2px var(--color-accent)';
+          }}
+          onBlur={(e) => {
+            e.currentTarget.style.borderColor = 'var(--color-border-primary)';
+            e.currentTarget.style.boxShadow = 'none';
+          }}
           placeholder={`Paste your ${language === 'python' ? 'Python' : 'Shell'} code here...`}
           spellCheck={false}
           autoFocus
