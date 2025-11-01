@@ -66,20 +66,15 @@ export const HolidayProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   const [isLoading, setIsLoading] = useState(false);
 
-  // Generate Unsplash image URL with holiday keyword
+  // Generate image URL with holiday-specific seed
   const generateImageUrl = (holidayName: string): string => {
-    // Extract keywords from holiday name
-    const keywords = holidayName
-      .toLowerCase()
-      .replace(/['']/g, '')
-      .replace(/day/g, '')
-      .trim();
+    // Create a seed based on holiday name and current hour
+    const hoursSinceEpoch = Math.floor(Date.now() / (1000 * 60 * 60));
+    const seed = `${holidayName.replace(/\s+/g, '-').toLowerCase()}-${hoursSinceEpoch}`;
     
-    // Add timestamp to force new image
-    const timestamp = Date.now();
-    
-    // Unsplash Source URL (no API key needed for basic usage)
-    return `https://source.unsplash.com/1920x1080/?${encodeURIComponent(keywords)},holiday,festive&sig=${timestamp}`;
+    // Use Picsum Photos with seed for consistent but rotating images
+    // Seed ensures same holiday gets similar-feeling images, hour rotation adds variety
+    return `https://picsum.photos/seed/${encodeURIComponent(seed)}/1920/1080`;
   };
 
   // Fetch current holiday from backend

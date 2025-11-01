@@ -655,7 +655,7 @@ const Settings = () => {
             >
               <p className="text-sm" style={{ color: 'var(--color-info)' }}>
                 <strong>How it works:</strong> Holiday backgrounds appear at low opacity (20%) so they don't interfere with readability. 
-                Images automatically rotate every hour for variety. Uses Unsplash for images and Nager.Date for holiday data.
+                Images automatically rotate every hour for variety. Uses Picsum Photos for images and Nager.Date for holiday data (both free services).
               </p>
             </div>
           </div>
