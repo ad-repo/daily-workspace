@@ -22,7 +22,7 @@ const HolidayBackgroundSettings = () => {
       </h2>
       <div className="p-6 rounded-lg" style={{ backgroundColor: 'var(--color-bg-tertiary)' }}>
         <p className="mb-4" style={{ color: 'var(--color-text-secondary)' }}>
-          Automatically display festive background images based on upcoming holidays using Unsplash photos.
+          Automatically display background images that change based on upcoming holidays. Images rotate every hour for variety.
         </p>
 
         {/* Enable/Disable Toggle */}
@@ -228,7 +228,8 @@ const HolidayBackgroundSettings = () => {
         >
           <p className="text-sm" style={{ color: 'var(--color-info)' }}>
             <strong>How it works:</strong> Holiday backgrounds appear at low opacity (20%) so they don't interfere with readability.
-            Images automatically rotate every hour for variety. Uses Unsplash for holiday-themed images and Nager.Date for holiday data (both free services).
+            Images automatically rotate every hour for variety. Uses Picsum Photos for images and Nager.Date for holiday detection (both free services).
+            For truly holiday-themed images, use the Custom Background Images feature to upload your own!
           </p>
         </div>
       </div>

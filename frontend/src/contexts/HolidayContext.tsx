@@ -73,55 +73,21 @@ export const HolidayProvider: React.FC<{ children: ReactNode }> = ({ children })
     return stored ? JSON.parse(stored) : true; // Default to true (enabled)
   });
 
-  // Generate holiday-themed search term from holiday name
-  const getHolidaySearchTerm = (holidayName: string): string => {
-    const name = holidayName.toLowerCase();
-    
-    // Map holidays to better search terms
-    const searchTerms: { [key: string]: string } = {
-      'christmas': 'christmas,holiday,winter,festive',
-      'new year': 'newyear,celebration,fireworks,party',
-      "new year's": 'newyear,celebration,fireworks,party',
-      'thanksgiving': 'thanksgiving,autumn,harvest,family',
-      'halloween': 'halloween,pumpkin,autumn,spooky',
-      'easter': 'easter,spring,flowers,pastel',
-      'valentine': 'valentine,love,romance,hearts',
-      'independence day': 'fireworks,july4th,patriotic,celebration',
-      'memorial day': 'patriotic,american,flag,memorial',
-      'labor day': 'summer,bbq,celebration,relaxation',
-      'veterans day': 'patriotic,american,flag,veteran',
-      'martin luther king': 'unity,peace,equality,together',
-      'presidents': 'american,patriotic,flag,heritage',
-      'st patrick': 'green,irish,clover,lucky',
-      'cinco de mayo': 'mexican,colorful,celebration,fiesta',
-      'mother': 'flowers,family,love,mom',
-      'father': 'family,dad,celebration,love',
-      'juneteenth': 'celebration,freedom,african,heritage',
-    };
-    
-    // Find matching search term
-    for (const [key, term] of Object.entries(searchTerms)) {
-      if (name.includes(key)) {
-        return term;
-      }
-    }
-    
-    // Default: use holiday name cleaned up
-    return holidayName.replace(/[^a-zA-Z0-9]/g, ',').toLowerCase();
-  };
-
-  // Generate image URL with holiday-specific search using Unsplash Source
+  // Generate image URL with holiday-specific seed using Picsum Photos
   const generateImageUrl = (holidayName: string, forceRandom: boolean = false): string => {
-    const searchTerm = getHolidaySearchTerm(holidayName);
+    // Create a seed that incorporates the holiday name for some consistency
+    const holidaySlug = holidayName.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
     
-    // Add timestamp for rotation (random or hourly)
     const timeSeed = forceRandom 
-      ? Math.random() // Random for manual refresh
+      ? Math.floor(Math.random() * 1000000) // Random number for manual refresh
       : Math.floor(Date.now() / (1000 * 60 * 60)); // Hour-based for automatic rotation
     
-    // Use Unsplash Source with search terms
-    // Note: Adding timestamp as cache buster to get different images
-    return `https://source.unsplash.com/1920x1080/?${searchTerm}&sig=${timeSeed}`;
+    // Use holiday name in seed for some visual consistency per holiday
+    const seed = `${holidaySlug}-${timeSeed}`;
+    
+    // Use Picsum Photos (reliable, no API key needed)
+    // Note: Images won't be holiday-themed, but will be consistent per holiday
+    return `https://picsum.photos/seed/${encodeURIComponent(seed)}/1920/1080`;
   };
 
   // Fetch current holiday from backend
