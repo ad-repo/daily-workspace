@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🔍 Verifying Daily Notes App Setup..."
+echo "🔍 Verifying Track the Thing Setup..."
 echo ""
 
 ERRORS=0

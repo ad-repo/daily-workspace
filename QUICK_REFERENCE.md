@@ -1,6 +1,6 @@
 # Quick Reference 🚀
 
-Command cheat sheet for daily-notes workspace.
+Command cheat sheet for Track the Thing workspace.
 
 ## 🎯 Quick Start
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Start script for local development
-echo "🚀 Starting Daily Notes App..."
+echo "🚀 Starting Track the Thing..."
 
 # Function to cleanup background processes
 cleanup() {

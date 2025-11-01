@@ -14,10 +14,10 @@ def get_entries_for_date(date: str, db: Session = Depends(get_db)):
     if not note:
         raise HTTPException(status_code=404, detail="Note not found for this date")
     
-    # Order by created_at descending (newest first)
+    # Order by order_index descending (higher values first), then by created_at descending (newest first)
     entries = db.query(models.NoteEntry).filter(
         models.NoteEntry.daily_note_id == note.id
-    ).order_by(models.NoteEntry.created_at.desc()).all()
+    ).order_by(models.NoteEntry.order_index.desc(), models.NoteEntry.created_at.desc()).all()
     
     return entries
 
@@ -69,6 +69,27 @@ def delete_entry(entry_id: int, db: Session = Depends(get_db)):
     db.delete(db_entry)
     db.commit()
     return None
+
+@router.post("/{entry_id}/move-to-top", response_model=schemas.NoteEntry)
+def move_entry_to_top(entry_id: int, db: Session = Depends(get_db)):
+    """Move an entry to the top of the list for its day"""
+    db_entry = db.query(models.NoteEntry).filter(models.NoteEntry.id == entry_id).first()
+    if not db_entry:
+        raise HTTPException(status_code=404, detail="Entry not found")
+    
+    # Find the highest order_index for entries in the same day
+    max_order = db.query(models.NoteEntry.order_index).filter(
+        models.NoteEntry.daily_note_id == db_entry.daily_note_id
+    ).order_by(models.NoteEntry.order_index.desc()).first()
+    
+    # Set this entry's order_index to be higher than the current max
+    new_order_index = (max_order[0] if max_order and max_order[0] is not None else 0) + 1
+    db_entry.order_index = new_order_index
+    db_entry.updated_at = datetime.utcnow()
+    
+    db.commit()
+    db.refresh(db_entry)
+    return db_entry
 
 @router.get("/{entry_id}", response_model=schemas.NoteEntry)
 def get_entry(entry_id: int, db: Session = Depends(get_db)):
