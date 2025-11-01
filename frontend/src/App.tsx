@@ -20,9 +20,9 @@ function App() {
     <ThemeProvider>
       <TimezoneProvider>
         <HolidayProvider>
-          <HolidayBackground />
           <Router>
-            <div className="min-h-screen" style={{ backgroundColor: 'var(--color-bg-secondary)' }}>
+            <div className="min-h-screen" style={{ backgroundColor: 'var(--color-bg-secondary)', position: 'relative' }}>
+              <HolidayBackground />
               <Navigation />
             <div className="container mx-auto px-4 py-6 max-w-7xl">
             <Routes>

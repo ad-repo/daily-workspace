@@ -67,10 +67,12 @@ export const HolidayProvider: React.FC<{ children: ReactNode }> = ({ children })
   const [isLoading, setIsLoading] = useState(false);
 
   // Generate image URL with holiday-specific seed
-  const generateImageUrl = (holidayName: string): string => {
-    // Create a seed based on holiday name and current hour
-    const hoursSinceEpoch = Math.floor(Date.now() / (1000 * 60 * 60));
-    const seed = `${holidayName.replace(/\s+/g, '-').toLowerCase()}-${hoursSinceEpoch}`;
+  const generateImageUrl = (holidayName: string, forceRandom: boolean = false): string => {
+    // Create a seed based on holiday name and current hour (or random if forced)
+    const timeSeed = forceRandom 
+      ? Math.floor(Math.random() * 1000000) // Random number for manual refresh
+      : Math.floor(Date.now() / (1000 * 60 * 60)); // Hour-based for automatic rotation
+    const seed = `${holidayName.replace(/\s+/g, '-').toLowerCase()}-${timeSeed}`;
     
     // Use Picsum Photos with seed for consistent but rotating images
     // Seed ensures same holiday gets similar-feeling images, hour rotation adds variety
@@ -102,8 +104,9 @@ export const HolidayProvider: React.FC<{ children: ReactNode }> = ({ children })
   };
 
   // Update background image
-  const updateBackgroundImage = (holiday: Holiday) => {
-    const imageUrl = generateImageUrl(holiday.name);
+  const updateBackgroundImage = (holiday: Holiday, forceRandom: boolean = false) => {
+    const imageUrl = generateImageUrl(holiday.name, forceRandom);
+    console.log('[HolidayContext] Generating image URL:', { holiday: holiday.name, imageUrl, forceRandom });
     const newState: HolidayBackgroundState = {
       name: holiday.name,
       date: holiday.date,
@@ -113,31 +116,48 @@ export const HolidayProvider: React.FC<{ children: ReactNode }> = ({ children })
     
     setBackgroundState(newState);
     localStorage.setItem(STORAGE_KEYS.CURRENT, JSON.stringify(newState));
+    console.log('[HolidayContext] Background state updated:', newState);
   };
 
   // Main check function
   const checkAndUpdateHoliday = async () => {
-    if (!enabled) return;
+    console.log('[HolidayContext] checkAndUpdateHoliday called, enabled:', enabled);
+    if (!enabled) {
+      console.log('[HolidayContext] Feature disabled, skipping check');
+      return;
+    }
 
     setIsLoading(true);
     try {
+      console.log('[HolidayContext] Fetching current holiday...');
       const holiday = await fetchCurrentHoliday();
+      console.log('[HolidayContext] Fetched holiday:', holiday);
       setCurrentHoliday(holiday);
 
       if (holiday) {
         // Check if it's a new holiday or needs rotation
         const isNewHoliday = holiday.name !== backgroundState.name;
+        console.log('[HolidayContext] Holiday check:', { 
+          isNewHoliday, 
+          needsRotation: needsRotation(),
+          currentHoliday: holiday.name,
+          storedHoliday: backgroundState.name 
+        });
         
         if (isNewHoliday || needsRotation()) {
+          console.log('[HolidayContext] Updating background image...');
           updateBackgroundImage(holiday);
+        } else {
+          console.log('[HolidayContext] Using existing background');
         }
       } else {
+        console.log('[HolidayContext] No holiday found, clearing background');
         // No upcoming holiday - clear background
         setBackgroundState({ name: null, date: null, imageUrl: null, lastRotation: null });
         localStorage.removeItem(STORAGE_KEYS.CURRENT);
       }
     } catch (error) {
-      console.error('Error checking holiday:', error);
+      console.error('[HolidayContext] Error checking holiday:', error);
     } finally {
       setIsLoading(false);
     }
@@ -167,7 +187,7 @@ export const HolidayProvider: React.FC<{ children: ReactNode }> = ({ children })
   // Force refresh image
   const refreshImage = () => {
     if (currentHoliday) {
-      updateBackgroundImage(currentHoliday);
+      updateBackgroundImage(currentHoliday, true); // Force random image
     }
   };
 
