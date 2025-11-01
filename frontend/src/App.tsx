@@ -9,6 +9,8 @@ import Search from './components/Search';
 import { format } from 'date-fns';
 import { TimezoneProvider } from './contexts/TimezoneContext';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { HolidayProvider } from './contexts/HolidayContext';
+import HolidayBackground from './components/HolidayBackground';
 
 function App() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -17,9 +19,11 @@ function App() {
   return (
     <ThemeProvider>
       <TimezoneProvider>
-        <Router>
-          <div className="min-h-screen" style={{ backgroundColor: 'var(--color-bg-secondary)' }}>
-            <Navigation />
+        <HolidayProvider>
+          <HolidayBackground />
+          <Router>
+            <div className="min-h-screen" style={{ backgroundColor: 'var(--color-bg-secondary)' }}>
+              <Navigation />
             <div className="container mx-auto px-4 py-6 max-w-7xl">
             <Routes>
             <Route
@@ -54,7 +58,8 @@ function App() {
             </Routes>
           </div>
         </div>
-      </Router>
+          </Router>
+        </HolidayProvider>
       </TimezoneProvider>
     </ThemeProvider>
   );
