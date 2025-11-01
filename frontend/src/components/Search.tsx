@@ -147,10 +147,10 @@ const Search = () => {
 
   return (
     <div className="max-w-5xl mx-auto p-4">
-      <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+      <div className="rounded-lg shadow-lg p-6 mb-6" style={{ backgroundColor: 'var(--color-card-bg)' }}>
         <div className="flex items-center gap-3 mb-6">
-          <SearchIcon className="h-8 w-8 text-gray-700" />
-          <h1 className="text-3xl font-bold text-gray-900">Search</h1>
+          <SearchIcon className="h-8 w-8" style={{ color: 'var(--color-text-secondary)' }} />
+          <h1 className="text-3xl font-bold" style={{ color: 'var(--color-text-primary)' }}>Search</h1>
         </div>
 
         {/* Search Input */}
@@ -162,16 +162,44 @@ const Search = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="Search by text content..."
-              className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="flex-1 px-4 py-3 rounded-lg focus:outline-none"
+              style={{
+                backgroundColor: 'var(--color-bg-primary)',
+                color: 'var(--color-text-primary)',
+                border: '1px solid var(--color-border-primary)',
+              }}
+              onFocus={(e) => {
+                e.currentTarget.style.borderColor = 'var(--color-accent)';
+                e.currentTarget.style.boxShadow = '0 0 0 2px var(--color-accent)';
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.borderColor = 'var(--color-border-primary)';
+                e.currentTarget.style.boxShadow = 'none';
+              }}
             />
             <button
               onClick={handleSearch}
               disabled={loading || (!searchQuery.trim() && selectedLabels.length === 0)}
-              className={`px-6 py-3 rounded-lg transition-colors flex items-center gap-2 ${
-                loading || (!searchQuery.trim() && selectedLabels.length === 0)
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  : 'bg-blue-600 text-white hover:bg-blue-700'
-              }`}
+              className="px-6 py-3 rounded-lg transition-colors flex items-center gap-2"
+              style={{
+                backgroundColor: (loading || (!searchQuery.trim() && selectedLabels.length === 0)) 
+                  ? 'var(--color-bg-tertiary)' 
+                  : 'var(--color-accent)',
+                color: (loading || (!searchQuery.trim() && selectedLabels.length === 0))
+                  ? 'var(--color-text-tertiary)'
+                  : 'var(--color-accent-text)',
+                cursor: (loading || (!searchQuery.trim() && selectedLabels.length === 0)) ? 'not-allowed' : 'pointer',
+              }}
+              onMouseEnter={(e) => {
+                if (!loading && (searchQuery.trim() || selectedLabels.length > 0)) {
+                  e.currentTarget.style.backgroundColor = 'var(--color-accent-hover)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!loading && (searchQuery.trim() || selectedLabels.length > 0)) {
+                  e.currentTarget.style.backgroundColor = 'var(--color-accent)';
+                }
+              }}
             >
               <SearchIcon className="h-5 w-5" />
               {loading ? 'Searching...' : 'Search'}
@@ -179,7 +207,17 @@ const Search = () => {
             {hasSearched && (
               <button
                 onClick={clearSearch}
-                className="px-4 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+                className="px-4 py-3 rounded-lg transition-colors"
+                style={{
+                  backgroundColor: 'var(--color-text-secondary)',
+                  color: 'var(--color-bg-primary)',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--color-text-primary)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--color-text-secondary)';
+                }}
               >
                 <X className="h-5 w-5" />
               </button>
@@ -257,13 +295,13 @@ const Search = () => {
 
       {/* Results */}
       {hasSearched && (
-        <div className="space-y-4">
+        <div className="space-y-4 page-fade-in">
           {results.length === 0 ? (
-            <div className="bg-white rounded-lg shadow-lg p-8 text-center text-gray-500">
+            <div className="bg-white rounded-lg shadow-lg p-8 text-center text-gray-500 page-fade-in">
               No results found. Try a different search query or labels.
             </div>
           ) : (
-            results.map((entry: any) => {
+            results.map((entry: any, index) => {
               // Extract date from the search result
               const date = entry.date || 'Unknown';
               const content = entry.content_type === 'code' 
@@ -275,7 +313,10 @@ const Search = () => {
                 <div
                   key={entry.id}
                   onClick={() => goToEntry(entry, date)}
-                  className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-all cursor-pointer"
+                  className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-all duration-300 cursor-pointer"
+                  style={{
+                    animation: `fadeIn 0.3s ease-in ${index * 0.05}s both`
+                  }}
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex-1">

@@ -458,17 +458,20 @@ const Reports = () => {
   };
 
   return (
-    <div className="container mx-auto p-4 max-w-4xl">
-      <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+    <div className="container mx-auto p-4 max-w-4xl page-fade-in">
+      <div 
+        className="rounded-lg shadow-lg p-6 mb-6"
+        style={{ backgroundColor: 'var(--color-card-bg)' }}
+      >
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <FileText className="h-8 w-8 text-blue-600" />
-            <h1 className="text-3xl font-bold text-gray-900">Weekly Report</h1>
+            <FileText className="h-8 w-8" style={{ color: 'var(--color-accent)' }} />
+            <h1 className="text-3xl font-bold" style={{ color: 'var(--color-text-primary)' }}>Weekly Report</h1>
           </div>
         </div>
 
         <div className="mb-6">
-          <p className="text-gray-600 mb-4">
+          <p className="mb-4" style={{ color: 'var(--color-text-secondary)' }}>
             Generate reports from entries marked with "Add to Report". Reports run from Wednesday to Wednesday.
           </p>
 
@@ -476,7 +479,17 @@ const Reports = () => {
             <button
               onClick={() => generateReport()}
               disabled={loading}
-              className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+              className="flex items-center gap-2 px-6 py-3 rounded-lg transition-colors disabled:opacity-50"
+              style={{
+                backgroundColor: loading ? 'var(--color-bg-tertiary)' : 'var(--color-accent)',
+                color: loading ? 'var(--color-text-tertiary)' : 'var(--color-accent-text)'
+              }}
+              onMouseEnter={(e) => {
+                if (!loading) e.currentTarget.style.backgroundColor = 'var(--color-accent-hover)';
+              }}
+              onMouseLeave={(e) => {
+                if (!loading) e.currentTarget.style.backgroundColor = 'var(--color-accent)';
+              }}
             >
               <Calendar className="h-5 w-5" />
               {loading ? 'Generating...' : 'Generate'}
@@ -491,7 +504,12 @@ const Reports = () => {
                     generateReport(e.target.value);
                   }
                 }}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-4 py-2 rounded-lg focus:outline-none focus:ring-2"
+                style={{
+                  backgroundColor: 'var(--color-bg-primary)',
+                  color: 'var(--color-text-primary)',
+                  border: '1px solid var(--color-border-primary)'
+                }}
               >
                 <option value="">Select a past week...</option>
                 {weeks.map((week) => (
@@ -505,19 +523,29 @@ const Reports = () => {
         </div>
 
         {report && (
-          <div className="border-t pt-6">
+          <div className="pt-6" style={{ borderTop: '1px solid var(--color-border-primary)' }}>
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h2 className="text-xl font-semibold text-gray-900">
+                <h2 className="text-xl font-semibold" style={{ color: 'var(--color-text-primary)' }}>
                   Report: {report.week_start} to {report.week_end}
                 </h2>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
                   {report.entries.length} {report.entries.length === 1 ? 'entry' : 'entries'}
                 </p>
               </div>
               <button
                 onClick={exportReport}
-                className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                className="flex items-center gap-2 px-6 py-3 rounded-lg transition-colors"
+                style={{
+                  backgroundColor: 'var(--color-success)',
+                  color: '#ffffff'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.opacity = '0.9';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.opacity = '1';
+                }}
               >
                 <Download className="h-5 w-5" />
                 Export as Markdown
@@ -526,7 +554,7 @@ const Reports = () => {
 
             <div className="space-y-8 mt-6">
               {report.entries.length === 0 ? (
-                <div className="text-center py-12 text-gray-500">
+                <div className="text-center py-12" style={{ color: 'var(--color-text-secondary)' }}>
                   No entries marked for report this week.
                   <br />
                   Check the "Add to Report" box on entries you want to include.
@@ -536,12 +564,22 @@ const Reports = () => {
                   {/* Completed Section */}
                   <div>
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-2xl font-bold text-green-700 flex items-center gap-2">
+                      <h3 className="text-2xl font-bold flex items-center gap-2" style={{ color: 'var(--color-success)' }}>
                         <span className="text-2xl">✓</span> Completed
                       </h3>
                       <button
                         onClick={() => copySection('completed')}
-                        className="flex items-center gap-2 px-3 py-2 text-sm bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
+                        className="flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors"
+                        style={{
+                          backgroundColor: `${getComputedStyle(document.documentElement).getPropertyValue('--color-success')}20`,
+                          color: 'var(--color-success)'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = `${getComputedStyle(document.documentElement).getPropertyValue('--color-success')}30`;
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = `${getComputedStyle(document.documentElement).getPropertyValue('--color-success')}20`;
+                        }}
                         title="Copy completed section"
                       >
                         {copiedSection === 'completed' ? (
@@ -559,17 +597,24 @@ const Reports = () => {
                     </div>
                     <div className="space-y-4">
                       {report.entries.filter(e => e.is_completed).length === 0 ? (
-                        <div className="text-gray-500 italic pl-4">No completed items</div>
+                        <div className="italic pl-4" style={{ color: 'var(--color-text-secondary)' }}>No completed items</div>
                       ) : (
                         report.entries.filter(e => e.is_completed).map((entry, index, arr) => (
-                          <div key={`${entry.date}-${entry.entry_id}`} className="border-l-4 border-green-500 pl-4">
+                          <div 
+                            key={`${entry.date}-${entry.entry_id}`} 
+                            className="border-l-4 pl-4"
+                            style={{ borderColor: 'var(--color-success)' }}
+                          >
                             {(index === 0 || entry.date !== arr[index - 1].date) && (
-                              <h4 className="text-lg font-semibold text-gray-900 mb-2">
+                              <h4 className="text-lg font-semibold mb-2" style={{ color: 'var(--color-text-primary)' }}>
                                 {entry.date}
                               </h4>
                             )}
                             
-                            <div className="bg-gray-50 rounded-lg p-4 mb-2">
+                            <div 
+                              className="rounded-lg p-4 mb-2"
+                              style={{ backgroundColor: 'var(--color-bg-tertiary)' }}
+                            >
                               {entry.content_type === 'code' ? (
                                 <pre className="text-sm bg-gray-900 text-white p-3 rounded overflow-x-auto">
                                   <code>{entry.content}</code>
@@ -613,12 +658,22 @@ const Reports = () => {
                   {/* In Progress Section */}
                   <div>
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-2xl font-bold text-blue-700 flex items-center gap-2">
+                      <h3 className="text-2xl font-bold flex items-center gap-2" style={{ color: 'var(--color-accent)' }}>
                         <span className="text-2xl">⚙</span> In Progress
                       </h3>
                       <button
                         onClick={() => copySection('in-progress')}
-                        className="flex items-center gap-2 px-3 py-2 text-sm bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
+                        className="flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors"
+                        style={{
+                          backgroundColor: `${getComputedStyle(document.documentElement).getPropertyValue('--color-accent')}20`,
+                          color: 'var(--color-accent)'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = `${getComputedStyle(document.documentElement).getPropertyValue('--color-accent')}30`;
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = `${getComputedStyle(document.documentElement).getPropertyValue('--color-accent')}20`;
+                        }}
                         title="Copy in progress section"
                       >
                         {copiedSection === 'in-progress' ? (
@@ -636,17 +691,24 @@ const Reports = () => {
                     </div>
                     <div className="space-y-4">
                       {report.entries.filter(e => !e.is_completed).length === 0 ? (
-                        <div className="text-gray-500 italic pl-4">No items in progress</div>
+                        <div className="italic pl-4" style={{ color: 'var(--color-text-secondary)' }}>No items in progress</div>
                       ) : (
                         report.entries.filter(e => !e.is_completed).map((entry, index, arr) => (
-                          <div key={`${entry.date}-${entry.entry_id}`} className="border-l-4 border-blue-500 pl-4">
+                          <div 
+                            key={`${entry.date}-${entry.entry_id}`} 
+                            className="border-l-4 pl-4"
+                            style={{ borderColor: 'var(--color-accent)' }}
+                          >
                             {(index === 0 || entry.date !== arr[index - 1].date) && (
-                              <h4 className="text-lg font-semibold text-gray-900 mb-2">
+                              <h4 className="text-lg font-semibold mb-2" style={{ color: 'var(--color-text-primary)' }}>
                                 {entry.date}
                               </h4>
                             )}
                             
-                            <div className="bg-gray-50 rounded-lg p-4 mb-2">
+                            <div 
+                              className="rounded-lg p-4 mb-2"
+                              style={{ backgroundColor: 'var(--color-bg-tertiary)' }}
+                            >
                               {entry.content_type === 'code' ? (
                                 <pre className="text-sm bg-gray-900 text-white p-3 rounded overflow-x-auto">
                                   <code>{entry.content}</code>
@@ -694,13 +756,16 @@ const Reports = () => {
       </div>
 
       {/* Selected Entries Report Section */}
-      <div className="bg-white rounded-lg shadow-lg p-6 mt-6">
+      <div 
+        className="rounded-lg shadow-lg p-6 mt-6"
+        style={{ backgroundColor: 'var(--color-card-bg)' }}
+      >
         <div className="mb-6">
           <div className="flex items-center gap-3 mb-4">
-            <FileText className="h-8 w-8 text-gray-700" />
-            <h2 className="text-3xl font-bold text-gray-900">Selected Entries Report</h2>
+            <FileText className="h-8 w-8" style={{ color: 'var(--color-text-secondary)' }} />
+            <h2 className="text-3xl font-bold" style={{ color: 'var(--color-text-primary)' }}>Selected Entries Report</h2>
           </div>
-          <p className="text-gray-600 mb-4">
+          <p className="mb-4" style={{ color: 'var(--color-text-secondary)' }}>
             Generate a report of all entries marked with "Add to Report" (not filtered by date or week).
           </p>
 
@@ -708,7 +773,17 @@ const Reports = () => {
             <button
               onClick={generateAllEntriesReport}
               disabled={loadingAll}
-              className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{
+                backgroundColor: loadingAll ? 'var(--color-bg-tertiary)' : 'var(--color-success)',
+                color: loadingAll ? 'var(--color-text-tertiary)' : '#ffffff'
+              }}
+              onMouseEnter={(e) => {
+                if (!loadingAll) e.currentTarget.style.opacity = '0.9';
+              }}
+              onMouseLeave={(e) => {
+                if (!loadingAll) e.currentTarget.style.opacity = '1';
+              }}
             >
               {loadingAll ? 'Generating...' : 'Generate'}
             </button>
@@ -717,11 +792,17 @@ const Reports = () => {
               <>
                 <button
                   onClick={copyAllEntriesReport}
-                  className={`flex items-center gap-2 px-6 py-3 rounded-lg transition-colors ${
-                    copiedAllReport
-                      ? 'bg-green-600 text-white'
-                      : 'bg-gray-600 text-white hover:bg-gray-700'
-                  }`}
+                  className="flex items-center gap-2 px-6 py-3 rounded-lg transition-colors"
+                  style={{
+                    backgroundColor: copiedAllReport ? 'var(--color-success)' : 'var(--color-text-secondary)',
+                    color: '#ffffff'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!copiedAllReport) e.currentTarget.style.backgroundColor = 'var(--color-text-primary)';
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!copiedAllReport) e.currentTarget.style.backgroundColor = 'var(--color-text-secondary)';
+                  }}
                 >
                   {copiedAllReport ? (
                     <>
@@ -737,7 +818,17 @@ const Reports = () => {
                 </button>
                 <button
                   onClick={exportAllEntriesReport}
-                  className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  className="flex items-center gap-2 px-6 py-3 rounded-lg transition-colors"
+                  style={{
+                    backgroundColor: 'var(--color-accent)',
+                    color: 'var(--color-accent-text)'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'var(--color-accent-hover)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'var(--color-accent)';
+                  }}
                 >
                   <Download className="h-5 w-5" />
                   Export to Markdown
@@ -748,18 +839,18 @@ const Reports = () => {
         </div>
 
         {allEntriesReport && (
-          <div className="border-t pt-6">
+          <div className="pt-6" style={{ borderTop: '1px solid var(--color-border-primary)' }}>
             <div className="mb-4">
-              <h3 className="text-2xl font-bold text-gray-900">
+              <h3 className="text-2xl font-bold" style={{ color: 'var(--color-text-primary)' }}>
                 All Entries
               </h3>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
                 {allEntriesReport.entries.length} {allEntriesReport.entries.length === 1 ? 'entry' : 'entries'}
               </p>
             </div>
 
             {allEntriesReport.entries.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8" style={{ color: 'var(--color-text-secondary)' }}>
                 No entries found.
               </div>
             ) : (
@@ -768,13 +859,17 @@ const Reports = () => {
                   <div 
                     key={entry.entry_id} 
                     onClick={() => goToEntry(entry.date, entry.entry_id)}
-                    className="border border-gray-200 rounded-lg p-4 hover:shadow-lg transition-shadow cursor-pointer"
+                    className="rounded-lg p-4 hover:shadow-lg transition-shadow cursor-pointer"
+                    style={{
+                      border: '1px solid var(--color-border-primary)',
+                      backgroundColor: 'var(--color-bg-primary)'
+                    }}
                   >
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
-                          <span className="text-lg font-semibold text-gray-900">{entry.date}</span>
-                          <span className="text-sm text-gray-500">
+                          <span className="text-lg font-semibold" style={{ color: 'var(--color-text-primary)' }}>{entry.date}</span>
+                          <span className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
                             {formatTimestamp(entry.created_at, timezone, 'h:mm a')}
                           </span>
                           {entry.content_type === 'code' && (
@@ -804,11 +899,25 @@ const Reports = () => {
                           e.stopPropagation();
                           copyEntry(entry);
                         }}
-                        className={`flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors ${
-                          copiedEntryId === entry.entry_id
-                            ? 'bg-green-100 text-green-700'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        }`}
+                        className="flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors"
+                        style={{
+                          backgroundColor: copiedEntryId === entry.entry_id 
+                            ? `${getComputedStyle(document.documentElement).getPropertyValue('--color-success')}20`
+                            : 'var(--color-bg-tertiary)',
+                          color: copiedEntryId === entry.entry_id 
+                            ? 'var(--color-success)'
+                            : 'var(--color-text-primary)'
+                        }}
+                        onMouseEnter={(e) => {
+                          if (copiedEntryId !== entry.entry_id) {
+                            e.currentTarget.style.backgroundColor = 'var(--color-bg-hover)';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (copiedEntryId !== entry.entry_id) {
+                            e.currentTarget.style.backgroundColor = 'var(--color-bg-tertiary)';
+                          }
+                        }}
                         title="Copy entry"
                       >
                         {copiedEntryId === entry.entry_id ? (

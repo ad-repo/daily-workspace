@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Setup script for local development
-echo "🚀 Setting up Daily Notes App for local development..."
+echo "🚀 Setting up Track the Thing for local development..."
 
 # Check if uv is installed
 if ! command -v uv &> /dev/null; then

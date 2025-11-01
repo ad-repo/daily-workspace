@@ -9,10 +9,11 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI(title="pull your shit together API", version="1.0.0")
 
 # Configure CORS
+# Allow all origins for now (restrict in production if needed)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:5173"],
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,  # Set to False when using allow_origins=["*"]
     allow_methods=["*"],
     allow_headers=["*"],
 )

@@ -48,7 +48,7 @@ class DailyNote(Base):
         "NoteEntry", 
         back_populates="daily_note", 
         cascade="all, delete-orphan",
-        order_by="desc(NoteEntry.created_at)"
+        order_by="[desc(NoteEntry.order_index), desc(NoteEntry.created_at)]"
     )
     labels = relationship("Label", secondary=note_labels, back_populates="notes")
 
@@ -58,6 +58,7 @@ class NoteEntry(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     daily_note_id = Column(Integer, ForeignKey("daily_notes.id"), nullable=False)
+    title = Column(String, default="")  # Optional title for the entry
     content = Column(Text, nullable=False)  # Rich text content (HTML)
     content_type = Column(String, default="rich_text")  # rich_text, code, markdown
     order_index = Column(Integer, default=0)  # For ordering entries within a day

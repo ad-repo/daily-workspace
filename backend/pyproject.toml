@@ -1,7 +1,7 @@
 [project]
-name = "pull-your-poop-together-backend"
+name = "track-the-thing-backend"
 version = "1.0.0"
-description = "pull your shit together API Backend"
+description = "Track the Thing API Backend"
 requires-python = ">=3.11"
 dependencies = [
     "fastapi==0.104.1",

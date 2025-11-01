@@ -8,6 +8,7 @@ export interface Label {
 export interface NoteEntry {
   id: number;
   daily_note_id: number;
+  title: string;
   content: string;
   content_type: 'rich_text' | 'code' | 'markdown';
   order_index: number;
@@ -32,12 +33,14 @@ export interface DailyNote {
 }
 
 export interface NoteEntryCreate {
+  title?: string;
   content: string;
   content_type: 'rich_text' | 'code' | 'markdown';
   order_index: number;
 }
 
 export interface NoteEntryUpdate {
+  title?: string;
   content?: string;
   content_type?: 'rich_text' | 'code' | 'markdown';
   order_index?: number;

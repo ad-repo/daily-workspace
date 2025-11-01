@@ -65,8 +65,8 @@ const EntryTimeline = ({ entries }: EntryTimelineProps) => {
       className="fixed left-[calc((100vw-56rem)/4-6.5rem)] top-36 w-52 max-h-[calc(100vh-180px)] hidden xl:block z-10"
     >
       <div className="mb-4 px-1">
-        <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Timeline</h3>
-        <p className="text-xs text-gray-500 mt-1">{entries.length} entries</p>
+        <h3 className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--color-text-tertiary)' }}>Timeline</h3>
+        <p className="text-xs mt-1" style={{ color: 'var(--color-text-secondary)' }}>{entries.length} entries</p>
       </div>
       
       <div className="space-y-1">
@@ -78,33 +78,60 @@ const EntryTimeline = ({ entries }: EntryTimelineProps) => {
             <button
               key={entry.id}
               onClick={() => scrollToEntry(entry.id)}
-              className={`w-full text-left px-3 py-2.5 rounded-md transition-all ${
-                isActive 
-                  ? 'bg-blue-50 border-l-2 border-blue-500 -ml-0.5' 
-                  : 'hover:bg-gray-50 border-l-2 border-transparent hover:border-gray-300 -ml-0.5'
-              }`}
+              className="w-full text-left px-3 py-2.5 rounded-md transition-all border-l-2 -ml-0.5"
+              style={{
+                backgroundColor: isActive ? `${getComputedStyle(document.documentElement).getPropertyValue('--color-accent')}15` : 'transparent',
+                borderColor: isActive ? 'var(--color-accent)' : 'transparent'
+              }}
+              onMouseEnter={(e) => {
+                if (!isActive) {
+                  e.currentTarget.style.backgroundColor = 'var(--color-bg-hover)';
+                  e.currentTarget.style.borderColor = 'var(--color-border-secondary)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isActive) {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.borderColor = 'transparent';
+                }
+              }}
             >
               <div className="flex items-center justify-between mb-1.5">
-                <span className={`text-sm font-medium ${isActive ? 'text-blue-600' : 'text-gray-600'}`}>
+                <span 
+                  className="text-sm font-medium"
+                  style={{ color: isActive ? 'var(--color-accent)' : 'var(--color-text-secondary)' }}
+                >
                   {time}
                 </span>
                 <div className="flex items-center gap-1">
                   {entry.is_dev_null && (
-                    <Skull className="h-4 w-4 text-gray-700 stroke-[2.5]" />
+                    <Skull className="h-4 w-4 stroke-[2.5]" style={{ color: 'var(--color-text-primary)' }} />
                   )}
                   {entry.is_completed && (
-                    <Check className="h-4 w-4 text-green-500" />
+                    <Check className="h-4 w-4" style={{ color: 'var(--color-success)' }} />
                   )}
                   {entry.is_important && (
-                    <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+                    <Star className="h-4 w-4 fill-current" style={{ color: 'var(--color-warning)' }} />
                   )}
                   {entry.content_type === 'code' ? (
-                    <Code className="h-4 w-4 text-gray-400" />
+                    <Code className="h-4 w-4" style={{ color: 'var(--color-text-tertiary)' }} />
                   ) : (
-                    <FileText className="h-4 w-4 text-gray-400" />
+                    <FileText className="h-4 w-4" style={{ color: 'var(--color-text-tertiary)' }} />
                   )}
                 </div>
               </div>
+              
+              {entry.title && (
+                <div className="mb-1.5">
+                  <p 
+                    className="text-xs font-medium truncate"
+                    style={{ color: isActive ? 'var(--color-text-primary)' : 'var(--color-text-secondary)' }}
+                    title={entry.title}
+                  >
+                    {entry.title}
+                  </p>
+                </div>
+              )}
               
               {entry.labels.length > 0 && (
                 <div className="flex gap-1 flex-wrap mt-1.5">
@@ -135,7 +162,7 @@ const EntryTimeline = ({ entries }: EntryTimelineProps) => {
                     );
                   })}
                   {entry.labels.length > 2 && (
-                    <span className="text-xs text-gray-500 px-1">+{entry.labels.length - 2}</span>
+                    <span className="text-xs px-1" style={{ color: 'var(--color-text-secondary)' }}>+{entry.labels.length - 2}</span>
                   )}
                 </div>
               )}

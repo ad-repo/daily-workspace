@@ -1,12 +1,11 @@
-# Pull Your Shit Together 💼
+# Track the Thing 🎯
 
 A modern, powerful daily workspace application for capturing and organizing your thoughts, tasks, and work throughout the day. Built with FastAPI (Python) backend and React (TypeScript) frontend.
-
-> *"pull your shit together"* - Kamesh
 
 ## ✨ Features
 
 ### 📝 Note Taking
+- **Entry Titles**: Add optional one-line titles to note entries for quick identification
 - **Daily View**: Focus on a single day with multiple content entries
 - **Rich Text Editor**: Modern WYSIWYG editor powered by TipTap with support for:
   - Text formatting (bold, italic, strikethrough, headings, lists)
@@ -103,7 +102,7 @@ The easiest way to run the entire application:
 ```bash
 # Clone the repository
 git clone <your-repo-url>
-cd daily-notes
+cd track-the-thing
 
 # Build and start all services
 docker-compose up --build -d

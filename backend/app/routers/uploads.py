@@ -100,7 +100,7 @@ async def download_all_files():
     
     # Generate filename with timestamp
     timestamp = datetime.utcnow().strftime('%Y%m%d-%H%M%S')
-    filename = f"daily-workspace-files-{timestamp}.zip"
+    filename = f"track-the-thing-files-{timestamp}.zip"
     
     return StreamingResponse(
         zip_buffer,
@@ -109,3 +109,58 @@ async def download_all_files():
             "Content-Disposition": f"attachment; filename={filename}"
         }
     )
+
+@router.post("/restore-files")
+async def restore_files(file: UploadFile = File(...)):
+    """Restore uploaded files from a zip archive"""
+    if not file.filename or not file.filename.endswith('.zip'):
+        raise HTTPException(status_code=400, detail="File must be a ZIP archive")
+    
+    try:
+        # Read the uploaded zip file
+        contents = await file.read()
+        zip_buffer = io.BytesIO(contents)
+        
+        files_restored = 0
+        files_skipped = 0
+        
+        # Extract zip file
+        with zipfile.ZipFile(zip_buffer, 'r') as zip_file:
+            # Validate zip file
+            if zip_file.testzip() is not None:
+                raise HTTPException(status_code=400, detail="Corrupted ZIP file")
+            
+            # Extract all files
+            for file_info in zip_file.filelist:
+                if file_info.is_dir():
+                    continue
+                
+                # Get the filename (basename) from the path
+                filename = os.path.basename(file_info.filename)
+                target_path = UPLOAD_DIR / filename
+                
+                # Check if file already exists
+                if target_path.exists():
+                    files_skipped += 1
+                    continue
+                
+                # Extract and save file
+                with zip_file.open(file_info) as source:
+                    with open(target_path, 'wb') as target:
+                        target.write(source.read())
+                files_restored += 1
+        
+        return {
+            "success": True,
+            "message": f"Restored {files_restored} file(s), skipped {files_skipped} existing file(s)",
+            "stats": {
+                "restored": files_restored,
+                "skipped": files_skipped,
+                "total": files_restored + files_skipped
+            }
+        }
+        
+    except zipfile.BadZipFile:
+        raise HTTPException(status_code=400, detail="Invalid ZIP file")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to restore files: {str(e)}")

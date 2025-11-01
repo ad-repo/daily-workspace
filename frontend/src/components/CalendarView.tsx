@@ -106,12 +106,12 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="bg-white rounded-lg shadow-lg p-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-6">Calendar View</h1>
+    <div className="max-w-4xl mx-auto page-fade-in">
+      <div className="rounded-lg shadow-lg p-6" style={{ backgroundColor: 'var(--color-card-bg)' }}>
+        <h1 className="text-3xl font-bold mb-6" style={{ color: 'var(--color-text-primary)' }}>Calendar View</h1>
         
         {loading && (
-          <div className="text-center py-4 text-gray-500">Loading notes...</div>
+          <div className="text-center py-4" style={{ color: 'var(--color-text-secondary)' }}>Loading notes...</div>
         )}
 
         <Calendar
@@ -122,9 +122,9 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
           className="w-full"
         />
 
-        <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-          <h3 className="text-sm font-semibold text-gray-700 mb-2">Legend</h3>
-          <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+        <div className="mt-6 p-4 rounded-lg" style={{ backgroundColor: 'var(--color-bg-tertiary)' }}>
+          <h3 className="text-sm font-semibold mb-2" style={{ color: 'var(--color-text-primary)' }}>Legend</h3>
+          <div className="flex flex-wrap gap-4 text-sm" style={{ color: 'var(--color-text-secondary)' }}>
             <div className="flex items-center gap-2">
               <Star className="h-4 w-4 text-green-500 fill-green-500 dramatic-pulse" />
               <span>Has important and completed</span>

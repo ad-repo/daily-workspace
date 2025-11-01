@@ -422,9 +422,21 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
         e.preventDefault();
         onClick();
       }}
-      className={`p-2 rounded hover:bg-gray-200 transition-colors ${
-        active ? 'bg-gray-300 text-blue-600' : 'text-gray-700'
-      }`}
+      className="p-2 rounded transition-colors"
+      style={{
+        backgroundColor: active ? 'var(--color-accent)' : 'transparent',
+        color: active ? 'var(--color-accent-text)' : 'var(--color-text-primary)'
+      }}
+      onMouseEnter={(e) => {
+        if (!active) {
+          e.currentTarget.style.backgroundColor = 'var(--color-bg-hover)';
+        }
+      }}
+      onMouseLeave={(e) => {
+        if (!active) {
+          e.currentTarget.style.backgroundColor = 'transparent';
+        }
+      }}
       title={title}
       type="button"
     >
@@ -433,9 +445,21 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
   );
 
   return (
-    <div className="border border-gray-300 rounded-lg overflow-hidden bg-white">
+    <div 
+      className="rounded-lg overflow-hidden"
+      style={{
+        border: '1px solid var(--color-border-primary)',
+        backgroundColor: 'var(--color-bg-primary)'
+      }}
+    >
       {/* Toolbar */}
-      <div className="flex flex-wrap gap-1 p-2 border-b border-gray-300 bg-gray-50">
+      <div 
+        className="flex flex-wrap gap-1 p-2"
+        style={{
+          borderBottom: '1px solid var(--color-border-primary)',
+          backgroundColor: 'var(--color-bg-tertiary)'
+        }}
+      >
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleBold().run()}
           active={editor.isActive('bold')}
@@ -468,7 +492,7 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
           <Code className="h-4 w-4" />
         </ToolbarButton>
 
-        <div className="w-px h-6 bg-gray-300 mx-1" />
+        <div className="w-px h-6 mx-1" style={{ backgroundColor: 'var(--color-border-secondary)' }} />
 
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
@@ -486,7 +510,7 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
           <Heading2 className="h-4 w-4" />
         </ToolbarButton>
 
-        <div className="w-px h-6 bg-gray-300 mx-1" />
+        <div className="w-px h-6 mx-1" style={{ backgroundColor: 'var(--color-border-secondary)' }} />
 
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleBulletList().run()}
@@ -528,7 +552,7 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
           <FileText className="h-4 w-4" />
         </ToolbarButton>
 
-        <div className="w-px h-6 bg-gray-300 mx-1" />
+        <div className="w-px h-6 mx-1" style={{ backgroundColor: 'var(--color-border-secondary)' }} />
 
         <ToolbarButton onClick={addLink} active={editor.isActive('link')} title="Add Link">
           <Link2 className="h-4 w-4" />
@@ -546,7 +570,7 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
               <Paperclip className="h-4 w-4" />
             </ToolbarButton>
 
-        <div className="w-px h-6 bg-gray-300 mx-1" />
+        <div className="w-px h-6 mx-1" style={{ backgroundColor: 'var(--color-border-secondary)' }} />
 
         <ToolbarButton
           onClick={() => editor.chain().focus().undo().run()}
