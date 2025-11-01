@@ -546,7 +546,7 @@ const Settings = () => {
               <div className="flex items-center gap-3">
                 <input
                   type="number"
-                  min="1"
+                  min="0"
                   max="30"
                   value={daysAhead}
                   onChange={(e) => setHolidayDaysAhead(parseInt(e.target.value, 10) || 7)}
@@ -568,11 +568,11 @@ const Settings = () => {
                   }}
                 />
                 <span className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-                  days (1-30)
+                  days (0-30)
                 </span>
               </div>
               <p className="text-xs mt-2" style={{ color: 'var(--color-text-tertiary)' }}>
-                The app will show backgrounds for holidays within this many days
+                Set to 0 for today only, or higher to detect upcoming holidays
               </p>
             </div>
 
@@ -610,7 +610,9 @@ const Settings = () => {
                       </div>
                     ) : (
                       <div className="text-sm" style={{ color: 'var(--color-text-tertiary)' }}>
-                        No upcoming holidays within {daysAhead} days
+                        {daysAhead === 0 
+                          ? 'No holiday today' 
+                          : `No upcoming holidays within ${daysAhead} days`}
                       </div>
                     )}
                   </div>
