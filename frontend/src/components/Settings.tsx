@@ -37,6 +37,8 @@ const Settings = () => {
     fetchUploadedImages: fetchHolidayUploadedImages,
     imageSource: holidayImageSource,
     setImageSource: setHolidayImageSource,
+    autoRotate: holidayAutoRotate,
+    toggleAutoRotate: toggleHolidayAutoRotate,
   } = useHoliday();
   const [labels, setLabels] = useState<Label[]>([]);
   const [deletingLabelId, setDeletingLabelId] = useState<number | null>(null);
@@ -629,6 +631,52 @@ const Settings = () => {
               <p className="text-xs mt-2" style={{ color: 'var(--color-text-tertiary)' }}>
                 Set to 0 for today only, or higher to detect upcoming holidays
               </p>
+            </div>
+
+            {/* Auto-Rotate Toggle */}
+            <div className="mb-6 flex items-center justify-between p-4 rounded-lg" style={{ backgroundColor: 'var(--color-bg-primary)' }}>
+              <div className="flex items-center gap-3">
+                <RefreshCw className="h-5 w-5" style={{ color: 'var(--color-text-secondary)' }} />
+                <div>
+                  <div className="font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+                    Auto-Rotate Images
+                  </div>
+                  <div className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+                    Automatically change background every hour
+                  </div>
+                </div>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={holidayAutoRotate}
+                  onChange={toggleHolidayAutoRotate}
+                  disabled={!holidayEnabled}
+                  className="sr-only peer"
+                />
+                <div
+                  className="w-11 h-6 rounded-full peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-offset-2 transition-colors"
+                  style={{
+                    backgroundColor: holidayAutoRotate ? 'var(--color-accent)' : 'var(--color-border-secondary)',
+                    opacity: !holidayEnabled ? 0.5 : 1,
+                  }}
+                  onFocus={(e) => {
+                    if (holidayEnabled) {
+                      e.currentTarget.style.boxShadow = `0 0 0 2px var(--color-accent)`;
+                    }
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
+                >
+                  <div
+                    className="absolute top-0.5 left-0.5 bg-white rounded-full h-5 w-5 transition-transform"
+                    style={{
+                      transform: holidayAutoRotate ? 'translateX(20px)' : 'translateX(0)',
+                    }}
+                  />
+                </div>
+              </label>
             </div>
 
             {/* Current Holiday Display */}
