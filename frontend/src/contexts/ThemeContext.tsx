@@ -2038,9 +2038,13 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     setCustomThemes(newCustomThemes);
     saveCustomThemes(newCustomThemes);
 
-    // If this was the current theme, trigger a re-render
+    // If this was the current theme, force a re-render by temporarily switching themes
     if (currentTheme === themeId) {
-      setCurrentTheme(themeId);
+      // Temporarily switch to light theme, then back to force re-render
+      setCurrentTheme('light');
+      setTimeout(() => {
+        setCurrentTheme(themeId);
+      }, 0);
     }
   };
 
