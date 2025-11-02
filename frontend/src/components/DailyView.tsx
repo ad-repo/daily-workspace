@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { format, parse, addDays, subDays } from 'date-fns';
-import { ChevronLeft, ChevronRight, Plus, Code, CheckSquare, Combine, Maximize2, Minimize2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Code, CheckSquare, Combine } from 'lucide-react';
 import axios from 'axios';
 import { notesApi, entriesApi } from '../api';
 import type { DailyNote, NoteEntry } from '../types';
@@ -15,7 +15,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 const DailyView = () => {
   const { date } = useParams<{ date: string }>();
   const navigate = useNavigate();
-  const { isFullScreen, toggleFullScreen } = useFullScreen();
+  const { isFullScreen } = useFullScreen();
   const [note, setNote] = useState<DailyNote | null>(null);
   const [entries, setEntries] = useState<NoteEntry[]>([]);
   const [loading, setLoading] = useState(false);
@@ -284,38 +284,20 @@ const DailyView = () => {
             )}
           </div>
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleNextDay}
-              className="p-2 rounded-lg transition-colors"
-              style={{ color: 'var(--color-text-secondary)' }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'var(--color-bg-hover)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'transparent';
-              }}
-              aria-label="Next day"
-            >
-              <ChevronRight className="h-6 w-6" />
-            </button>
-
-            <button
-              onClick={toggleFullScreen}
-              className="p-2 rounded-lg transition-colors"
-              style={{ color: 'var(--color-text-secondary)' }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'var(--color-bg-hover)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'transparent';
-              }}
-              aria-label={isFullScreen ? "Exit full screen" : "Enter full screen"}
-              title={isFullScreen ? "Exit full screen" : "Enter full screen"}
-            >
-              {isFullScreen ? <Minimize2 className="h-6 w-6" /> : <Maximize2 className="h-6 w-6" />}
-            </button>
-          </div>
+          <button
+            onClick={handleNextDay}
+            className="p-2 rounded-lg transition-colors"
+            style={{ color: 'var(--color-text-secondary)' }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--color-bg-hover)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent';
+            }}
+            aria-label="Next day"
+          >
+            <ChevronRight className="h-6 w-6" />
+          </button>
         </div>
 
           <div className="flex flex-col items-center gap-6 w-full">
