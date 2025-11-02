@@ -375,7 +375,17 @@ const Search = () => {
                       handleSearch();
                     }, 0);
                   }}
-                  className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full text-sm transition-colors flex items-center gap-2"
+                  className="px-3 py-1.5 rounded-full text-sm transition-colors flex items-center gap-2"
+                  style={{
+                    backgroundColor: 'var(--color-bg-tertiary)',
+                    color: 'var(--color-text-primary)',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'var(--color-bg-hover)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'var(--color-bg-tertiary)';
+                  }}
                 >
                   <SearchIcon className="h-3 w-3" />
                   {item.query}
