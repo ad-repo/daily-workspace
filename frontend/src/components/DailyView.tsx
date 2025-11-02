@@ -241,13 +241,13 @@ const DailyView = () => {
   const isToday = format(new Date(), 'yyyy-MM-dd') === date;
 
   return (
-    <div className="relative page-fade-in">
+    <div className="relative page-fade-in" style={{ zIndex: 1 }}>
       <EntryTimeline entries={entries} />
       <div className="max-w-4xl mx-auto px-4 xl:px-8">
       {/* Header */}
       <div 
         className="rounded-lg shadow-lg p-8 mb-8"
-        style={{ backgroundColor: 'var(--color-card-bg)' }}
+        style={{ backgroundColor: 'var(--color-bg-primary)' }}
       >
         <div className="flex items-center justify-between mb-4">
           <button
@@ -342,7 +342,7 @@ const DailyView = () => {
           <div 
             className="rounded-lg shadow-lg p-8 text-center"
             style={{ 
-              backgroundColor: 'var(--color-card-bg)',
+              backgroundColor: 'var(--color-bg-primary)',
               color: 'var(--color-text-secondary)'
             }}
           >
@@ -351,7 +351,7 @@ const DailyView = () => {
         ) : entries.length === 0 ? (
           <div 
             className="rounded-lg shadow-lg p-8 text-center"
-            style={{ backgroundColor: 'var(--color-card-bg)' }}
+            style={{ backgroundColor: 'var(--color-bg-primary)' }}
           >
             <p className="mb-4" style={{ color: 'var(--color-text-secondary)' }}>No entries for this day yet.</p>
             <div className="flex gap-3 justify-center">
