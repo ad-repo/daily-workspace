@@ -47,10 +47,30 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
   const loadMonthNotes = async () => {
     setLoading(true);
     try {
-      const year = currentMonth.getFullYear();
-      const month = currentMonth.getMonth() + 1;
-      const data = await notesApi.getByMonth(year, month);
-      setNotes(data);
+      const curYear = currentMonth.getFullYear();
+      const curMonth = currentMonth.getMonth() + 1;
+
+      // Also load adjacent months so trailing/leading days in the grid show markers
+      const prevDate = new Date(curYear, currentMonth.getMonth() - 1, 1);
+      const nextDate = new Date(curYear, currentMonth.getMonth() + 1, 1);
+
+      const prevYear = prevDate.getFullYear();
+      const prevMonth = prevDate.getMonth() + 1;
+      const nextYear = nextDate.getFullYear();
+      const nextMonth = nextDate.getMonth() + 1;
+
+      const [prevData, curData, nextData] = await Promise.all([
+        notesApi.getByMonth(prevYear, prevMonth),
+        notesApi.getByMonth(curYear, curMonth),
+        notesApi.getByMonth(nextYear, nextMonth),
+      ]);
+
+      // Merge by unique date
+      const byDate = new Map<string, DailyNote>();
+      for (const n of [...prevData, ...curData, ...nextData]) {
+        byDate.set(n.date, n);
+      }
+      setNotes(Array.from(byDate.values()));
     } catch (error) {
       console.error('Failed to load notes:', error);
     } finally {
