@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Download, Upload, Settings as SettingsIcon, Clock, Archive, FileCode, Tag, Trash2, Edit2, Palette, Plus, Calendar, Image, RefreshCw } from 'lucide-react';
+import { Download, Upload, Settings as SettingsIcon, Clock, Archive, FileCode, Tag, Trash2, Edit2, Palette, Plus, Calendar, Image, RefreshCw, RotateCcw } from 'lucide-react';
 import axios from 'axios';
 import { useTimezone } from '../contexts/TimezoneContext';
 import { useTheme, Theme } from '../contexts/ThemeContext';
@@ -25,7 +25,7 @@ const Settings = () => {
   const [exportFormat, setExportFormat] = useState<'json' | 'markdown'>('json');
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const { timezone, setTimezone } = useTimezone();
-  const { currentTheme, setTheme, availableThemes, customThemes, deleteCustomTheme } = useTheme();
+  const { currentTheme, setTheme, availableThemes, customThemes, deleteCustomTheme, isBuiltInTheme, isThemeModified, restoreThemeToDefault } = useTheme();
   
   const {
     enabled: customBgEnabled,
@@ -73,6 +73,11 @@ const Settings = () => {
   const handleDeleteTheme = (themeId: string) => {
     deleteCustomTheme(themeId);
     showMessage('success', 'Custom theme deleted successfully');
+  };
+
+  const handleRestoreTheme = (themeId: string) => {
+    restoreThemeToDefault(themeId);
+    showMessage('success', 'Theme restored to default');
   };
 
   const handleExport = async () => {
@@ -414,7 +419,10 @@ const Settings = () => {
               </button>
 
               {availableThemes.map((theme) => {
-                const isCustom = customThemes.some(t => t.id === theme.id);
+                const isBuiltIn = isBuiltInTheme(theme.id);
+                const isModified = isThemeModified(theme.id);
+                const isTrulyCustom = !isBuiltIn; // Custom theme that's not a built-in
+                
                 return (
                   <div key={theme.id} className="relative">
                     <button
@@ -472,6 +480,7 @@ const Settings = () => {
                       {/* Theme name */}
                       <div className="text-sm font-semibold text-center" style={{ color: theme.colors.textPrimary }}>
                         {theme.name}
+                        {isModified && <span className="text-xs ml-1" style={{ color: theme.colors.warning }}>*</span>}
                       </div>
                       
                       {/* Selected indicator */}
@@ -490,17 +499,40 @@ const Settings = () => {
                       )}
                     </button>
 
-                    {/* Edit/Delete buttons for custom themes */}
-                    {isCustom && (
-                      <div className="absolute -top-2 -left-2 flex gap-1">
+                    {/* Action buttons for all themes */}
+                    <div className="absolute -top-2 -left-2 flex gap-1">
+                      {/* Edit button - available for ALL themes */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditTheme(theme);
+                        }}
+                        className="w-6 h-6 rounded-full flex items-center justify-center shadow-lg transition-all"
+                        style={{
+                          backgroundColor: 'var(--color-info)',
+                          color: '#ffffff',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = 'scale(1.1)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = 'scale(1)';
+                        }}
+                        title="Edit theme"
+                      >
+                        <Edit2 className="w-3 h-3" />
+                      </button>
+
+                      {/* Restore button - only for modified built-in themes */}
+                      {isModified && (
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleEditTheme(theme);
+                            handleRestoreTheme(theme.id);
                           }}
                           className="w-6 h-6 rounded-full flex items-center justify-center shadow-lg transition-all"
                           style={{
-                            backgroundColor: 'var(--color-info)',
+                            backgroundColor: 'var(--color-warning)',
                             color: '#ffffff',
                           }}
                           onMouseEnter={(e) => {
@@ -509,10 +541,14 @@ const Settings = () => {
                           onMouseLeave={(e) => {
                             e.currentTarget.style.transform = 'scale(1)';
                           }}
-                          title="Edit theme"
+                          title="Restore to default"
                         >
-                          <Edit2 className="w-3 h-3" />
+                          <RotateCcw className="w-3 h-3" />
                         </button>
+                      )}
+
+                      {/* Delete button - only for truly custom themes (not built-in) */}
+                      {isTrulyCustom && (
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -533,11 +569,26 @@ const Settings = () => {
                         >
                           <Trash2 className="w-3 h-3" />
                         </button>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
                 );
               })}
+            </div>
+            
+            {/* Info box */}
+            <div
+              className="mt-4 p-4 rounded-lg"
+              style={{
+                backgroundColor: `${getComputedStyle(document.documentElement).getPropertyValue('--color-info')}15`,
+                border: '1px solid var(--color-info)',
+              }}
+            >
+              <p className="text-sm" style={{ color: 'var(--color-info)' }}>
+                <strong>Theme Customization:</strong> Click any theme to apply it. Use the Edit button to customize any theme's colors. 
+                Modified built-in themes show an asterisk (*) and can be restored to default with the Restore button. 
+                Fully custom themes can be deleted with the Delete button.
+              </p>
             </div>
           </div>
         </section>

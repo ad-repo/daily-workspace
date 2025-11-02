@@ -1905,6 +1905,10 @@ interface ThemeContextType {
   createCustomTheme: (theme: Theme) => void;
   updateCustomTheme: (theme: Theme) => void;
   deleteCustomTheme: (themeId: string) => void;
+  isBuiltInTheme: (themeId: string) => boolean;
+  isThemeModified: (themeId: string) => boolean;
+  restoreThemeToDefault: (themeId: string) => void;
+  getDefaultTheme: (themeId: string) => Theme | null;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -2006,6 +2010,40 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     }
   };
 
+  // Check if a theme is built-in (not custom)
+  const isBuiltInTheme = (themeId: string): boolean => {
+    return themeId in themes;
+  };
+
+  // Check if a built-in theme has been modified (has a custom version)
+  const isThemeModified = (themeId: string): boolean => {
+    if (!isBuiltInTheme(themeId)) return false;
+    return customThemes.some(t => t.id === themeId);
+  };
+
+  // Get the default (built-in) version of a theme
+  const getDefaultTheme = (themeId: string): Theme | null => {
+    return themes[themeId] || null;
+  };
+
+  // Restore a modified built-in theme to its default values
+  const restoreThemeToDefault = (themeId: string) => {
+    if (!isBuiltInTheme(themeId)) {
+      console.warn(`Cannot restore ${themeId}: not a built-in theme`);
+      return;
+    }
+
+    // Remove the custom version (if it exists)
+    const newCustomThemes = customThemes.filter(t => t.id !== themeId);
+    setCustomThemes(newCustomThemes);
+    saveCustomThemes(newCustomThemes);
+
+    // If this was the current theme, trigger a re-render
+    if (currentTheme === themeId) {
+      setCurrentTheme(themeId);
+    }
+  };
+
   return (
     <ThemeContext.Provider value={{ 
       currentTheme, 
@@ -2015,7 +2053,11 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
       customThemes,
       createCustomTheme,
       updateCustomTheme,
-      deleteCustomTheme
+      deleteCustomTheme,
+      isBuiltInTheme,
+      isThemeModified,
+      restoreThemeToDefault,
+      getDefaultTheme
     }}>
       {children}
     </ThemeContext.Provider>
