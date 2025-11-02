@@ -12,6 +12,7 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import { CustomBackgroundProvider } from './contexts/CustomBackgroundContext';
 import { TransparentLabelsProvider } from './contexts/TransparentLabelsContext';
 import { FullScreenProvider, useFullScreen } from './contexts/FullScreenContext';
+import { TimelineVisibilityProvider } from './contexts/TimelineVisibilityContext';
 import CustomBackground from './components/CustomBackground';
 
 const AppContent = () => {
@@ -72,7 +73,9 @@ function App() {
         <CustomBackgroundProvider>
           <TransparentLabelsProvider>
             <FullScreenProvider>
-              <AppContent />
+              <TimelineVisibilityProvider>
+                <AppContent />
+              </TimelineVisibilityProvider>
             </FullScreenProvider>
           </TransparentLabelsProvider>
         </CustomBackgroundProvider>

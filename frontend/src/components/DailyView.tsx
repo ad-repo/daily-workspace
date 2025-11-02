@@ -9,6 +9,7 @@ import NoteEntryCard from './NoteEntryCard';
 import LabelSelector from './LabelSelector';
 import EntryTimeline from './EntryTimeline';
 import { useFullScreen } from '../contexts/FullScreenContext';
+import { useTimelineVisibility } from '../contexts/TimelineVisibilityContext';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -16,6 +17,7 @@ const DailyView = () => {
   const { date } = useParams<{ date: string }>();
   const navigate = useNavigate();
   const { isFullScreen } = useFullScreen();
+  const { isTimelineVisible } = useTimelineVisibility();
   const [note, setNote] = useState<DailyNote | null>(null);
   const [entries, setEntries] = useState<NoteEntry[]>([]);
   const [loading, setLoading] = useState(false);
@@ -244,7 +246,7 @@ const DailyView = () => {
 
   return (
     <div className="relative page-fade-in" style={{ zIndex: 1 }}>
-      {!isFullScreen && <EntryTimeline entries={entries} />}
+      {isTimelineVisible && !isFullScreen && <EntryTimeline entries={entries} />}
       <div className={`mx-auto px-4 xl:px-8 ${isFullScreen ? 'max-w-full' : 'max-w-4xl'}`}>
       {/* Header */}
       <div 
