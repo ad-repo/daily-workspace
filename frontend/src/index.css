@@ -229,6 +229,8 @@ code {
   float: left;
   height: 0;
   pointer-events: none;
+  font-size: 1.125rem;
+  font-weight: 600;
 }
 
 /* React Calendar Styles */
