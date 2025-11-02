@@ -27,7 +27,7 @@ const CustomBackgroundSettings = ({ onUpload, onDelete, isUploading }: CustomBac
         <Image className="h-5 w-5" />
         Background Images
       </h2>
-      <div className="p-6 rounded-lg" style={{ backgroundColor: 'var(--color-bg-tertiary)' }}>
+      <div className="p-6 rounded-lg" style={{ backgroundColor: 'transparent' }}>
         <p className="mb-4" style={{ color: 'var(--color-text-secondary)' }}>
           Upload your own images to display as rotating backgrounds at low opacity (20%).
         </p>

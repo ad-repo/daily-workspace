@@ -846,10 +846,11 @@ const Settings = () => {
             <button
               onClick={handleFullRestore}
               disabled={isFullRestoring || !jsonFile || !zipFile}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg transition-colors font-medium disabled:cursor-not-allowed"
               style={{
-                backgroundColor: (isFullRestoring || !jsonFile || !zipFile) ? 'var(--color-bg-tertiary)' : 'var(--color-accent)',
-                color: (isFullRestoring || !jsonFile || !zipFile) ? 'var(--color-text-tertiary)' : 'var(--color-accent-text)'
+                backgroundColor: 'var(--color-accent)',
+                color: 'var(--color-accent-text)',
+                opacity: (isFullRestoring || !jsonFile || !zipFile) ? 0.5 : 1
               }}
               onMouseEnter={(e) => {
                 if (!isFullRestoring && jsonFile && zipFile) {
@@ -953,10 +954,11 @@ const Settings = () => {
               <button
                 onClick={handleExport}
                 disabled={isExporting}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg transition-colors font-medium disabled:cursor-not-allowed"
                 style={{
-                  backgroundColor: isExporting ? 'var(--color-bg-tertiary)' : 'var(--color-accent)',
-                  color: isExporting ? 'var(--color-text-tertiary)' : 'var(--color-accent-text)'
+                  backgroundColor: 'var(--color-accent)',
+                  color: 'var(--color-accent-text)',
+                  opacity: isExporting ? 0.5 : 1
                 }}
                 onMouseEnter={(e) => {
                   if (!isExporting) e.currentTarget.style.backgroundColor = 'var(--color-accent-hover)';
@@ -1012,8 +1014,10 @@ const Settings = () => {
               <label 
                 className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg transition-colors font-medium cursor-pointer"
                 style={{
-                  backgroundColor: isImporting ? 'var(--color-bg-tertiary)' : 'var(--color-accent)',
-                  color: isImporting ? 'var(--color-text-tertiary)' : 'var(--color-accent-text)'
+                  backgroundColor: 'var(--color-accent)',
+                  color: 'var(--color-accent-text)',
+                  opacity: isImporting ? 0.5 : 1,
+                  cursor: isImporting ? 'not-allowed' : 'pointer'
                 }}
                 onMouseEnter={(e) => {
                   if (!isImporting) e.currentTarget.style.opacity = '0.9';
@@ -1048,10 +1052,11 @@ const Settings = () => {
               <button
                 onClick={handleDownloadFiles}
                 disabled={isDownloadingFiles}
-                className="flex items-center gap-2 px-4 py-2 text-sm rounded-lg transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 px-4 py-2 text-sm rounded-lg transition-colors font-medium disabled:cursor-not-allowed"
                 style={{
-                  backgroundColor: isDownloadingFiles ? 'var(--color-bg-tertiary)' : 'var(--color-accent)',
-                  color: isDownloadingFiles ? 'var(--color-text-tertiary)' : 'var(--color-accent-text)'
+                  backgroundColor: 'var(--color-accent)',
+                  color: 'var(--color-accent-text)',
+                  opacity: isDownloadingFiles ? 0.5 : 1
                 }}
                 onMouseEnter={(e) => {
                   if (!isDownloadingFiles) e.currentTarget.style.opacity = '0.9';
@@ -1067,9 +1072,10 @@ const Settings = () => {
               <label 
                 className="flex items-center gap-2 px-4 py-2 text-sm rounded-lg transition-colors font-medium cursor-pointer"
                 style={{
-                  backgroundColor: isRestoringFiles ? 'var(--color-bg-tertiary)' : 'var(--color-accent)',
-                  color: isRestoringFiles ? 'var(--color-text-tertiary)' : 'var(--color-accent-text)',
-                  opacity: isRestoringFiles ? '0.5' : '1'
+                  backgroundColor: 'var(--color-accent)',
+                  color: 'var(--color-accent-text)',
+                  opacity: isRestoringFiles ? 0.5 : 1,
+                  cursor: isRestoringFiles ? 'not-allowed' : 'pointer'
                 }}
                 onMouseEnter={(e) => {
                   if (!isRestoringFiles) e.currentTarget.style.opacity = '0.9';
