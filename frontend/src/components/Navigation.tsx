@@ -1,15 +1,28 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Calendar, Laptop, Settings, FileText, Search, BookOpen } from 'lucide-react';
+import { Calendar, Laptop, Settings, FileText, Search, BookOpen, Maximize2, Minimize2, PanelLeftClose, PanelLeft } from 'lucide-react';
 import { format } from 'date-fns';
 import { formatInTimeZone } from 'date-fns-tz';
 import { useTimezone } from '../contexts/TimezoneContext';
+import { useFullScreen } from '../contexts/FullScreenContext';
+import { useTimelineVisibility } from '../contexts/TimelineVisibilityContext';
 
 const Navigation = () => {
   const location = useLocation();
   const { timezone } = useTimezone();
+  const { isFullScreen, toggleFullScreen, setFullScreen } = useFullScreen();
+  const { isTimelineVisible, toggleTimeline } = useTimelineVisibility();
   const now = new Date();
   const today = formatInTimeZone(now, timezone, 'yyyy-MM-dd');
   const dayName = formatInTimeZone(now, timezone, 'EEEE'); // Full day name like "Monday"
+  const isOnDayView = location.pathname.includes('/day/');
+
+  const handleTimelineToggle = () => {
+    // If toggling timeline on while in full-screen mode, exit full-screen first
+    if (!isTimelineVisible && isFullScreen) {
+      setFullScreen(false);
+    }
+    toggleTimeline();
+  };
 
   return (
     <nav className="shadow-sm" style={{ backgroundColor: 'var(--color-card-bg)', borderBottom: '1px solid var(--color-border-primary)' }}>
@@ -72,6 +85,50 @@ const Navigation = () => {
                 </Link>
               );
             })}
+
+            {/* Timeline toggle - only show on day view */}
+            {isOnDayView && (
+              <button
+                onClick={handleTimelineToggle}
+                className="flex items-center px-3 py-2 rounded-lg transition-colors"
+                style={{
+                  backgroundColor: 'transparent',
+                  color: 'var(--color-text-secondary)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--color-bg-hover)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                }}
+                aria-label={isTimelineVisible ? "Hide timeline" : "Show timeline"}
+                title={isTimelineVisible ? "Hide timeline" : "Show timeline"}
+              >
+                {isTimelineVisible ? <PanelLeftClose className="h-5 w-5" /> : <PanelLeft className="h-5 w-5" />}
+              </button>
+            )}
+
+            {/* Full-screen toggle - only show on day view */}
+            {isOnDayView && (
+              <button
+                onClick={toggleFullScreen}
+                className="flex items-center px-3 py-2 rounded-lg transition-colors"
+                style={{
+                  backgroundColor: 'transparent',
+                  color: 'var(--color-text-secondary)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--color-bg-hover)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                }}
+                aria-label={isFullScreen ? "Exit full screen" : "Enter full screen"}
+                title={isFullScreen ? "Exit full screen" : "Enter full screen"}
+              >
+                {isFullScreen ? <Minimize2 className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}
+              </button>
+            )}
           </div>
         </div>
       </div>

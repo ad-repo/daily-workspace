@@ -10,11 +10,13 @@ router = APIRouter()
 def search_entries(
     q: Optional[str] = Query(None, description="Search query for content"),
     label_ids: Optional[str] = Query(None, description="Comma-separated label IDs to filter by"),
+    is_important: Optional[bool] = Query(None, description="Filter by starred/important entries"),
+    is_completed: Optional[bool] = Query(None, description="Filter by completed entries"),
     db: Session = Depends(get_db)
 ):
     """
     Global search across all entries.
-    Can search by text content and/or filter by labels.
+    Can search by text content and/or filter by labels, starred status, or completion status.
     """
     # Start with base query that loads relationships
     query = db.query(models.NoteEntry).options(
@@ -38,6 +40,14 @@ def search_entries(
                 ).distinct()
         except ValueError:
             pass  # Invalid label IDs, ignore
+    
+    # Filter by starred/important status if provided
+    if is_important is not None:
+        query = query.filter(models.NoteEntry.is_important == is_important)
+    
+    # Filter by completed status if provided
+    if is_completed is not None:
+        query = query.filter(models.NoteEntry.is_completed == is_completed)
     
     # Order by most recent first
     query = query.order_by(models.NoteEntry.created_at.desc())

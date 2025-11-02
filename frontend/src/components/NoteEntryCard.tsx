@@ -414,7 +414,7 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onMoveToTop,
             type="text"
             value={title}
             onChange={(e) => handleTitleChange(e.target.value)}
-            placeholder="Add a title..."
+            placeholder="Add title to the thing"
             className="w-full text-lg font-semibold border-none focus:outline-none focus:ring-0 px-0"
             style={{ 
               backgroundColor: 'transparent',

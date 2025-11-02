@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { format } from 'date-fns';
 import { useTimezone } from '../contexts/TimezoneContext';
+import { useTransparentLabels } from '../contexts/TransparentLabelsContext';
 import { formatTimestamp } from '../utils/timezone';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -33,6 +34,7 @@ interface Week {
 
 const Reports = () => {
   const { timezone } = useTimezone();
+  const { transparentLabels } = useTransparentLabels();
   const navigate = useNavigate();
   const [report, setReport] = useState<ReportData | null>(null);
   const [weeks, setWeeks] = useState<Week[]>([]);
@@ -458,10 +460,10 @@ const Reports = () => {
   };
 
   return (
-    <div className="container mx-auto p-4 max-w-4xl page-fade-in">
+    <div className="container mx-auto p-4 max-w-4xl page-fade-in" style={{ position: 'relative', zIndex: 1 }}>
       <div 
         className="rounded-lg shadow-lg p-6 mb-6"
-        style={{ backgroundColor: 'var(--color-card-bg)' }}
+        style={{ backgroundColor: 'var(--color-bg-primary)' }}
       >
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
@@ -537,8 +539,8 @@ const Reports = () => {
                 onClick={exportReport}
                 className="flex items-center gap-2 px-6 py-3 rounded-lg transition-colors"
                 style={{
-                  backgroundColor: 'var(--color-success)',
-                  color: '#ffffff'
+                  backgroundColor: 'var(--color-accent)',
+                  color: 'var(--color-accent-text)'
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.opacity = '0.9';
@@ -571,14 +573,14 @@ const Reports = () => {
                         onClick={() => copySection('completed')}
                         className="flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors"
                         style={{
-                          backgroundColor: `${getComputedStyle(document.documentElement).getPropertyValue('--color-success')}20`,
-                          color: 'var(--color-success)'
+                          backgroundColor: `${getComputedStyle(document.documentElement).getPropertyValue('--color-accent')}20`,
+                          color: 'var(--color-accent)'
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = `${getComputedStyle(document.documentElement).getPropertyValue('--color-success')}30`;
+                          e.currentTarget.style.backgroundColor = `${getComputedStyle(document.documentElement).getPropertyValue('--color-accent')}30`;
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = `${getComputedStyle(document.documentElement).getPropertyValue('--color-success')}20`;
+                          e.currentTarget.style.backgroundColor = `${getComputedStyle(document.documentElement).getPropertyValue('--color-accent')}20`;
                         }}
                         title="Copy completed section"
                       >
@@ -641,8 +643,12 @@ const Reports = () => {
                                 {entry.labels.map((label) => (
                                   <span
                                     key={label.name}
-                                    className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium text-white"
-                                    style={{ backgroundColor: label.color }}
+                                    className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
+                                    style={{ 
+                                      backgroundColor: transparentLabels ? 'transparent' : label.color,
+                                      color: transparentLabels ? label.color : 'white',
+                                      border: transparentLabels ? `1px solid ${label.color}` : 'none'
+                                    }}
                                   >
                                     {label.name}
                                   </span>
@@ -735,8 +741,12 @@ const Reports = () => {
                                 {entry.labels.map((label) => (
                                   <span
                                     key={label.name}
-                                    className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium text-white"
-                                    style={{ backgroundColor: label.color }}
+                                    className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
+                                    style={{ 
+                                      backgroundColor: transparentLabels ? 'transparent' : label.color,
+                                      color: transparentLabels ? label.color : 'white',
+                                      border: transparentLabels ? `1px solid ${label.color}` : 'none'
+                                    }}
                                   >
                                     {label.name}
                                   </span>
@@ -758,7 +768,7 @@ const Reports = () => {
       {/* Selected Entries Report Section */}
       <div 
         className="rounded-lg shadow-lg p-6 mt-6"
-        style={{ backgroundColor: 'var(--color-card-bg)' }}
+        style={{ backgroundColor: 'var(--color-bg-primary)' }}
       >
         <div className="mb-6">
           <div className="flex items-center gap-3 mb-4">
@@ -775,8 +785,8 @@ const Reports = () => {
               disabled={loadingAll}
               className="px-6 py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               style={{
-                backgroundColor: loadingAll ? 'var(--color-bg-tertiary)' : 'var(--color-success)',
-                color: loadingAll ? 'var(--color-text-tertiary)' : '#ffffff'
+                backgroundColor: loadingAll ? 'var(--color-bg-tertiary)' : 'var(--color-accent)',
+                color: loadingAll ? 'var(--color-text-tertiary)' : 'var(--color-accent-text)'
               }}
               onMouseEnter={(e) => {
                 if (!loadingAll) e.currentTarget.style.opacity = '0.9';
@@ -794,8 +804,8 @@ const Reports = () => {
                   onClick={copyAllEntriesReport}
                   className="flex items-center gap-2 px-6 py-3 rounded-lg transition-colors"
                   style={{
-                    backgroundColor: copiedAllReport ? 'var(--color-success)' : 'var(--color-text-secondary)',
-                    color: '#ffffff'
+                    backgroundColor: copiedAllReport ? 'var(--color-accent)' : 'var(--color-text-secondary)',
+                    color: 'var(--color-accent-text)'
                   }}
                   onMouseEnter={(e) => {
                     if (!copiedAllReport) e.currentTarget.style.backgroundColor = 'var(--color-text-primary)';

@@ -1,9 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Download, Upload, Settings as SettingsIcon, Clock, Archive, FileCode, Tag, Trash2, Edit2, Palette, Plus } from 'lucide-react';
+import { Download, Upload, Settings as SettingsIcon, Clock, Archive, Tag, Trash2, Edit2, Palette, Plus, RotateCcw } from 'lucide-react';
 import axios from 'axios';
 import { useTimezone } from '../contexts/TimezoneContext';
 import { useTheme, Theme } from '../contexts/ThemeContext';
+import { useCustomBackground } from '../contexts/CustomBackgroundContext';
+import { useTransparentLabels } from '../contexts/TransparentLabelsContext';
 import CustomThemeCreator from './CustomThemeCreator';
+import CustomBackgroundSettings from './CustomBackgroundSettings';
 
 interface Label {
   id: number;
@@ -23,10 +26,27 @@ const Settings = () => {
   const [exportFormat, setExportFormat] = useState<'json' | 'markdown'>('json');
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const { timezone, setTimezone } = useTimezone();
-  const { currentTheme, setTheme, availableThemes, customThemes, deleteCustomTheme } = useTheme();
+  const { currentTheme, setTheme, availableThemes, customThemes, deleteCustomTheme, isBuiltInTheme, isThemeModified, restoreThemeToDefault } = useTheme();
+  
+  const {
+    enabled: customBgEnabled,
+    toggleEnabled: toggleCustomBgEnabled,
+    currentImage: customBgCurrentImage,
+    uploadedImages: customBgUploadedImages,
+    fetchUploadedImages: fetchCustomBgUploadedImages,
+    nextImage: nextCustomBgImage,
+    autoRotate: customBgAutoRotate,
+    toggleAutoRotate: toggleCustomBgAutoRotate,
+    rotationInterval: customBgRotationInterval,
+    setRotationInterval: setCustomBgRotationInterval,
+  } = useCustomBackground();
+  
+  const { transparentLabels, toggleTransparentLabels } = useTransparentLabels();
+  
   const [labels, setLabels] = useState<Label[]>([]);
   const [deletingLabelId, setDeletingLabelId] = useState<number | null>(null);
   const [labelSearchQuery, setLabelSearchQuery] = useState('');
+  const [isUploadingCustomBgImage, setIsUploadingCustomBgImage] = useState(false);
   const [labelSortBy, setLabelSortBy] = useState<'name' | 'usage'>('name');
   const [isEditingTimezone, setIsEditingTimezone] = useState(false);
   const [jsonFile, setJsonFile] = useState<File | null>(null);
@@ -56,6 +76,11 @@ const Settings = () => {
   const handleDeleteTheme = (themeId: string) => {
     deleteCustomTheme(themeId);
     showMessage('success', 'Custom theme deleted successfully');
+  };
+
+  const handleRestoreTheme = (themeId: string) => {
+    restoreThemeToDefault(themeId);
+    showMessage('success', 'Theme restored to default');
   };
 
   const handleExport = async () => {
@@ -188,6 +213,48 @@ const Settings = () => {
     }
   };
 
+  const handleCustomBgImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    setIsUploadingCustomBgImage(true);
+    try {
+      // Upload all selected files
+      for (const file of Array.from(files)) {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        await axios.post(`${API_URL}/api/background-images/upload`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+      }
+
+      // Refresh the list of uploaded images
+      await fetchCustomBgUploadedImages();
+      showMessage('success', `Successfully uploaded ${files.length} image(s)`);
+    } catch (error: any) {
+      console.error('Failed to upload images:', error);
+      showMessage('error', error.response?.data?.detail || 'Failed to upload images');
+    } finally {
+      setIsUploadingCustomBgImage(false);
+      // Reset the input
+      event.target.value = '';
+    }
+  };
+
+  const handleDeleteCustomBgImage = async (imageId: string) => {
+    try {
+      await axios.delete(`${API_URL}/api/background-images/${imageId}`);
+      await fetchCustomBgUploadedImages();
+      showMessage('success', 'Image deleted successfully');
+    } catch (error: any) {
+      console.error('Failed to delete image:', error);
+      showMessage('error', error.response?.data?.detail || 'Failed to delete image');
+    }
+  };
+
   // Check if a string is only emojis (with optional spaces)
   const isEmojiOnly = (str: string): boolean => {
     const emojiRegex = /^[\p{Emoji}\p{Emoji_Modifier}\p{Emoji_Component}\p{Emoji_Modifier_Base}\p{Emoji_Presentation}\s]+$/u;
@@ -302,8 +369,8 @@ const Settings = () => {
 
 
   return (
-    <div className="max-w-5xl mx-auto page-fade-in">
-      <div className="rounded-lg shadow-lg p-6" style={{ backgroundColor: 'var(--color-card-bg)' }}>
+    <div className="max-w-5xl mx-auto page-fade-in" style={{ position: 'relative', zIndex: 1 }}>
+      <div className="rounded-lg shadow-lg p-6" style={{ backgroundColor: 'var(--color-bg-primary)' }}>
         <div className="flex items-center gap-3 mb-6">
           <SettingsIcon className="h-8 w-8" style={{ color: 'var(--color-text-secondary)' }} />
           <h1 className="text-3xl font-bold" style={{ color: 'var(--color-text-primary)' }}>Settings</h1>
@@ -329,7 +396,7 @@ const Settings = () => {
             <Palette className="h-5 w-5" />
             Theme
           </h2>
-          <div className="p-6 rounded-lg" style={{ backgroundColor: 'var(--color-bg-tertiary)' }}>
+          <div className="p-6 rounded-lg" style={{ backgroundColor: 'var(--color-bg-primary)' }}>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 max-h-[600px] overflow-y-auto pr-2">
               {/* Create Custom Theme Button */}
               <button
@@ -355,7 +422,8 @@ const Settings = () => {
               </button>
 
               {availableThemes.map((theme) => {
-                const isCustom = customThemes.some(t => t.id === theme.id);
+                const isModified = isThemeModified(theme.id);
+                
                 return (
                   <div key={theme.id} className="relative">
                     <button
@@ -413,6 +481,7 @@ const Settings = () => {
                       {/* Theme name */}
                       <div className="text-sm font-semibold text-center" style={{ color: theme.colors.textPrimary }}>
                         {theme.name}
+                        {isModified && <span className="text-xs ml-1" style={{ color: theme.colors.warning }}>*</span>}
                       </div>
                       
                       {/* Selected indicator */}
@@ -431,9 +500,10 @@ const Settings = () => {
                       )}
                     </button>
 
-                    {/* Edit/Delete buttons for custom themes */}
-                    {isCustom && (
+                    {/* Action buttons - only show on current theme */}
+                    {currentTheme === theme.id && (
                       <div className="absolute -top-2 -left-2 flex gap-1">
+                        {/* Edit button */}
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -441,8 +511,8 @@ const Settings = () => {
                           }}
                           className="w-6 h-6 rounded-full flex items-center justify-center shadow-lg transition-all"
                           style={{
-                            backgroundColor: 'var(--color-info)',
-                            color: '#ffffff',
+                            backgroundColor: 'var(--color-accent)',
+                            color: 'var(--color-accent-text)',
                           }}
                           onMouseEnter={(e) => {
                             e.currentTarget.style.transform = 'scale(1.1)';
@@ -454,34 +524,60 @@ const Settings = () => {
                         >
                           <Edit2 className="w-3 h-3" />
                         </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteTheme(theme.id);
-                          }}
-                          className="w-6 h-6 rounded-full flex items-center justify-center shadow-lg transition-all"
-                          style={{
-                            backgroundColor: 'var(--color-error)',
-                            color: '#ffffff',
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.transform = 'scale(1.1)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.transform = 'scale(1)';
-                          }}
-                          title="Delete theme"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </button>
+
+                        {/* Restore button - only for modified built-in themes */}
+                        {isModified && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRestoreTheme(theme.id);
+                            }}
+                            className="w-6 h-6 rounded-full flex items-center justify-center shadow-lg transition-all"
+                            style={{
+                              backgroundColor: 'var(--color-accent)',
+                              color: 'var(--color-accent-text)',
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.transform = 'scale(1.1)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.transform = 'scale(1)';
+                            }}
+                            title="Restore to default"
+                          >
+                            <RotateCcw className="w-3 h-3" />
+                          </button>
+                        )}
                       </div>
                     )}
                   </div>
                 );
               })}
             </div>
+            
+            {/* Info box */}
+            <div
+              className="mt-4 p-4 rounded-lg"
+              style={{
+                backgroundColor: `${getComputedStyle(document.documentElement).getPropertyValue('--color-info')}15`,
+                border: '1px solid var(--color-info)',
+              }}
+            >
+              <p className="text-sm" style={{ color: 'var(--color-info)' }}>
+                <strong>Theme Customization:</strong> Click any theme to apply it. The active theme shows Edit and Restore buttons. 
+                Click Edit to customize colors. Modified built-in themes show an asterisk (*) and can be restored to default.
+              </p>
+            </div>
           </div>
         </section>
+
+
+        {/* Custom Background Images Section */}
+        <CustomBackgroundSettings 
+          onUpload={handleCustomBgImageUpload}
+          onDelete={handleDeleteCustomBgImage}
+          isUploading={isUploadingCustomBgImage}
+        />
 
         {/* Label Management Section */}
         <section className="mb-8">
@@ -494,7 +590,38 @@ const Settings = () => {
               </span>
             )}
           </h2>
-          <div className="rounded-lg p-6" style={{ backgroundColor: 'var(--color-bg-tertiary)' }}>
+          <div className="rounded-lg p-6" style={{ backgroundColor: 'var(--color-bg-primary)' }}>
+            {/* Transparent Labels Toggle */}
+            <div className="mb-6 p-4 rounded-lg" style={{ backgroundColor: 'var(--color-bg-secondary)', border: '1px solid var(--color-border-primary)' }}>
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <h3 className="font-medium mb-1" style={{ color: 'var(--color-text-primary)' }}>
+                    Transparent Label Backgrounds
+                  </h3>
+                  <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+                    Show labels with transparent backgrounds instead of colored backgrounds. Text will remain colored.
+                  </p>
+                </div>
+                <button
+                  onClick={toggleTransparentLabels}
+                  className={`ml-4 relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2`}
+                  style={{
+                    backgroundColor: transparentLabels ? 'var(--color-accent)' : 'var(--color-bg-secondary)',
+                    borderColor: 'var(--color-border-primary)',
+                    borderWidth: '1px'
+                  }}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full transition-transform`}
+                    style={{
+                      backgroundColor: 'var(--color-bg-primary)',
+                      transform: transparentLabels ? 'translateX(1.5rem)' : 'translateX(0.25rem)'
+                    }}
+                  />
+                </button>
+              </div>
+            </div>
+
             <p className="mb-4" style={{ color: 'var(--color-text-secondary)' }}>
               Manage your labels. Deleting a label will remove it from all notes and entries.
             </p>
@@ -618,7 +745,7 @@ const Settings = () => {
           <div 
             className="mb-4 p-4 rounded-lg"
             style={{
-              backgroundColor: 'var(--color-bg-tertiary)',
+              backgroundColor: 'var(--color-bg-primary)',
               border: '1px solid var(--color-border-primary)'
             }}
           >
@@ -639,7 +766,7 @@ const Settings = () => {
           <div 
             className="mb-4 rounded-lg p-6"
             style={{
-              backgroundColor: 'var(--color-bg-tertiary)',
+              backgroundColor: 'var(--color-bg-primary)',
               border: '2px solid var(--color-border-secondary)'
             }}
           >
@@ -719,10 +846,11 @@ const Settings = () => {
             <button
               onClick={handleFullRestore}
               disabled={isFullRestoring || !jsonFile || !zipFile}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg transition-colors font-medium disabled:cursor-not-allowed"
               style={{
-                backgroundColor: (isFullRestoring || !jsonFile || !zipFile) ? 'var(--color-bg-tertiary)' : 'var(--color-accent)',
-                color: (isFullRestoring || !jsonFile || !zipFile) ? 'var(--color-text-tertiary)' : 'var(--color-accent-text)'
+                backgroundColor: 'var(--color-accent)',
+                color: 'var(--color-accent-text)',
+                opacity: (isFullRestoring || !jsonFile || !zipFile) ? 0.5 : 1
               }}
               onMouseEnter={(e) => {
                 if (!isFullRestoring && jsonFile && zipFile) {
@@ -826,10 +954,11 @@ const Settings = () => {
               <button
                 onClick={handleExport}
                 disabled={isExporting}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg transition-colors font-medium disabled:cursor-not-allowed"
                 style={{
-                  backgroundColor: isExporting ? 'var(--color-bg-tertiary)' : 'var(--color-accent)',
-                  color: isExporting ? 'var(--color-text-tertiary)' : 'var(--color-accent-text)'
+                  backgroundColor: 'var(--color-accent)',
+                  color: 'var(--color-accent-text)',
+                  opacity: isExporting ? 0.5 : 1
                 }}
                 onMouseEnter={(e) => {
                   if (!isExporting) e.currentTarget.style.backgroundColor = 'var(--color-accent-hover)';
@@ -860,9 +989,9 @@ const Settings = () => {
               <div className="flex items-center gap-3 mb-3">
                 <div 
                   className="p-2 rounded-lg"
-                  style={{ backgroundColor: `${getComputedStyle(document.documentElement).getPropertyValue('--color-success')}20` }}
+                  style={{ backgroundColor: `${getComputedStyle(document.documentElement).getPropertyValue('--color-accent')}20` }}
                 >
-                  <Upload className="h-5 w-5" style={{ color: 'var(--color-success)' }} />
+                  <Upload className="h-5 w-5" style={{ color: 'var(--color-accent)' }} />
                 </div>
                 <h3 className="text-lg font-semibold" style={{ color: 'var(--color-text-primary)' }}>Restore Data Only</h3>
               </div>
@@ -885,8 +1014,10 @@ const Settings = () => {
               <label 
                 className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg transition-colors font-medium cursor-pointer"
                 style={{
-                  backgroundColor: isImporting ? 'var(--color-bg-tertiary)' : 'var(--color-success)',
-                  color: isImporting ? 'var(--color-text-tertiary)' : '#ffffff'
+                  backgroundColor: 'var(--color-accent)',
+                  color: 'var(--color-accent-text)',
+                  opacity: isImporting ? 0.5 : 1,
+                  cursor: isImporting ? 'not-allowed' : 'pointer'
                 }}
                 onMouseEnter={(e) => {
                   if (!isImporting) e.currentTarget.style.opacity = '0.9';
@@ -912,7 +1043,7 @@ const Settings = () => {
           <div 
             className="mt-4 rounded-lg p-4"
             style={{
-              backgroundColor: 'var(--color-bg-tertiary)',
+              backgroundColor: 'var(--color-bg-primary)',
               border: '1px solid var(--color-border-primary)'
             }}
           >
@@ -921,10 +1052,11 @@ const Settings = () => {
               <button
                 onClick={handleDownloadFiles}
                 disabled={isDownloadingFiles}
-                className="flex items-center gap-2 px-4 py-2 text-sm rounded-lg transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 px-4 py-2 text-sm rounded-lg transition-colors font-medium disabled:cursor-not-allowed"
                 style={{
-                  backgroundColor: isDownloadingFiles ? 'var(--color-bg-tertiary)' : '#9333ea',
-                  color: '#ffffff'
+                  backgroundColor: 'var(--color-accent)',
+                  color: 'var(--color-accent-text)',
+                  opacity: isDownloadingFiles ? 0.5 : 1
                 }}
                 onMouseEnter={(e) => {
                   if (!isDownloadingFiles) e.currentTarget.style.opacity = '0.9';
@@ -940,9 +1072,10 @@ const Settings = () => {
               <label 
                 className="flex items-center gap-2 px-4 py-2 text-sm rounded-lg transition-colors font-medium cursor-pointer"
                 style={{
-                  backgroundColor: isRestoringFiles ? 'var(--color-bg-tertiary)' : '#9333ea',
-                  color: '#ffffff',
-                  opacity: isRestoringFiles ? '0.5' : '1'
+                  backgroundColor: 'var(--color-accent)',
+                  color: 'var(--color-accent-text)',
+                  opacity: isRestoringFiles ? 0.5 : 1,
+                  cursor: isRestoringFiles ? 'not-allowed' : 'pointer'
                 }}
                 onMouseEnter={(e) => {
                   if (!isRestoringFiles) e.currentTarget.style.opacity = '0.9';
@@ -974,7 +1107,7 @@ const Settings = () => {
             <Clock className="h-5 w-5" />
             Timezone
           </h2>
-          <div className="rounded-lg p-6" style={{ backgroundColor: 'var(--color-bg-tertiary)' }}>
+          <div className="rounded-lg p-6" style={{ backgroundColor: 'var(--color-bg-primary)' }}>
             {!isEditingTimezone ? (
               // Compact display when not editing
               <div className="flex items-center justify-between">

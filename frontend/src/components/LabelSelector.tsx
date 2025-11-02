@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Tag as TagIcon, X, Plus } from 'lucide-react';
 import axios from 'axios';
 import EmojiPicker from './EmojiPicker';
+import { useTransparentLabels } from '../contexts/TransparentLabelsContext';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -20,6 +21,7 @@ interface LabelSelectorProps {
 }
 
 const LabelSelector = ({ date, entryId, selectedLabels, onLabelsChange, onOptimisticUpdate }: LabelSelectorProps) => {
+  const { transparentLabels } = useTransparentLabels();
   const [allLabels, setAllLabels] = useState<Label[]>([]);
   const [newLabelName, setNewLabelName] = useState('');
   const [loading, setLoading] = useState(false);
@@ -334,15 +336,17 @@ const LabelSelector = ({ date, entryId, selectedLabels, onLabelsChange, onOptimi
             );
           }
           
-          // Text label - traditional pill style
+          // Text label - traditional pill style or transparent
           return (
             <button
               key={label.id}
               onClick={() => handleRemoveLabel(label.id)}
               disabled={loading}
-              className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium text-white transition-all duration-200 hover:opacity-80 disabled:opacity-50"
+              className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium transition-all duration-200 hover:opacity-80 disabled:opacity-50"
               style={{ 
-                backgroundColor: label.color,
+                backgroundColor: transparentLabels ? 'transparent' : label.color,
+                color: transparentLabels ? label.color : 'white',
+                border: transparentLabels ? `1px solid ${label.color}` : 'none',
                 animation: 'fadeIn 0.2s ease-in'
               }}
               title="Click to remove"

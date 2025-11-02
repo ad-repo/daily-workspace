@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { Check, Star, Code, FileText, Skull } from 'lucide-react';
 import type { NoteEntry } from '../types';
 import { useTimezone } from '../contexts/TimezoneContext';
+import { useTransparentLabels } from '../contexts/TransparentLabelsContext';
 import { formatTimestamp } from '../utils/timezone';
 
 interface EntryTimelineProps {
@@ -10,6 +11,7 @@ interface EntryTimelineProps {
 
 const EntryTimeline = ({ entries }: EntryTimelineProps) => {
   const { timezone } = useTimezone();
+  const { transparentLabels } = useTransparentLabels();
   const [activeEntryId, setActiveEntryId] = useState<number | null>(null);
   const timelineRef = useRef<HTMLDivElement>(null);
 
@@ -150,12 +152,16 @@ const EntryTimeline = ({ entries }: EntryTimelineProps) => {
                       );
                     }
                     
-                    // Text label - colored background (pill-shaped)
+                    // Text label - colored background (pill-shaped) or transparent
                     return (
                       <span
                         key={label.id}
-                        className="inline-block px-2 py-0.5 rounded-full text-xs font-medium text-white"
-                        style={{ backgroundColor: label.color }}
+                        className="inline-block px-2 py-0.5 rounded-full text-xs font-medium"
+                        style={{ 
+                          backgroundColor: transparentLabels ? 'transparent' : label.color,
+                          color: transparentLabels ? label.color : 'white',
+                          border: transparentLabels ? `1px solid ${label.color}` : 'none'
+                        }}
                       >
                         {label.name}
                       </span>
