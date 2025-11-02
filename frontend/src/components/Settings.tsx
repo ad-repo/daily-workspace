@@ -508,7 +508,7 @@ const Settings = () => {
                           }}
                           className="w-6 h-6 rounded-full flex items-center justify-center shadow-lg transition-all"
                           style={{
-                            backgroundColor: 'var(--color-info)',
+                            backgroundColor: 'var(--color-accent)',
                             color: 'var(--color-accent-text)',
                           }}
                           onMouseEnter={(e) => {
@@ -531,7 +531,7 @@ const Settings = () => {
                             }}
                             className="w-6 h-6 rounded-full flex items-center justify-center shadow-lg transition-all"
                             style={{
-                              backgroundColor: 'var(--color-warning)',
+                              backgroundColor: 'var(--color-accent)',
                               color: 'var(--color-accent-text)',
                             }}
                             onMouseEnter={(e) => {
@@ -953,9 +953,9 @@ const Settings = () => {
               <div className="flex items-center gap-3 mb-3">
                 <div 
                   className="p-2 rounded-lg"
-                  style={{ backgroundColor: `${getComputedStyle(document.documentElement).getPropertyValue('--color-success')}20` }}
+                  style={{ backgroundColor: `${getComputedStyle(document.documentElement).getPropertyValue('--color-accent')}20` }}
                 >
-                  <Upload className="h-5 w-5" style={{ color: 'var(--color-success)' }} />
+                  <Upload className="h-5 w-5" style={{ color: 'var(--color-accent)' }} />
                 </div>
                 <h3 className="text-lg font-semibold" style={{ color: 'var(--color-text-primary)' }}>Restore Data Only</h3>
               </div>
@@ -978,7 +978,7 @@ const Settings = () => {
               <label 
                 className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg transition-colors font-medium cursor-pointer"
                 style={{
-                  backgroundColor: isImporting ? 'var(--color-bg-tertiary)' : 'var(--color-success)',
+                  backgroundColor: isImporting ? 'var(--color-bg-tertiary)' : 'var(--color-accent)',
                   color: isImporting ? 'var(--color-text-tertiary)' : 'var(--color-accent-text)'
                 }}
                 onMouseEnter={(e) => {

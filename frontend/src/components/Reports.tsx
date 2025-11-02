@@ -537,7 +537,7 @@ const Reports = () => {
                 onClick={exportReport}
                 className="flex items-center gap-2 px-6 py-3 rounded-lg transition-colors"
                 style={{
-                  backgroundColor: 'var(--color-success)',
+                  backgroundColor: 'var(--color-accent)',
                   color: 'var(--color-accent-text)'
                 }}
                 onMouseEnter={(e) => {
@@ -571,14 +571,14 @@ const Reports = () => {
                         onClick={() => copySection('completed')}
                         className="flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors"
                         style={{
-                          backgroundColor: `${getComputedStyle(document.documentElement).getPropertyValue('--color-success')}20`,
-                          color: 'var(--color-success)'
+                          backgroundColor: `${getComputedStyle(document.documentElement).getPropertyValue('--color-accent')}20`,
+                          color: 'var(--color-accent)'
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = `${getComputedStyle(document.documentElement).getPropertyValue('--color-success')}30`;
+                          e.currentTarget.style.backgroundColor = `${getComputedStyle(document.documentElement).getPropertyValue('--color-accent')}30`;
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = `${getComputedStyle(document.documentElement).getPropertyValue('--color-success')}20`;
+                          e.currentTarget.style.backgroundColor = `${getComputedStyle(document.documentElement).getPropertyValue('--color-accent')}20`;
                         }}
                         title="Copy completed section"
                       >
@@ -775,7 +775,7 @@ const Reports = () => {
               disabled={loadingAll}
               className="px-6 py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               style={{
-                backgroundColor: loadingAll ? 'var(--color-bg-tertiary)' : 'var(--color-success)',
+                backgroundColor: loadingAll ? 'var(--color-bg-tertiary)' : 'var(--color-accent)',
                 color: loadingAll ? 'var(--color-text-tertiary)' : 'var(--color-accent-text)'
               }}
               onMouseEnter={(e) => {
@@ -794,7 +794,7 @@ const Reports = () => {
                   onClick={copyAllEntriesReport}
                   className="flex items-center gap-2 px-6 py-3 rounded-lg transition-colors"
                   style={{
-                    backgroundColor: copiedAllReport ? 'var(--color-success)' : 'var(--color-text-secondary)',
+                    backgroundColor: copiedAllReport ? 'var(--color-accent)' : 'var(--color-text-secondary)',
                     color: 'var(--color-accent-text)'
                   }}
                   onMouseEnter={(e) => {
