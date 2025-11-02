@@ -305,7 +305,7 @@ const DailyView = () => {
           <div className="flex flex-col items-center gap-6 w-full">
             {/* Daily Goals Section */}
             <div className="w-full">
-              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text-primary)' }}>Daily Goals:</label>
+              <label className="block text-lg font-semibold mb-2" style={{ color: 'var(--color-text-primary)' }}>Daily Goals:</label>
               <textarea
                 value={dailyGoal}
                 onChange={(e) => handleDailyGoalChange(e.target.value)}
@@ -321,7 +321,7 @@ const DailyView = () => {
             
             {/* Labels Section */}
             <div className="w-full">
-              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text-primary)' }}>Day Labels:</label>
+              <label className="block text-lg font-semibold mb-2" style={{ color: 'var(--color-text-primary)' }}>Day Labels:</label>
               <LabelSelector
                 date={date}
                 selectedLabels={note?.labels || []}
