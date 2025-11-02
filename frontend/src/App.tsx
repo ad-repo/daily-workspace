@@ -10,6 +10,7 @@ import { format } from 'date-fns';
 import { TimezoneProvider } from './contexts/TimezoneContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { CustomBackgroundProvider } from './contexts/CustomBackgroundContext';
+import { TransparentLabelsProvider } from './contexts/TransparentLabelsContext';
 import CustomBackground from './components/CustomBackground';
 
 function App() {
@@ -20,7 +21,8 @@ function App() {
     <ThemeProvider>
       <TimezoneProvider>
         <CustomBackgroundProvider>
-          <Router>
+          <TransparentLabelsProvider>
+            <Router>
             <div className="min-h-screen" style={{ backgroundColor: 'var(--color-bg-secondary)', position: 'relative' }}>
               <CustomBackground />
               <Navigation />
@@ -58,7 +60,8 @@ function App() {
             </Routes>
           </div>
         </div>
-          </Router>
+            </Router>
+          </TransparentLabelsProvider>
         </CustomBackgroundProvider>
       </TimezoneProvider>
     </ThemeProvider>

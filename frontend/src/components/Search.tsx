@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import type { NoteEntry, Label } from '../types';
 import { useTimezone } from '../contexts/TimezoneContext';
+import { useTransparentLabels } from '../contexts/TransparentLabelsContext';
 import { formatTimestamp } from '../utils/timezone';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -15,6 +16,7 @@ interface SearchHistoryItem {
 
 const Search = () => {
   const { timezone } = useTimezone();
+  const { transparentLabels } = useTransparentLabels();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLabels, setSelectedLabels] = useState<number[]>([]);
   const [allLabels, setAllLabels] = useState<Label[]>([]);
@@ -346,8 +348,9 @@ const Search = () => {
                       : 'opacity-70 hover:opacity-100'
                   }`}
                   style={{
-                    backgroundColor: label.color,
-                    color: 'white'
+                    backgroundColor: transparentLabels ? 'transparent' : label.color,
+                    color: transparentLabels ? label.color : 'white',
+                    border: transparentLabels ? `1px solid ${label.color}` : 'none'
                   }}
                 >
                   {label.name}
@@ -452,8 +455,12 @@ const Search = () => {
                         {entry.labels.map((label) => (
                           <span
                             key={label.id}
-                            className="inline-block px-2.5 py-0.5 rounded-full text-xs font-medium text-white"
-                            style={{ backgroundColor: label.color }}
+                            className="inline-block px-2.5 py-0.5 rounded-full text-xs font-medium"
+                            style={{ 
+                              backgroundColor: transparentLabels ? 'transparent' : label.color,
+                              color: transparentLabels ? label.color : 'white',
+                              border: transparentLabels ? `1px solid ${label.color}` : 'none'
+                            }}
                           >
                             {label.name}
                           </span>

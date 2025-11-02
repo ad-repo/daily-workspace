@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { format } from 'date-fns';
 import { useTimezone } from '../contexts/TimezoneContext';
+import { useTransparentLabels } from '../contexts/TransparentLabelsContext';
 import { formatTimestamp } from '../utils/timezone';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -33,6 +34,7 @@ interface Week {
 
 const Reports = () => {
   const { timezone } = useTimezone();
+  const { transparentLabels } = useTransparentLabels();
   const navigate = useNavigate();
   const [report, setReport] = useState<ReportData | null>(null);
   const [weeks, setWeeks] = useState<Week[]>([]);
@@ -641,8 +643,12 @@ const Reports = () => {
                                 {entry.labels.map((label) => (
                                   <span
                                     key={label.name}
-                                    className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium text-white"
-                                    style={{ backgroundColor: label.color }}
+                                    className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
+                                    style={{ 
+                                      backgroundColor: transparentLabels ? 'transparent' : label.color,
+                                      color: transparentLabels ? label.color : 'white',
+                                      border: transparentLabels ? `1px solid ${label.color}` : 'none'
+                                    }}
                                   >
                                     {label.name}
                                   </span>
@@ -735,8 +741,12 @@ const Reports = () => {
                                 {entry.labels.map((label) => (
                                   <span
                                     key={label.name}
-                                    className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium text-white"
-                                    style={{ backgroundColor: label.color }}
+                                    className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
+                                    style={{ 
+                                      backgroundColor: transparentLabels ? 'transparent' : label.color,
+                                      color: transparentLabels ? label.color : 'white',
+                                      border: transparentLabels ? `1px solid ${label.color}` : 'none'
+                                    }}
                                   >
                                     {label.name}
                                   </span>
