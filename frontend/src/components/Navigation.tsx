@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Calendar, Laptop, Settings, FileText, Search, BookOpen } from 'lucide-react';
+import { Calendar, Laptop, Settings, FileText, Search } from 'lucide-react';
 import { format } from 'date-fns';
 import { formatInTimeZone } from 'date-fns-tz';
 import { useTimezone } from '../contexts/TimezoneContext';

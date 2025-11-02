@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Download, Upload, Settings as SettingsIcon, Clock, Archive, FileCode, Tag, Trash2, Edit2, Palette, Plus, Calendar, Image, RefreshCw, RotateCcw } from 'lucide-react';
+import { Download, Upload, Settings as SettingsIcon, Clock, Archive, Tag, Trash2, Edit2, Palette, Plus, RotateCcw } from 'lucide-react';
 import axios from 'axios';
 import { useTimezone } from '../contexts/TimezoneContext';
 import { useTheme, Theme } from '../contexts/ThemeContext';
