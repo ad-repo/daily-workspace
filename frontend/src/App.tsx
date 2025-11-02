@@ -23,7 +23,7 @@ const AppContent = () => {
     <Router>
       <div className="min-h-screen" style={{ backgroundColor: 'var(--color-bg-secondary)', position: 'relative' }}>
         <CustomBackground />
-        {!isFullScreen && <Navigation />}
+        <Navigation />
         <div 
           className={`mx-auto px-4 py-6 ${isFullScreen ? 'max-w-full' : 'container max-w-7xl'}`}
           style={{ transition: 'max-width 0.3s ease' }}
