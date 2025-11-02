@@ -10,7 +10,7 @@ const Navigation = () => {
   const location = useLocation();
   const { timezone } = useTimezone();
   const { isFullScreen, toggleFullScreen, setFullScreen } = useFullScreen();
-  const { isTimelineVisible, toggleTimeline, setTimelineVisible } = useTimelineVisibility();
+  const { isTimelineVisible, toggleTimeline } = useTimelineVisibility();
   const now = new Date();
   const today = formatInTimeZone(now, timezone, 'yyyy-MM-dd');
   const dayName = formatInTimeZone(now, timezone, 'EEEE'); // Full day name like "Monday"
