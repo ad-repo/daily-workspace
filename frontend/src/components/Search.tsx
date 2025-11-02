@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search as SearchIcon, X } from 'lucide-react';
+import { Search as SearchIcon, X, Star, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import type { NoteEntry, Label } from '../types';
@@ -22,6 +22,8 @@ const Search = () => {
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [searchHistory, setSearchHistory] = useState<SearchHistoryItem[]>([]);
+  const [filterStarred, setFilterStarred] = useState<boolean | null>(null);
+  const [filterCompleted, setFilterCompleted] = useState<boolean | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -39,16 +41,16 @@ const Search = () => {
     };
   }, []);
 
-  // Auto-search when labels change
+  // Auto-search when labels or filters change
   useEffect(() => {
-    if (selectedLabels.length > 0) {
+    if (selectedLabels.length > 0 || filterStarred !== null || filterCompleted !== null) {
       handleSearch();
     } else if (hasSearched && !searchQuery.trim()) {
-      // Clear results if no labels and no query
+      // Clear results if no filters and no query
       setResults([]);
       setHasSearched(false);
     }
-  }, [selectedLabels]);
+  }, [selectedLabels, filterStarred, filterCompleted]);
 
   const loadLabels = async () => {
     try {
@@ -83,7 +85,7 @@ const Search = () => {
   };
 
   const handleSearch = async () => {
-    if (!searchQuery.trim() && selectedLabels.length === 0) {
+    if (!searchQuery.trim() && selectedLabels.length === 0 && filterStarred === null && filterCompleted === null) {
       return;
     }
 
@@ -102,6 +104,12 @@ const Search = () => {
       }
       if (selectedLabels.length > 0) {
         params.label_ids = selectedLabels.join(',');
+      }
+      if (filterStarred !== null) {
+        params.is_important = filterStarred;
+      }
+      if (filterCompleted !== null) {
+        params.is_completed = filterCompleted;
       }
 
       const response = await axios.get<NoteEntry[]>(`${API_URL}/api/search/`, { params });
@@ -131,6 +139,8 @@ const Search = () => {
   const clearSearch = () => {
     setSearchQuery('');
     setSelectedLabels([]);
+    setFilterStarred(null);
+    setFilterCompleted(null);
     setResults([]);
     setHasSearched(false);
   };
@@ -179,24 +189,24 @@ const Search = () => {
             />
             <button
               onClick={handleSearch}
-              disabled={loading || (!searchQuery.trim() && selectedLabels.length === 0)}
+              disabled={loading || (!searchQuery.trim() && selectedLabels.length === 0 && filterStarred === null && filterCompleted === null)}
               className="px-6 py-3 rounded-lg transition-colors flex items-center gap-2"
               style={{
-                backgroundColor: (loading || (!searchQuery.trim() && selectedLabels.length === 0)) 
+                backgroundColor: (loading || (!searchQuery.trim() && selectedLabels.length === 0 && filterStarred === null && filterCompleted === null)) 
                   ? 'var(--color-bg-tertiary)' 
                   : 'var(--color-accent)',
-                color: (loading || (!searchQuery.trim() && selectedLabels.length === 0))
+                color: (loading || (!searchQuery.trim() && selectedLabels.length === 0 && filterStarred === null && filterCompleted === null))
                   ? 'var(--color-text-tertiary)'
                   : 'var(--color-accent-text)',
-                cursor: (loading || (!searchQuery.trim() && selectedLabels.length === 0)) ? 'not-allowed' : 'pointer',
+                cursor: (loading || (!searchQuery.trim() && selectedLabels.length === 0 && filterStarred === null && filterCompleted === null)) ? 'not-allowed' : 'pointer',
               }}
               onMouseEnter={(e) => {
-                if (!loading && (searchQuery.trim() || selectedLabels.length > 0)) {
+                if (!loading && (searchQuery.trim() || selectedLabels.length > 0 || filterStarred !== null || filterCompleted !== null)) {
                   e.currentTarget.style.backgroundColor = 'var(--color-accent-hover)';
                 }
               }}
               onMouseLeave={(e) => {
-                if (!loading && (searchQuery.trim() || selectedLabels.length > 0)) {
+                if (!loading && (searchQuery.trim() || selectedLabels.length > 0 || filterStarred !== null || filterCompleted !== null)) {
                   e.currentTarget.style.backgroundColor = 'var(--color-accent)';
                 }
               }}
@@ -225,14 +235,106 @@ const Search = () => {
           </div>
         </div>
 
+        {/* Status Filters */}
+        <div className="mb-6">
+          <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text-primary)' }}>
+            Filter by Status:
+          </label>
+          <div className="flex flex-wrap gap-3">
+            {/* Starred Filter */}
+            <button
+              onClick={() => setFilterStarred(filterStarred === true ? null : true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all"
+              style={{
+                backgroundColor: filterStarred === true ? 'var(--color-accent)' : 'var(--color-bg-tertiary)',
+                color: filterStarred === true ? 'var(--color-accent-text)' : 'var(--color-text-primary)',
+                border: `2px solid ${filterStarred === true ? 'var(--color-accent)' : 'var(--color-border-primary)'}`,
+              }}
+              onMouseEnter={(e) => {
+                if (filterStarred !== true) {
+                  e.currentTarget.style.borderColor = 'var(--color-accent)';
+                  e.currentTarget.style.backgroundColor = `${getComputedStyle(document.documentElement).getPropertyValue('--color-accent')}10`;
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (filterStarred !== true) {
+                  e.currentTarget.style.borderColor = 'var(--color-border-primary)';
+                  e.currentTarget.style.backgroundColor = 'var(--color-bg-tertiary)';
+                }
+              }}
+            >
+              <Star 
+                className="h-4 w-4" 
+                fill={filterStarred === true ? 'currentColor' : 'none'}
+              />
+              <span className="text-sm font-medium">Starred Only</span>
+            </button>
+
+            {/* Completed Filter */}
+            <button
+              onClick={() => setFilterCompleted(filterCompleted === true ? null : true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all"
+              style={{
+                backgroundColor: filterCompleted === true ? 'var(--color-accent)' : 'var(--color-bg-tertiary)',
+                color: filterCompleted === true ? 'var(--color-accent-text)' : 'var(--color-text-primary)',
+                border: `2px solid ${filterCompleted === true ? 'var(--color-accent)' : 'var(--color-border-primary)'}`,
+              }}
+              onMouseEnter={(e) => {
+                if (filterCompleted !== true) {
+                  e.currentTarget.style.borderColor = 'var(--color-accent)';
+                  e.currentTarget.style.backgroundColor = `${getComputedStyle(document.documentElement).getPropertyValue('--color-accent')}10`;
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (filterCompleted !== true) {
+                  e.currentTarget.style.borderColor = 'var(--color-border-primary)';
+                  e.currentTarget.style.backgroundColor = 'var(--color-bg-tertiary)';
+                }
+              }}
+            >
+              <CheckCircle 
+                className="h-4 w-4" 
+                fill={filterCompleted === true ? 'currentColor' : 'none'}
+              />
+              <span className="text-sm font-medium">Completed Only</span>
+            </button>
+
+            {/* Not Completed Filter */}
+            <button
+              onClick={() => setFilterCompleted(filterCompleted === false ? null : false)}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all"
+              style={{
+                backgroundColor: filterCompleted === false ? 'var(--color-accent)' : 'var(--color-bg-tertiary)',
+                color: filterCompleted === false ? 'var(--color-accent-text)' : 'var(--color-text-primary)',
+                border: `2px solid ${filterCompleted === false ? 'var(--color-accent)' : 'var(--color-border-primary)'}`,
+              }}
+              onMouseEnter={(e) => {
+                if (filterCompleted !== false) {
+                  e.currentTarget.style.borderColor = 'var(--color-accent)';
+                  e.currentTarget.style.backgroundColor = `${getComputedStyle(document.documentElement).getPropertyValue('--color-accent')}10`;
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (filterCompleted !== false) {
+                  e.currentTarget.style.borderColor = 'var(--color-border-primary)';
+                  e.currentTarget.style.backgroundColor = 'var(--color-bg-tertiary)';
+                }
+              }}
+            >
+              <CheckCircle className="h-4 w-4" />
+              <span className="text-sm font-medium">Not Completed</span>
+            </button>
+          </div>
+        </div>
+
         {/* Label Filter */}
         <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text-primary)' }}>
             Filter by Labels:
           </label>
           <div className="flex flex-wrap gap-2">
             {allLabels.length === 0 ? (
-              <p className="text-sm text-gray-500">No labels available</p>
+              <p className="text-sm" style={{ color: 'var(--color-text-tertiary)' }}>No labels available</p>
             ) : (
               allLabels.map((label) => (
                 <button
@@ -258,7 +360,7 @@ const Search = () => {
         {/* Search History */}
         {searchHistory.length > 0 && !hasSearched && (
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text-primary)' }}>
               Recent Searches:
             </label>
             <div className="flex flex-wrap gap-2">
@@ -285,10 +387,13 @@ const Search = () => {
 
         {/* Search Info */}
         {hasSearched && (
-          <div className="text-sm text-gray-600 mb-4">
+          <div className="text-sm mb-4" style={{ color: 'var(--color-text-secondary)' }}>
             Found {results.length} result{results.length !== 1 ? 's' : ''}
             {searchQuery.trim() && ` for "${searchQuery}"`}
             {selectedLabels.length > 0 && ` with selected labels`}
+            {filterStarred === true && ` (starred only)`}
+            {filterCompleted === true && ` (completed only)`}
+            {filterCompleted === false && ` (not completed)`}
           </div>
         )}
       </div>
