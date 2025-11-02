@@ -64,6 +64,13 @@ A modern, powerful daily workspace application for capturing and organizing your
 - **Continue from Previous Day**: Copy entries from past days to today
 - **Entry Management**: Edit, delete, and reorder entries
 
+### 🖥️ View Customization
+- **Full-Screen Mode**: Expand daily view to full width for focused work
+- **Timeline Toggle**: Show/hide left timeline sidebar for more space
+- **Smart Layout**: Timeline auto-hides in full-screen, auto-shows when toggled on
+- **Persistent Preferences**: View settings saved across sessions
+- **One-Click Toggle**: Quick access from navigation bar
+
 ### 💾 Data Management
 - **Backup & Restore**: Full JSON export/import with all data
 - **Download Uploads**: Export all uploaded files as a zip archive
