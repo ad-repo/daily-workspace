@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { X, Plus, Edit2, Trash2, Check } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Check } from 'lucide-react';
 import { Theme, useTheme } from '../contexts/ThemeContext';
 
 interface CustomThemeCreatorProps {
@@ -8,7 +8,7 @@ interface CustomThemeCreatorProps {
 }
 
 const CustomThemeCreator: React.FC<CustomThemeCreatorProps> = ({ editingTheme, onClose }) => {
-  const { createCustomTheme, updateCustomTheme } = useTheme();
+  const { createCustomTheme, updateCustomTheme, isBuiltInTheme, isThemeModified } = useTheme();
   
   const [themeName, setThemeName] = useState(editingTheme?.name || '');
   const [themeDescription, setThemeDescription] = useState(editingTheme?.description || '');
@@ -34,6 +34,40 @@ const CustomThemeCreator: React.FC<CustomThemeCreatorProps> = ({ editingTheme, o
     cardShadow: 'rgba(0, 0, 0, 0.1)',
   });
 
+  // Reset form when editingTheme changes
+  useEffect(() => {
+    if (editingTheme) {
+      setThemeName(editingTheme.name);
+      setThemeDescription(editingTheme.description || '');
+      setColors(editingTheme.colors);
+    } else {
+      // Reset to defaults for new theme
+      setThemeName('');
+      setThemeDescription('');
+      setColors({
+        bgPrimary: '#ffffff',
+        bgSecondary: '#f9fafb',
+        bgTertiary: '#f3f4f6',
+        bgHover: '#f3f4f6',
+        textPrimary: '#111827',
+        textSecondary: '#4b5563',
+        textTertiary: '#9ca3af',
+        borderPrimary: '#e5e7eb',
+        borderSecondary: '#d1d5db',
+        accent: '#3b82f6',
+        accentHover: '#2563eb',
+        accentText: '#ffffff',
+        success: '#10b981',
+        error: '#ef4444',
+        warning: '#f59e0b',
+        info: '#3b82f6',
+        cardBg: '#ffffff',
+        cardBorder: '#e5e7eb',
+        cardShadow: 'rgba(0, 0, 0, 0.1)',
+      });
+    }
+  }, [editingTheme]);
+
   const handleColorChange = (key: keyof typeof colors, value: string) => {
     setColors({ ...colors, [key]: value });
   };
@@ -52,9 +86,21 @@ const CustomThemeCreator: React.FC<CustomThemeCreatorProps> = ({ editingTheme, o
       colors,
     };
 
+    // If editing a theme
     if (editingTheme) {
-      updateCustomTheme(newTheme);
+      // Check if it's a built-in theme that hasn't been modified yet
+      const isBuiltIn = isBuiltInTheme(editingTheme.id);
+      const isModified = isThemeModified(editingTheme.id);
+      
+      if (isBuiltIn && !isModified) {
+        // First time editing a built-in theme - create custom version
+        createCustomTheme(newTheme);
+      } else {
+        // Updating an already-custom theme
+        updateCustomTheme(newTheme);
+      }
     } else {
+      // Creating a brand new custom theme
       createCustomTheme(newTheme);
     }
     onClose();
