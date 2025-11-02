@@ -80,7 +80,7 @@ const Navigation = () => {
             {isOnDayView && (
               <button
                 onClick={toggleFullScreen}
-                className="flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors"
+                className="flex items-center px-3 py-2 rounded-lg transition-colors"
                 style={{
                   backgroundColor: 'transparent',
                   color: 'var(--color-text-secondary)'
@@ -95,7 +95,6 @@ const Navigation = () => {
                 title={isFullScreen ? "Exit full screen" : "Enter full screen"}
               >
                 {isFullScreen ? <Minimize2 className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}
-                <span className="font-medium">{isFullScreen ? 'Exit' : 'Full Screen'}</span>
               </button>
             )}
           </div>
