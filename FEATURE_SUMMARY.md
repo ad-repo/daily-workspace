@@ -1,6 +1,71 @@
 # Recent Features Summary
 
-## Latest Updates (2025-10-31)
+## Latest Updates (2025-11-02)
+
+### 1. Voice Dictation
+- **What**: Real-time speech-to-text directly in the rich text editor
+- **How**: Click the microphone icon in the toolbar to start/stop recording
+- **Features**:
+  - Real-time transcription with interim results (gray italic text)
+  - Final results appear in black when phrase is complete
+  - Continuous mode for long dictation sessions
+  - Works in Chrome (with automatic retry workaround) and Safari
+  - Automatic permission request for microphone access
+- **UI**: Red pulsing microphone button when recording
+- **Browser Support**: Chrome, Safari (other browsers may vary)
+
+### 2. Camera & Video Capture
+- **What**: Capture photos and record videos directly in the editor
+- **How**: Click camera or video icons in the toolbar
+- **Features**:
+  - Camera: Live preview with capture button
+  - Video: Live preview with start/stop recording
+  - Images saved at 100% quality
+  - Videos include audio recording
+  - All media uploaded and stored persistently
+  - Responsive sizing in cards (full width)
+- **UI**: Modal with live preview and capture/record controls
+
+### 3. Settings Toggles for UI Sections
+- **What**: Hide/show Daily Goals and Day Labels sections from day view
+- **Location**: Settings → General
+- **Features**:
+  - Show Daily Goals toggle - completely removes section when disabled
+  - Show Day Labels toggle - completely removes section when disabled
+  - Preferences saved to localStorage
+  - No extra spacing when sections are hidden
+- **Default**: Both enabled by default
+
+### 4. Background Image Tiling
+- **What**: Toggle between tiled pattern or covered/centered backgrounds
+- **Location**: Settings → Background Images → Tile Background
+- **Features**:
+  - Tile mode: repeats image as pattern
+  - Cover mode (default): centers and covers full screen
+  - Works with all uploaded background images
+  - Preference saved to localStorage
+- **Default**: Cover/center mode
+
+### 5. Standardized Toggle Buttons
+- **What**: Unified styling for all toggle switches across the app
+- **Changes**:
+  - Consistent size (h-6 w-11)
+  - Uniform colors using theme variables
+  - Same animation timing (1.5rem translate)
+  - Border style consistency
+  - Disabled state opacity and cursor
+- **Affected**: All toggles in Settings (6 total)
+
+### 6. Editor Toolbar Improvements
+- **What**: Reorganized and improved rich text editor toolbar
+- **Changes**:
+  - Moved inline code button next to code block button
+  - Horizontal scrolling toolbar (no wrapping)
+  - Even spacing across all toolbar icons
+  - Responsive media sizing (images/videos fill card width)
+- **UI**: Single-row toolbar with consistent icon spacing
+
+## Previous Updates (2025-10-31)
 
 ### 1. Title Field for Note Entries
 - **What**: Added optional one-line title field at the top of each note entry card
@@ -49,7 +114,55 @@
 ### Current Migrations
 1. **001_add_title_field.py** - Adds `title` VARCHAR column to `note_entries`
 
-## Technical Details
+## Technical Details (2025-11-02)
+
+### New Frontend Components
+- **useSpeechRecognition.ts**: Custom React hook for Web Speech API
+  - Handles browser compatibility (Chrome/Safari)
+  - Implements automatic retry for Chrome network errors
+  - Provides real-time interim and final transcription
+  - Manages microphone permissions
+- **DailyGoalsContext.tsx**: Context for show/hide Daily Goals preference
+- **DayLabelsContext.tsx**: Context for show/hide Day Labels preference
+- **Custom Video Node**: TipTap extension for proper video rendering
+
+### API Endpoints Used
+- `POST /api/uploads/image` - Upload captured photos
+- `POST /api/uploads/file` - Upload recorded videos
+
+### Browser APIs
+- **Web Speech API**: Real-time speech recognition
+- **MediaDevices API**: Camera and microphone access (`getUserMedia`)
+- **MediaRecorder API**: Video recording with audio
+- **Canvas API**: Photo capture from video stream
+
+### CSS Additions
+- Recording pulse animation for microphone button
+- Horizontal scrolling toolbar with hidden scrollbar
+- Responsive image/video sizing (width: 100%)
+
+### localStorage Keys
+- `showDailyGoals`: Toggle state for Daily Goals section
+- `showDayLabels`: Toggle state for Day Labels section
+- `custom_background_tile_mode`: Toggle state for background tiling
+
+### User Benefits (2025-11-02)
+1. **Faster Entry Creation**: Voice dictation speeds up note-taking
+2. **Rich Media Support**: Capture photos and videos without leaving the app
+3. **Customizable Interface**: Hide sections you don't use for a cleaner view
+4. **Visual Consistency**: Uniform toggle styles improve UX clarity
+5. **Background Flexibility**: Tile patterns for repeating designs or cover for photos
+6. **Better Organization**: Toolbar reorganization groups related functions
+
+### Breaking Changes
+**None!** All changes are frontend-only and backward compatible:
+- Voice dictation is optional (browser permission required)
+- Media capture requires user action
+- Settings toggles default to enabled (existing behavior)
+- Background tiling defaults to cover mode (existing behavior)
+- All preferences stored in localStorage (no database impact)
+
+## Previous Technical Details (2025-10-31)
 
 ### Database Schema Changes
 ```sql
