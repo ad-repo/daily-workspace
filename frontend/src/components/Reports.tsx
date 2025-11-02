@@ -463,7 +463,7 @@ const Reports = () => {
     <div className="container mx-auto p-4 max-w-4xl page-fade-in">
       <div 
         className="rounded-lg shadow-lg p-6 mb-6"
-        style={{ backgroundColor: 'var(--color-card-bg)' }}
+        style={{ backgroundColor: 'var(--color-bg-primary)' }}
       >
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
@@ -768,7 +768,7 @@ const Reports = () => {
       {/* Selected Entries Report Section */}
       <div 
         className="rounded-lg shadow-lg p-6 mt-6"
-        style={{ backgroundColor: 'var(--color-card-bg)' }}
+        style={{ backgroundColor: 'var(--color-bg-primary)' }}
       >
         <div className="mb-6">
           <div className="flex items-center gap-3 mb-4">
