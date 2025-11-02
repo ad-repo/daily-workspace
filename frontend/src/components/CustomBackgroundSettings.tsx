@@ -27,13 +27,13 @@ const CustomBackgroundSettings = ({ onUpload, onDelete, isUploading }: CustomBac
         <Image className="h-5 w-5" />
         Background Images
       </h2>
-      <div className="p-6 rounded-lg" style={{ backgroundColor: 'transparent' }}>
+      <div className="p-6 rounded-lg" style={{ backgroundColor: 'var(--color-bg-primary)' }}>
         <p className="mb-4" style={{ color: 'var(--color-text-secondary)' }}>
           Upload your own images to display as rotating backgrounds at low opacity (20%).
         </p>
 
         {/* Enable/Disable Toggle */}
-        <div className="mb-6 flex items-center justify-between p-4 rounded-lg" style={{ backgroundColor: 'var(--color-bg-primary)' }}>
+        <div className="mb-6 flex items-center justify-between p-4 rounded-lg" style={{ backgroundColor: 'var(--color-bg-secondary)' }}>
           <div className="flex items-center gap-3">
             <Image className="h-5 w-5" style={{ color: 'var(--color-text-secondary)' }} />
             <div>
@@ -79,7 +79,7 @@ const CustomBackgroundSettings = ({ onUpload, onDelete, isUploading }: CustomBac
         </div>
 
         {/* Auto-Rotate Settings */}
-        <div className="mb-6 p-4 rounded-lg" style={{ backgroundColor: 'var(--color-bg-primary)' }}>
+        <div className="mb-6 p-4 rounded-lg" style={{ backgroundColor: 'var(--color-bg-secondary)' }}>
           {/* Auto-Rotate Toggle */}
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
@@ -180,15 +180,15 @@ const CustomBackgroundSettings = ({ onUpload, onDelete, isUploading }: CustomBac
                   onClick={nextImage}
                   className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors"
                   style={{
-                    backgroundColor: 'var(--color-bg-primary)',
+                    backgroundColor: 'var(--color-bg-secondary)',
                     color: 'var(--color-text-primary)',
                     border: '1px solid var(--color-border-primary)',
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = 'var(--color-bg-secondary)';
+                    e.currentTarget.style.backgroundColor = 'var(--color-bg-tertiary)';
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'var(--color-bg-primary)';
+                    e.currentTarget.style.backgroundColor = 'var(--color-bg-secondary)';
                   }}
                   title="Next image"
                 >
@@ -228,7 +228,7 @@ const CustomBackgroundSettings = ({ onUpload, onDelete, isUploading }: CustomBac
                   key={image.id}
                   className="relative group rounded-lg overflow-hidden"
                   style={{
-                    backgroundColor: 'var(--color-bg-primary)',
+                    backgroundColor: 'var(--color-bg-secondary)',
                     border: '1px solid var(--color-border-primary)',
                   }}
                 >
@@ -266,7 +266,7 @@ const CustomBackgroundSettings = ({ onUpload, onDelete, isUploading }: CustomBac
             <div
               className="p-6 text-center rounded-lg"
               style={{
-                backgroundColor: 'var(--color-bg-primary)',
+                backgroundColor: 'var(--color-bg-secondary)',
                 border: '1px dashed var(--color-border-primary)',
               }}
             >

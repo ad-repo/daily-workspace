@@ -396,7 +396,7 @@ const Settings = () => {
             <Palette className="h-5 w-5" />
             Theme
           </h2>
-          <div className="p-6 rounded-lg" style={{ backgroundColor: 'transparent' }}>
+          <div className="p-6 rounded-lg" style={{ backgroundColor: 'var(--color-bg-primary)' }}>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 max-h-[600px] overflow-y-auto pr-2">
               {/* Create Custom Theme Button */}
               <button
@@ -590,9 +590,9 @@ const Settings = () => {
               </span>
             )}
           </h2>
-          <div className="rounded-lg p-6" style={{ backgroundColor: 'transparent' }}>
+          <div className="rounded-lg p-6" style={{ backgroundColor: 'var(--color-bg-primary)' }}>
             {/* Transparent Labels Toggle */}
-            <div className="mb-6 p-4 rounded-lg" style={{ backgroundColor: 'var(--color-bg-primary)', border: '1px solid var(--color-border-primary)' }}>
+            <div className="mb-6 p-4 rounded-lg" style={{ backgroundColor: 'var(--color-bg-secondary)', border: '1px solid var(--color-border-primary)' }}>
               <div className="flex items-center justify-between">
                 <div className="flex-1">
                   <h3 className="font-medium mb-1" style={{ color: 'var(--color-text-primary)' }}>
@@ -745,7 +745,7 @@ const Settings = () => {
           <div 
             className="mb-4 p-4 rounded-lg"
             style={{
-              backgroundColor: 'transparent',
+              backgroundColor: 'var(--color-bg-primary)',
               border: '1px solid var(--color-border-primary)'
             }}
           >
@@ -766,7 +766,7 @@ const Settings = () => {
           <div 
             className="mb-4 rounded-lg p-6"
             style={{
-              backgroundColor: 'transparent',
+              backgroundColor: 'var(--color-bg-primary)',
               border: '2px solid var(--color-border-secondary)'
             }}
           >
@@ -1043,7 +1043,7 @@ const Settings = () => {
           <div 
             className="mt-4 rounded-lg p-4"
             style={{
-              backgroundColor: 'transparent',
+              backgroundColor: 'var(--color-bg-primary)',
               border: '1px solid var(--color-border-primary)'
             }}
           >
@@ -1107,7 +1107,7 @@ const Settings = () => {
             <Clock className="h-5 w-5" />
             Timezone
           </h2>
-          <div className="rounded-lg p-6" style={{ backgroundColor: 'transparent' }}>
+          <div className="rounded-lg p-6" style={{ backgroundColor: 'var(--color-bg-primary)' }}>
             {!isEditingTimezone ? (
               // Compact display when not editing
               <div className="flex items-center justify-between">
