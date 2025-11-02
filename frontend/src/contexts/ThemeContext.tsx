@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo, useCallback, ReactNode } from 'react';
 
 // Theme definition interface
 export interface Theme {
@@ -1430,7 +1430,7 @@ export const themes: Record<string, Theme> = {
   },
   
   // PRIMARY COLOR VARIATIONS - GREENS
-  forest: {
+  forestGreen: {
     id: 'forestGreen',
     name: 'Forest Green',
     description: 'Deep forest green',
@@ -1567,9 +1567,9 @@ export const themes: Record<string, Theme> = {
   },
   
   // PRIMARY COLOR VARIATIONS - ORANGES
-  tangerine: {
+  tangerineOrange: {
     id: 'tangerineOrange',
-    name: 'Tangerine',
+    name: 'Tangerine Orange',
     description: 'Bright tangerine',
     colors: {
       bgPrimary: '#fff7ed',
@@ -1905,6 +1905,10 @@ interface ThemeContextType {
   createCustomTheme: (theme: Theme) => void;
   updateCustomTheme: (theme: Theme) => void;
   deleteCustomTheme: (themeId: string) => void;
+  isBuiltInTheme: (themeId: string) => boolean;
+  isThemeModified: (themeId: string) => boolean;
+  restoreThemeToDefault: (themeId: string) => void;
+  getDefaultTheme: (themeId: string) => Theme | null;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -1949,14 +1953,17 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
 
   const [customThemes, setCustomThemes] = useState<Theme[]>(() => loadCustomThemes());
 
-  // Combine built-in and custom themes
-  const allThemes = { ...themes };
-  customThemes.forEach(customTheme => {
-    allThemes[customTheme.id] = customTheme;
-  });
+  // Combine built-in and custom themes (memoized to prevent unnecessary recalculations)
+  const allThemes = useMemo(() => {
+    const combined = { ...themes };
+    customThemes.forEach(customTheme => {
+      combined[customTheme.id] = customTheme;
+    });
+    return combined;
+  }, [customThemes]);
 
   const theme = allThemes[currentTheme] || themes.light;
-  const availableThemes = Object.values(allThemes);
+  const availableThemes = useMemo(() => Object.values(allThemes), [allThemes]);
 
   // Apply theme CSS variables to document root
   useEffect(() => {
@@ -1975,27 +1982,27 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     root.className = `theme-${currentTheme}`;
   }, [currentTheme, theme]);
 
-  const setTheme = (themeId: string) => {
+  const setTheme = useCallback((themeId: string) => {
     if (allThemes[themeId]) {
       setCurrentTheme(themeId);
     }
-  };
+  }, [allThemes]);
 
-  const createCustomTheme = (theme: Theme) => {
+  const createCustomTheme = useCallback((theme: Theme) => {
     const newCustomThemes = [...customThemes, theme];
     setCustomThemes(newCustomThemes);
     saveCustomThemes(newCustomThemes);
-  };
+  }, [customThemes]);
 
-  const updateCustomTheme = (updatedTheme: Theme) => {
+  const updateCustomTheme = useCallback((updatedTheme: Theme) => {
     const newCustomThemes = customThemes.map(t => 
       t.id === updatedTheme.id ? updatedTheme : t
     );
     setCustomThemes(newCustomThemes);
     saveCustomThemes(newCustomThemes);
-  };
+  }, [customThemes]);
 
-  const deleteCustomTheme = (themeId: string) => {
+  const deleteCustomTheme = useCallback((themeId: string) => {
     const newCustomThemes = customThemes.filter(t => t.id !== themeId);
     setCustomThemes(newCustomThemes);
     saveCustomThemes(newCustomThemes);
@@ -2004,7 +2011,45 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     if (currentTheme === themeId) {
       setCurrentTheme('light');
     }
-  };
+  }, [customThemes, currentTheme]);
+
+  // Check if a theme is built-in (not custom)
+  const isBuiltInTheme = useCallback((themeId: string): boolean => {
+    return themeId in themes;
+  }, []);
+
+  // Check if a built-in theme has been modified (has a custom version)
+  const isThemeModified = useCallback((themeId: string): boolean => {
+    if (!(themeId in themes)) return false;
+    return customThemes.some(t => t.id === themeId);
+  }, [customThemes]);
+
+  // Get the default (built-in) version of a theme
+  const getDefaultTheme = useCallback((themeId: string): Theme | null => {
+    return themes[themeId] || null;
+  }, []);
+
+  // Restore a modified built-in theme to its default values
+  const restoreThemeToDefault = useCallback((themeId: string) => {
+    if (!(themeId in themes)) {
+      console.warn(`Cannot restore ${themeId}: not a built-in theme`);
+      return;
+    }
+
+    // Remove the custom version (if it exists)
+    const newCustomThemes = customThemes.filter(t => t.id !== themeId);
+    setCustomThemes(newCustomThemes);
+    saveCustomThemes(newCustomThemes);
+
+    // If this was the current theme, force a re-render by temporarily switching themes
+    if (currentTheme === themeId) {
+      // Temporarily switch to light theme, then back to force re-render
+      setCurrentTheme('light');
+      setTimeout(() => {
+        setCurrentTheme(themeId);
+      }, 0);
+    }
+  }, [customThemes, currentTheme]);
 
   return (
     <ThemeContext.Provider value={{ 
@@ -2015,7 +2060,11 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
       customThemes,
       createCustomTheme,
       updateCustomTheme,
-      deleteCustomTheme
+      deleteCustomTheme,
+      isBuiltInTheme,
+      isThemeModified,
+      restoreThemeToDefault,
+      getDefaultTheme
     }}>
       {children}
     </ThemeContext.Provider>

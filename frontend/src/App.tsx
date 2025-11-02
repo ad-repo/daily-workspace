@@ -9,18 +9,26 @@ import Search from './components/Search';
 import { format } from 'date-fns';
 import { TimezoneProvider } from './contexts/TimezoneContext';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { CustomBackgroundProvider } from './contexts/CustomBackgroundContext';
+import { TransparentLabelsProvider } from './contexts/TransparentLabelsContext';
+import { FullScreenProvider, useFullScreen } from './contexts/FullScreenContext';
+import { TimelineVisibilityProvider } from './contexts/TimelineVisibilityContext';
+import CustomBackground from './components/CustomBackground';
 
-function App() {
+const AppContent = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const today = format(new Date(), 'yyyy-MM-dd');
+  const { isFullScreen } = useFullScreen();
 
   return (
-    <ThemeProvider>
-      <TimezoneProvider>
-        <Router>
-          <div className="min-h-screen" style={{ backgroundColor: 'var(--color-bg-secondary)' }}>
-            <Navigation />
-            <div className="container mx-auto px-4 py-6 max-w-7xl">
+    <Router>
+      <div className="min-h-screen" style={{ backgroundColor: 'var(--color-bg-secondary)', position: 'relative' }}>
+        <CustomBackground />
+        <Navigation />
+        <div 
+          className={`mx-auto px-4 py-6 ${isFullScreen ? 'max-w-full' : 'container max-w-7xl'}`}
+          style={{ transition: 'max-width 0.3s ease' }}
+        >
             <Routes>
             <Route
               path="/"
@@ -52,9 +60,25 @@ function App() {
               element={<Settings />}
             />
             </Routes>
-          </div>
         </div>
-      </Router>
+      </div>
+    </Router>
+  );
+};
+
+function App() {
+  return (
+    <ThemeProvider>
+      <TimezoneProvider>
+        <CustomBackgroundProvider>
+          <TransparentLabelsProvider>
+            <FullScreenProvider>
+              <TimelineVisibilityProvider>
+                <AppContent />
+              </TimelineVisibilityProvider>
+            </FullScreenProvider>
+          </TransparentLabelsProvider>
+        </CustomBackgroundProvider>
       </TimezoneProvider>
     </ThemeProvider>
   );

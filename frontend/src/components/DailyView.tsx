@@ -8,12 +8,16 @@ import type { DailyNote, NoteEntry } from '../types';
 import NoteEntryCard from './NoteEntryCard';
 import LabelSelector from './LabelSelector';
 import EntryTimeline from './EntryTimeline';
+import { useFullScreen } from '../contexts/FullScreenContext';
+import { useTimelineVisibility } from '../contexts/TimelineVisibilityContext';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 const DailyView = () => {
   const { date } = useParams<{ date: string }>();
   const navigate = useNavigate();
+  const { isFullScreen } = useFullScreen();
+  const { isTimelineVisible } = useTimelineVisibility();
   const [note, setNote] = useState<DailyNote | null>(null);
   const [entries, setEntries] = useState<NoteEntry[]>([]);
   const [loading, setLoading] = useState(false);
@@ -241,13 +245,13 @@ const DailyView = () => {
   const isToday = format(new Date(), 'yyyy-MM-dd') === date;
 
   return (
-    <div className="relative page-fade-in">
-      <EntryTimeline entries={entries} />
-      <div className="max-w-4xl mx-auto px-4 xl:px-8">
+    <div className="relative page-fade-in" style={{ zIndex: 1 }}>
+      {isTimelineVisible && !isFullScreen && <EntryTimeline entries={entries} />}
+      <div className={`mx-auto px-4 xl:px-8 ${isFullScreen ? 'max-w-full' : 'max-w-4xl'}`}>
       {/* Header */}
       <div 
         className="rounded-lg shadow-lg p-8 mb-8"
-        style={{ backgroundColor: 'var(--color-card-bg)' }}
+        style={{ backgroundColor: 'var(--color-bg-primary)' }}
       >
         <div className="flex items-center justify-between mb-4">
           <button
@@ -301,24 +305,15 @@ const DailyView = () => {
           <div className="flex flex-col items-center gap-6 w-full">
             {/* Daily Goals Section */}
             <div className="w-full">
-              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text-primary)' }}>Daily Goals:</label>
+              <label className="block text-lg font-semibold mb-2" style={{ color: 'var(--color-text-primary)' }}>Daily Goals:</label>
               <textarea
                 value={dailyGoal}
                 onChange={(e) => handleDailyGoalChange(e.target.value)}
                 placeholder="What are your main goals for today?"
-                className="w-full px-4 py-3 rounded-lg resize-none focus:outline-none"
+                className="w-full px-0 border-none resize-none focus:outline-none focus:ring-0"
                 style={{
-                  backgroundColor: 'var(--color-bg-primary)',
+                  backgroundColor: 'transparent',
                   color: 'var(--color-text-primary)',
-                  border: '1px solid var(--color-border-primary)',
-                }}
-                onFocus={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--color-accent)';
-                  e.currentTarget.style.boxShadow = '0 0 0 2px var(--color-accent)';
-                }}
-                onBlur={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--color-border-primary)';
-                  e.currentTarget.style.boxShadow = 'none';
                 }}
                 rows={2}
               />
@@ -326,7 +321,7 @@ const DailyView = () => {
             
             {/* Labels Section */}
             <div className="w-full">
-              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text-primary)' }}>Day Labels:</label>
+              <label className="block text-lg font-semibold mb-2" style={{ color: 'var(--color-text-primary)' }}>Day Labels:</label>
               <LabelSelector
                 date={date}
                 selectedLabels={note?.labels || []}
@@ -342,7 +337,7 @@ const DailyView = () => {
           <div 
             className="rounded-lg shadow-lg p-8 text-center"
             style={{ 
-              backgroundColor: 'var(--color-card-bg)',
+              backgroundColor: 'var(--color-bg-primary)',
               color: 'var(--color-text-secondary)'
             }}
           >
@@ -351,7 +346,7 @@ const DailyView = () => {
         ) : entries.length === 0 ? (
           <div 
             className="rounded-lg shadow-lg p-8 text-center"
-            style={{ backgroundColor: 'var(--color-card-bg)' }}
+            style={{ backgroundColor: 'var(--color-bg-primary)' }}
           >
             <p className="mb-4" style={{ color: 'var(--color-text-secondary)' }}>No entries for this day yet.</p>
             <div className="flex gap-3 justify-center">
@@ -446,9 +441,9 @@ const DailyView = () => {
                       color: 'var(--color-text-secondary)'
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = '#9333ea';
-                      e.currentTarget.style.backgroundColor = '#9333ea10';
-                      e.currentTarget.style.color = '#9333ea';
+                      e.currentTarget.style.borderColor = 'var(--color-accent)';
+                      e.currentTarget.style.backgroundColor = `${getComputedStyle(document.documentElement).getPropertyValue('--color-accent')}10`;
+                      e.currentTarget.style.color = 'var(--color-accent)';
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.borderColor = 'var(--color-border-secondary)';
@@ -483,18 +478,18 @@ const DailyView = () => {
                     disabled={selectedEntries.size < 2 || isMerging}
                     className="flex-1 px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2"
                     style={{
-                      backgroundColor: selectedEntries.size >= 2 && !isMerging ? '#9333ea' : 'var(--color-bg-tertiary)',
-                      color: selectedEntries.size >= 2 && !isMerging ? '#ffffff' : 'var(--color-text-tertiary)',
+                      backgroundColor: selectedEntries.size >= 2 && !isMerging ? 'var(--color-accent)' : 'var(--color-bg-tertiary)',
+                      color: selectedEntries.size >= 2 && !isMerging ? 'var(--color-accent-text)' : 'var(--color-text-tertiary)',
                       cursor: selectedEntries.size >= 2 && !isMerging ? 'pointer' : 'not-allowed'
                     }}
                     onMouseEnter={(e) => {
                       if (selectedEntries.size >= 2 && !isMerging) {
-                        e.currentTarget.style.backgroundColor = '#7e22ce';
+                        e.currentTarget.style.backgroundColor = 'var(--color-accent-hover)';
                       }
                     }}
                     onMouseLeave={(e) => {
                       if (selectedEntries.size >= 2 && !isMerging) {
-                        e.currentTarget.style.backgroundColor = '#9333ea';
+                        e.currentTarget.style.backgroundColor = 'var(--color-accent)';
                       }
                     }}
                   >

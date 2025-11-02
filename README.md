@@ -23,8 +23,10 @@ A modern, powerful daily workspace application for capturing and organizing your
 
 ### 🏷️ Organization
 - **Labels**: Add text or emoji labels to both days and individual entries
+- **Label Deletion**: Remove unused labels from Settings
 - **Autocomplete**: Smart label suggestions with predictive text
 - **Emoji Labels**: Special rendering for emoji-only labels
+- **Transparent Mode**: Toggle between solid or transparent label backgrounds
 - **Daily Goals**: Set goals for each day (visible as tooltips in calendar)
 
 ### 📅 Calendar & Visualization
@@ -51,6 +53,7 @@ A modern, powerful daily workspace application for capturing and organizing your
 
 ### 🔍 Search & Discovery
 - **Global Search**: Search entries by text content and/or labels
+- **Status Filters**: Filter by starred, completed, or not completed entries
 - **Search History**: Unlimited search history (no duplicates)
 - **Label Filtering**: Find entries by specific labels
 - **Direct Navigation**: Click search results to jump to specific entries
@@ -61,11 +64,30 @@ A modern, powerful daily workspace application for capturing and organizing your
 - **Continue from Previous Day**: Copy entries from past days to today
 - **Entry Management**: Edit, delete, and reorder entries
 
+### 🖥️ View Customization
+- **Full-Screen Mode**: Expand daily view to full width for focused work
+- **Timeline Toggle**: Show/hide left timeline sidebar for more space
+- **Smart Layout**: Timeline auto-hides in full-screen, auto-shows when toggled on
+- **Persistent Preferences**: View settings saved across sessions
+- **One-Click Toggle**: Quick access from navigation bar
+
 ### 💾 Data Management
 - **Backup & Restore**: Full JSON export/import with all data
 - **Download Uploads**: Export all uploaded files as a zip archive
 - **Persistent Storage**: SQLite database with all metadata preserved
 - **Docker Volumes**: Data persists across container restarts
+- **Full Restore**: One-click restore from both JSON + ZIP backups
+- **Migration Support**: Automated migration scripts for version upgrades
+
+### 🎨 Themes & Customization
+- **Built-in Themes**: 30+ professionally designed color themes
+- **Custom Themes**: Create and edit your own themes
+- **Theme Editor**: Modify existing themes with live preview
+- **Restore to Default**: Reset built-in themes to original colors
+- **Transparent Labels**: Toggle between solid or transparent label backgrounds
+- **Custom Backgrounds**: Upload and rotate your own background images
+- **Auto-Rotate**: Set interval for automatic background image cycling
+- **Theme Variables**: CSS custom properties for consistent styling
 
 ## 🛠️ Tech Stack
 

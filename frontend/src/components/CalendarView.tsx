@@ -106,8 +106,8 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto page-fade-in">
-      <div className="rounded-lg shadow-lg p-6" style={{ backgroundColor: 'var(--color-card-bg)' }}>
+    <div className="max-w-4xl mx-auto page-fade-in" style={{ position: 'relative', zIndex: 1 }}>
+      <div className="rounded-lg shadow-lg p-6" style={{ backgroundColor: 'var(--color-bg-primary)' }}>
         <h1 className="text-3xl font-bold mb-6" style={{ color: 'var(--color-text-primary)' }}>Calendar View</h1>
         
         {loading && (
