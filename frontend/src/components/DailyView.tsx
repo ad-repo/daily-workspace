@@ -310,19 +310,10 @@ const DailyView = () => {
                 value={dailyGoal}
                 onChange={(e) => handleDailyGoalChange(e.target.value)}
                 placeholder="What are your main goals for today?"
-                className="w-full px-4 py-3 rounded-lg resize-none focus:outline-none"
+                className="w-full px-0 border-none resize-none focus:outline-none focus:ring-0"
                 style={{
-                  backgroundColor: 'var(--color-bg-primary)',
+                  backgroundColor: 'transparent',
                   color: 'var(--color-text-primary)',
-                  border: '1px solid var(--color-border-primary)',
-                }}
-                onFocus={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--color-accent)';
-                  e.currentTarget.style.boxShadow = '0 0 0 2px var(--color-accent)';
-                }}
-                onBlur={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--color-border-primary)';
-                  e.currentTarget.style.boxShadow = 'none';
                 }}
                 rows={2}
               />
