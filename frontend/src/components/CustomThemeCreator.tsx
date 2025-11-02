@@ -295,7 +295,7 @@ const CustomThemeCreator: React.FC<CustomThemeCreatorProps> = ({ editingTheme, o
                       className="flex-1 px-3 py-2 rounded-lg text-sm font-medium"
                       style={{
                         backgroundColor: colors.success,
-                        color: '#ffffff',
+                        color: colors.accentText,
                       }}
                     >
                       Success
@@ -304,7 +304,7 @@ const CustomThemeCreator: React.FC<CustomThemeCreatorProps> = ({ editingTheme, o
                       className="flex-1 px-3 py-2 rounded-lg text-sm font-medium"
                       style={{
                         backgroundColor: colors.error,
-                        color: '#ffffff',
+                        color: colors.accentText,
                       }}
                     >
                       Error
@@ -315,7 +315,7 @@ const CustomThemeCreator: React.FC<CustomThemeCreatorProps> = ({ editingTheme, o
                       className="flex-1 px-3 py-2 rounded-lg text-sm font-medium"
                       style={{
                         backgroundColor: colors.warning,
-                        color: '#ffffff',
+                        color: colors.accentText,
                       }}
                     >
                       Warning
@@ -324,7 +324,7 @@ const CustomThemeCreator: React.FC<CustomThemeCreatorProps> = ({ editingTheme, o
                       className="flex-1 px-3 py-2 rounded-lg text-sm font-medium"
                       style={{
                         backgroundColor: colors.info,
-                        color: '#ffffff',
+                        color: colors.accentText,
                       }}
                     >
                       Info

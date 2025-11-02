@@ -446,9 +446,9 @@ const DailyView = () => {
                       color: 'var(--color-text-secondary)'
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = '#9333ea';
-                      e.currentTarget.style.backgroundColor = '#9333ea10';
-                      e.currentTarget.style.color = '#9333ea';
+                      e.currentTarget.style.borderColor = 'var(--color-accent)';
+                      e.currentTarget.style.backgroundColor = `${getComputedStyle(document.documentElement).getPropertyValue('--color-accent')}10`;
+                      e.currentTarget.style.color = 'var(--color-accent)';
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.borderColor = 'var(--color-border-secondary)';
@@ -483,18 +483,18 @@ const DailyView = () => {
                     disabled={selectedEntries.size < 2 || isMerging}
                     className="flex-1 px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2"
                     style={{
-                      backgroundColor: selectedEntries.size >= 2 && !isMerging ? '#9333ea' : 'var(--color-bg-tertiary)',
-                      color: selectedEntries.size >= 2 && !isMerging ? '#ffffff' : 'var(--color-text-tertiary)',
+                      backgroundColor: selectedEntries.size >= 2 && !isMerging ? 'var(--color-accent)' : 'var(--color-bg-tertiary)',
+                      color: selectedEntries.size >= 2 && !isMerging ? 'var(--color-accent-text)' : 'var(--color-text-tertiary)',
                       cursor: selectedEntries.size >= 2 && !isMerging ? 'pointer' : 'not-allowed'
                     }}
                     onMouseEnter={(e) => {
                       if (selectedEntries.size >= 2 && !isMerging) {
-                        e.currentTarget.style.backgroundColor = '#7e22ce';
+                        e.currentTarget.style.backgroundColor = 'var(--color-accent-hover)';
                       }
                     }}
                     onMouseLeave={(e) => {
                       if (selectedEntries.size >= 2 && !isMerging) {
-                        e.currentTarget.style.backgroundColor = '#9333ea';
+                        e.currentTarget.style.backgroundColor = 'var(--color-accent)';
                       }
                     }}
                   >

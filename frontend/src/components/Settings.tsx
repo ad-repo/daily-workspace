@@ -509,7 +509,7 @@ const Settings = () => {
                           className="w-6 h-6 rounded-full flex items-center justify-center shadow-lg transition-all"
                           style={{
                             backgroundColor: 'var(--color-info)',
-                            color: '#ffffff',
+                            color: 'var(--color-accent-text)',
                           }}
                           onMouseEnter={(e) => {
                             e.currentTarget.style.transform = 'scale(1.1)';
@@ -532,7 +532,7 @@ const Settings = () => {
                             className="w-6 h-6 rounded-full flex items-center justify-center shadow-lg transition-all"
                             style={{
                               backgroundColor: 'var(--color-warning)',
-                              color: '#ffffff',
+                              color: 'var(--color-accent-text)',
                             }}
                             onMouseEnter={(e) => {
                               e.currentTarget.style.transform = 'scale(1.1)';
@@ -979,7 +979,7 @@ const Settings = () => {
                 className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg transition-colors font-medium cursor-pointer"
                 style={{
                   backgroundColor: isImporting ? 'var(--color-bg-tertiary)' : 'var(--color-success)',
-                  color: isImporting ? 'var(--color-text-tertiary)' : '#ffffff'
+                  color: isImporting ? 'var(--color-text-tertiary)' : 'var(--color-accent-text)'
                 }}
                 onMouseEnter={(e) => {
                   if (!isImporting) e.currentTarget.style.opacity = '0.9';
@@ -1016,8 +1016,8 @@ const Settings = () => {
                 disabled={isDownloadingFiles}
                 className="flex items-center gap-2 px-4 py-2 text-sm rounded-lg transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{
-                  backgroundColor: isDownloadingFiles ? 'var(--color-bg-tertiary)' : '#9333ea',
-                  color: '#ffffff'
+                  backgroundColor: isDownloadingFiles ? 'var(--color-bg-tertiary)' : 'var(--color-accent)',
+                  color: isDownloadingFiles ? 'var(--color-text-tertiary)' : 'var(--color-accent-text)'
                 }}
                 onMouseEnter={(e) => {
                   if (!isDownloadingFiles) e.currentTarget.style.opacity = '0.9';
@@ -1033,8 +1033,8 @@ const Settings = () => {
               <label 
                 className="flex items-center gap-2 px-4 py-2 text-sm rounded-lg transition-colors font-medium cursor-pointer"
                 style={{
-                  backgroundColor: isRestoringFiles ? 'var(--color-bg-tertiary)' : '#9333ea',
-                  color: '#ffffff',
+                  backgroundColor: isRestoringFiles ? 'var(--color-bg-tertiary)' : 'var(--color-accent)',
+                  color: isRestoringFiles ? 'var(--color-text-tertiary)' : 'var(--color-accent-text)',
                   opacity: isRestoringFiles ? '0.5' : '1'
                 }}
                 onMouseEnter={(e) => {

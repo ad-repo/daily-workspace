@@ -538,7 +538,7 @@ const Reports = () => {
                 className="flex items-center gap-2 px-6 py-3 rounded-lg transition-colors"
                 style={{
                   backgroundColor: 'var(--color-success)',
-                  color: '#ffffff'
+                  color: 'var(--color-accent-text)'
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.opacity = '0.9';
@@ -776,7 +776,7 @@ const Reports = () => {
               className="px-6 py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               style={{
                 backgroundColor: loadingAll ? 'var(--color-bg-tertiary)' : 'var(--color-success)',
-                color: loadingAll ? 'var(--color-text-tertiary)' : '#ffffff'
+                color: loadingAll ? 'var(--color-text-tertiary)' : 'var(--color-accent-text)'
               }}
               onMouseEnter={(e) => {
                 if (!loadingAll) e.currentTarget.style.opacity = '0.9';
@@ -795,7 +795,7 @@ const Reports = () => {
                   className="flex items-center gap-2 px-6 py-3 rounded-lg transition-colors"
                   style={{
                     backgroundColor: copiedAllReport ? 'var(--color-success)' : 'var(--color-text-secondary)',
-                    color: '#ffffff'
+                    color: 'var(--color-accent-text)'
                   }}
                   onMouseEnter={(e) => {
                     if (!copiedAllReport) e.currentTarget.style.backgroundColor = 'var(--color-text-primary)';
