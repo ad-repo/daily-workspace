@@ -19,6 +19,8 @@ const CustomBackgroundSettings = ({ onUpload, onDelete, isUploading }: CustomBac
     toggleAutoRotate,
     rotationInterval,
     setRotationInterval,
+    tileMode,
+    toggleTileMode,
   } = useCustomBackground();
 
   return (
@@ -45,37 +47,26 @@ const CustomBackgroundSettings = ({ onUpload, onDelete, isUploading }: CustomBac
               </div>
             </div>
           </div>
-          <label className="relative inline-flex items-center cursor-pointer">
-            <input
-              type="checkbox"
-              checked={enabled}
-              onChange={toggleEnabled}
-              disabled={uploadedImages.length === 0}
-              className="sr-only peer"
-            />
-            <div
-              className="w-11 h-6 rounded-full peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-offset-2 transition-colors"
+          <button
+            onClick={toggleEnabled}
+            disabled={uploadedImages.length === 0}
+            className="ml-4 relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2"
+            style={{
+              backgroundColor: enabled ? 'var(--color-accent)' : 'var(--color-bg-secondary)',
+              borderColor: 'var(--color-border-primary)',
+              borderWidth: '1px',
+              opacity: uploadedImages.length === 0 ? 0.5 : 1,
+              cursor: uploadedImages.length === 0 ? 'not-allowed' : 'pointer',
+            }}
+          >
+            <span
+              className="inline-block h-4 w-4 transform rounded-full transition-transform"
               style={{
-                backgroundColor: enabled ? 'var(--color-accent)' : 'var(--color-border-secondary)',
-                opacity: uploadedImages.length === 0 ? 0.5 : 1,
+                backgroundColor: 'var(--color-bg-primary)',
+                transform: enabled ? 'translateX(1.5rem)' : 'translateX(0.25rem)',
               }}
-              onFocus={(e) => {
-                if (uploadedImages.length > 0) {
-                  e.currentTarget.style.boxShadow = `0 0 0 2px var(--color-accent)`;
-                }
-              }}
-              onBlur={(e) => {
-                e.currentTarget.style.boxShadow = 'none';
-              }}
-            >
-              <div
-                className="absolute top-0.5 left-0.5 bg-white rounded-full h-5 w-5 transition-transform"
-                style={{
-                  transform: enabled ? 'translateX(20px)' : 'translateX(0)',
-                }}
-              />
-            </div>
-          </label>
+            />
+          </button>
         </div>
 
         {/* Auto-Rotate Settings */}
@@ -93,37 +84,26 @@ const CustomBackgroundSettings = ({ onUpload, onDelete, isUploading }: CustomBac
                 </div>
               </div>
             </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                checked={autoRotate}
-                onChange={toggleAutoRotate}
-                disabled={!enabled}
-                className="sr-only peer"
-              />
-              <div
-                className="w-11 h-6 rounded-full peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-offset-2 transition-colors"
+            <button
+              onClick={toggleAutoRotate}
+              disabled={!enabled}
+              className="ml-4 relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2"
+              style={{
+                backgroundColor: autoRotate ? 'var(--color-accent)' : 'var(--color-bg-secondary)',
+                borderColor: 'var(--color-border-primary)',
+                borderWidth: '1px',
+                opacity: !enabled ? 0.5 : 1,
+                cursor: !enabled ? 'not-allowed' : 'pointer',
+              }}
+            >
+              <span
+                className="inline-block h-4 w-4 transform rounded-full transition-transform"
                 style={{
-                  backgroundColor: autoRotate ? 'var(--color-accent)' : 'var(--color-border-secondary)',
-                  opacity: !enabled ? 0.5 : 1,
+                  backgroundColor: 'var(--color-bg-primary)',
+                  transform: autoRotate ? 'translateX(1.5rem)' : 'translateX(0.25rem)',
                 }}
-                onFocus={(e) => {
-                  if (enabled) {
-                    e.currentTarget.style.boxShadow = `0 0 0 2px var(--color-accent)`;
-                  }
-                }}
-                onBlur={(e) => {
-                  e.currentTarget.style.boxShadow = 'none';
-                }}
-              >
-                <div
-                  className="absolute top-0.5 left-0.5 bg-white rounded-full h-5 w-5 transition-transform"
-                  style={{
-                    transform: autoRotate ? 'translateX(20px)' : 'translateX(0)',
-                  }}
-                />
-              </div>
-            </label>
+              />
+            </button>
           </div>
 
           {/* Rotation Interval */}
@@ -166,6 +146,41 @@ const CustomBackgroundSettings = ({ onUpload, onDelete, isUploading }: CustomBac
               </p>
             </div>
           )}
+        </div>
+
+        {/* Tile Mode Toggle */}
+        <div className="mb-6 flex items-center justify-between p-4 rounded-lg" style={{ backgroundColor: 'var(--color-bg-secondary)' }}>
+          <div className="flex items-center gap-3">
+            <Image className="h-5 w-5" style={{ color: 'var(--color-text-secondary)' }} />
+            <div>
+              <div className="font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+                Tile Background
+              </div>
+              <div className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+                Tile the image across the background instead of covering/centering
+              </div>
+            </div>
+          </div>
+          <button
+            onClick={toggleTileMode}
+            disabled={!enabled}
+            className="ml-4 relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2"
+            style={{
+              backgroundColor: tileMode ? 'var(--color-accent)' : 'var(--color-bg-secondary)',
+              borderColor: 'var(--color-border-primary)',
+              borderWidth: '1px',
+              opacity: !enabled ? 0.5 : 1,
+              cursor: !enabled ? 'not-allowed' : 'pointer',
+            }}
+          >
+            <span
+              className="inline-block h-4 w-4 transform rounded-full transition-transform"
+              style={{
+                backgroundColor: 'var(--color-bg-primary)',
+                transform: tileMode ? 'translateX(1.5rem)' : 'translateX(0.25rem)',
+              }}
+            />
+          </button>
         </div>
 
         {/* Upload Images Section */}
