@@ -9,12 +9,20 @@ import { useTimelineVisibility } from '../contexts/TimelineVisibilityContext';
 const Navigation = () => {
   const location = useLocation();
   const { timezone } = useTimezone();
-  const { isFullScreen, toggleFullScreen } = useFullScreen();
-  const { isTimelineVisible, toggleTimeline } = useTimelineVisibility();
+  const { isFullScreen, toggleFullScreen, setFullScreen } = useFullScreen();
+  const { isTimelineVisible, toggleTimeline, setTimelineVisible } = useTimelineVisibility();
   const now = new Date();
   const today = formatInTimeZone(now, timezone, 'yyyy-MM-dd');
   const dayName = formatInTimeZone(now, timezone, 'EEEE'); // Full day name like "Monday"
   const isOnDayView = location.pathname.includes('/day/');
+
+  const handleTimelineToggle = () => {
+    // If toggling timeline on while in full-screen mode, exit full-screen first
+    if (!isTimelineVisible && isFullScreen) {
+      setFullScreen(false);
+    }
+    toggleTimeline();
+  };
 
   return (
     <nav className="shadow-sm" style={{ backgroundColor: 'var(--color-card-bg)', borderBottom: '1px solid var(--color-border-primary)' }}>
@@ -81,7 +89,7 @@ const Navigation = () => {
             {/* Timeline toggle - only show on day view */}
             {isOnDayView && (
               <button
-                onClick={toggleTimeline}
+                onClick={handleTimelineToggle}
                 className="flex items-center px-3 py-2 rounded-lg transition-colors"
                 style={{
                   backgroundColor: 'transparent',
