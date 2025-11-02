@@ -1430,7 +1430,7 @@ export const themes: Record<string, Theme> = {
   },
   
   // PRIMARY COLOR VARIATIONS - GREENS
-  forest: {
+  forestGreen: {
     id: 'forestGreen',
     name: 'Forest Green',
     description: 'Deep forest green',
@@ -1567,9 +1567,9 @@ export const themes: Record<string, Theme> = {
   },
   
   // PRIMARY COLOR VARIATIONS - ORANGES
-  tangerine: {
+  tangerineOrange: {
     id: 'tangerineOrange',
-    name: 'Tangerine',
+    name: 'Tangerine Orange',
     description: 'Bright tangerine',
     colors: {
       bgPrimary: '#fff7ed',
