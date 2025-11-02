@@ -14,6 +14,13 @@
 - Keep TypeScript strict mode enabled
 - No console.log statements in production code (except critical errors)
 
+## Code Consistency
+- **CRITICAL**: If there is an established style/pattern for similar functionality in the project, use it
+- Always check existing implementations before writing new code
+- Keep all similar UI components uniform (buttons, toggles, forms, etc.)
+- Match existing naming conventions, file structure, and code organization
+- Don't introduce new patterns when established ones exist
+
 ## UI/UX Standards
 - All toggle buttons must have consistent styling across the app
 - Use theme variables (var(--color-*)) instead of hardcoded colors
@@ -36,8 +43,11 @@
 - [ ] All linter errors fixed
 - [ ] Database migrations created (if schema changed)
 - [ ] Backup/restore scripts updated (if data model changed)
+- [ ] Documentation updated to reflect all changes
+- [ ] README/docs updated if user-facing functionality changed
+- [ ] Verified existing docs still accurate
 - [ ] No hardcoded sensitive data or API keys
-- [ ] README/docs updated if new features added
+- [ ] Followed established patterns and styles in codebase
 - [ ] Test in development environment
 
 ## File Organization
@@ -54,8 +64,11 @@
 - Test with existing data (not just fresh installs)
 
 ## Documentation
-- Update relevant .md files when adding major features
+- **CRITICAL**: Documentation must be updated with every change
+- Update relevant .md files when adding any features (not just major ones)
+- Update README if user-facing functionality changes
 - Keep migration guides up to date
 - Document breaking changes prominently
 - Add inline comments for complex logic
+- Verify existing docs still match current implementation
 
