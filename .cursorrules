@@ -71,4 +71,3 @@
 - Document breaking changes prominently
 - Add inline comments for complex logic
 - Verify existing docs still match current implementation
-
