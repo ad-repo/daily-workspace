@@ -452,7 +452,7 @@ const Search = () => {
                         )}
                       </div>
                       <div className="flex flex-wrap gap-2 mb-3">
-                        {entry.labels.map((label) => (
+                        {entry.labels.map((label: any) => (
                           <span
                             key={label.id}
                             className="inline-block px-2.5 py-0.5 rounded-full text-xs font-medium"

@@ -41,6 +41,25 @@ Thumbs.db
 frontend/dist/
 frontend/build/
 
+# Android
+frontend/android/build/
+frontend/android/app/build/
+frontend/android/.gradle/
+frontend/android/.idea/
+frontend/android/local.properties
+frontend/android/gradlew
+frontend/android/gradlew.bat
+frontend/android/gradle/wrapper/gradle-wrapper.jar
+frontend/android/capacitor-cordova-android-plugins/
+*.apk
+*.aab
+*.keystore
+
+# Capacitor
+frontend/android/app/src/main/assets/public/
+frontend/android/app/src/main/assets/capacitor.config.json
+frontend/.capacitor/
+
 # Data
 backend/data/
 

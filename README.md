@@ -2,6 +2,17 @@
 
 A modern, powerful daily workspace application for capturing and organizing your thoughts, tasks, and work throughout the day. Built with FastAPI (Python) backend and React (TypeScript) frontend.
 
+## 📱 Android App Available!
+
+**NEW**: Native Android app with camera and microphone support! Optimized for Google Pixel 7a and modern Android devices.
+
+- ✅ Native camera and microphone access (no browser restrictions)
+- ✅ Optimized for Pixel 7a (notch support, OLED, gesture navigation)
+- ✅ Installable directly from your server (no Play Store needed)
+- ✅ Offline page caching for faster load times
+
+👉 **[Android Setup Guide](./ANDROID_APP.md)** - Build and distribute your own APK
+
 ## ✨ Features
 
 ### 📝 Note Taking

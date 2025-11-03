@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Track the Thing</string>
+    <string name="title_activity_main">Track the Thing</string>
+    <string name="package_name">com.trackthething.app</string>
+    <string name="custom_url_scheme">com.trackthething.app</string>
+</resources>

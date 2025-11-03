@@ -142,7 +142,9 @@ const LabelSelector = ({ date, entryId, selectedLabels, onLabelsChange, onOptimi
       }
 
       // Add label to note or entry
-      await addLabelToItem(label);
+      if (label) {
+        await addLabelToItem(label);
+      }
       setNewLabelName('');
     } catch (error: any) {
       console.error('Failed to add label:', error);
@@ -209,7 +211,9 @@ const LabelSelector = ({ date, entryId, selectedLabels, onLabelsChange, onOptimi
       }
 
       // Add label to note or entry
-      await addLabelToItem(label);
+      if (label) {
+        await addLabelToItem(label);
+      }
       setNewLabelName('');
     } catch (error: any) {
       console.error('Failed to add emoji label:', error);
@@ -230,12 +234,6 @@ const LabelSelector = ({ date, entryId, selectedLabels, onLabelsChange, onOptimi
             value={newLabelName}
             onChange={(e) => handleInputChange(e.target.value)}
             onKeyPress={handleKeyPress}
-            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-            onFocus={() => {
-              if (newLabelName.trim() && filteredSuggestions.length > 0) {
-                setShowSuggestions(true);
-              }
-            }}
             placeholder="Type a label name or emoji..."
             disabled={loading}
             className="w-full px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 disabled:opacity-50"

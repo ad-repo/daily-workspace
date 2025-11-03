@@ -514,7 +514,6 @@ const Settings = () => {
                         boxShadow: currentTheme === theme.id 
                           ? `0 20px 25px -5px ${theme.colors.cardShadow}, 0 10px 10px -5px ${theme.colors.cardShadow}`
                           : `0 4px 6px -1px ${theme.colors.cardShadow}`,
-                        ringColor: currentTheme === theme.id ? theme.colors.accent : 'transparent',
                       }}
                       title={theme.description}
                     >

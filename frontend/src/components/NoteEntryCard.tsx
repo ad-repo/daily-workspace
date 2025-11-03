@@ -124,8 +124,7 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onMoveToTop,
       await axios.patch(`${API_URL}/api/entries/${entry.id}`, {
         is_completed: newValue
       });
-      // Reload the note to sync data
-      onLabelsChange();
+      // Update successful - state already updated
     } catch (error) {
       console.error('Failed to update completed status:', error);
       setIsCompleted(!newValue); // Revert on error
@@ -140,8 +139,7 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onMoveToTop,
       await axios.patch(`${API_URL}/api/entries/${entry.id}`, {
         is_dev_null: newValue
       });
-      // Reload the note to sync data
-      onLabelsChange();
+      // Update successful - state already updated
     } catch (error) {
       console.error('Failed to update dev_null status:', error);
       setIsDevNull(!newValue); // Revert on error

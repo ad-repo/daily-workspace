@@ -49,9 +49,11 @@ export interface NoteEntryUpdate {
 export interface DailyNoteCreate {
   date: string;
   fire_rating?: number;
+  daily_goal?: string;
 }
 
 export interface DailyNoteUpdate {
   fire_rating?: number;
+  daily_goal?: string;
 }
 
