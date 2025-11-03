@@ -32,6 +32,8 @@ import {
 import { LinkPreviewExtension, fetchLinkPreview } from '../extensions/LinkPreview';
 import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
 interface RichTextEditorProps {
   content: string;
   onChange: (content: string) => void;
@@ -165,14 +167,14 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
             
             try {
               if (file.type.startsWith('image/')) {
-                const response = await fetch('http://localhost:8000/api/uploads/image', {
+                const response = await fetch(`${API_BASE_URL}/api/uploads/image`, {
                   method: 'POST',
                   body: formData,
                 });
                 
                 if (response.ok) {
                   const data = await response.json();
-                  const imageUrl = `http://localhost:8000${data.url}`;
+                  const imageUrl = `${API_BASE_URL}${data.url}`;
                   const pos = view.posAtCoords({ left: event.clientX, top: event.clientY });
                   if (pos && editor) {
                     editor.chain().focus().insertContentAt(pos.pos, {
@@ -182,7 +184,7 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
                   }
                 }
               } else {
-                const response = await fetch('http://localhost:8000/api/uploads/file', {
+                const response = await fetch(`${API_BASE_URL}/api/uploads/file`, {
                   method: 'POST',
                   body: formData,
                 });
@@ -218,13 +220,13 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
                 const formData = new FormData();
                 formData.append('file', file);
                 
-                fetch('http://localhost:8000/api/uploads/image', {
+                fetch(`${API_BASE_URL}/api/uploads/image`, {
                   method: 'POST',
                   body: formData,
                 })
                   .then(response => response.json())
                   .then(data => {
-                    const imageUrl = `http://localhost:8000${data.url}`;
+                    const imageUrl = `${API_BASE_URL}${data.url}`;
                     editor?.chain().focus().setImage({ src: imageUrl }).run();
                   })
                   .catch(error => {
@@ -457,7 +459,7 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
       formData.append('file', file);
       
       try {
-        const response = await fetch('http://localhost:8000/api/uploads/image', {
+        const response = await fetch(`${API_BASE_URL}/api/uploads/image`, {
           method: 'POST',
           body: formData,
         });
@@ -465,7 +467,7 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
         if (!response.ok) throw new Error('Upload failed');
         
         const data = await response.json();
-        const imageUrl = `http://localhost:8000${data.url}`;
+        const imageUrl = `${API_BASE_URL}${data.url}`;
         
         editor.chain().focus().setImage({ src: imageUrl }).run();
       } catch (error) {
@@ -571,14 +573,14 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
       formData.append('file', blob, 'camera-photo.jpg');
       
       try {
-        const response = await fetch('http://localhost:8000/api/uploads/image', {
+        const response = await fetch(`${API_BASE_URL}/api/uploads/image`, {
           method: 'POST',
           body: formData,
         });
         
         if (response.ok) {
           const data = await response.json();
-          const imageUrl = `http://localhost:8000${data.url}`;
+          const imageUrl = `${API_BASE_URL}${data.url}`;
           editor.chain().focus().setImage({ src: imageUrl }).run();
           closeCamera();
         }
@@ -639,14 +641,14 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
       formData.append('file', blob, 'recorded-video.webm');
       
       try {
-        const response = await fetch('http://localhost:8000/api/uploads/file', {
+        const response = await fetch(`${API_BASE_URL}/api/uploads/file`, {
           method: 'POST',
           body: formData,
         });
         
         if (response.ok) {
           const data = await response.json();
-          const videoUrl = `http://localhost:8000${data.url}`;
+          const videoUrl = `${API_BASE_URL}${data.url}`;
           
           // Insert video using the custom video node
           editor?.chain().focus().insertContent({
