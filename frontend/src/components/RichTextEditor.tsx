@@ -77,11 +77,17 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
   const [isRecordingVideo, setIsRecordingVideo] = useState(false);
   const recordedChunksRef = useRef<Blob[]>([]);
   
-  // Check if camera/video should be available
-  // Camera requires HTTPS (secure context) on mobile browsers when accessed over network
+  // Check if camera/video/mic should be available
+  // getUserMedia (camera/video) and some Speech Recognition features require HTTPS on mobile
   const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
   const isSecureContext = window.isSecureContext;
-  const showMediaButtons = !isMobile || isSecureContext;
+  const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  
+  // Media buttons (camera/video) require secure context on mobile
+  const showMediaButtons = !isMobile || isSecureContext || isLocalhost;
+  
+  // Mic might work on mobile HTTP (browser-dependent), so we show it but warn if issues
+  const showMicButton = isSupported;
   
   const editor = useEditor({
     extensions: [
@@ -373,6 +379,20 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
       cursorPosRef.current = null;
     }
   }, [isRecording, interimText, editor]);
+
+  // Debug: Log context info on mount
+  useEffect(() => {
+    console.log('🎤 Editor Media Context:', {
+      isMobile,
+      isSecureContext,
+      isLocalhost,
+      speechRecognitionSupported: isSupported,
+      getUserMediaAvailable: !!navigator.mediaDevices?.getUserMedia,
+      location: window.location.href,
+      showMicButton,
+      showMediaButtons,
+    });
+  }, []);
 
   // Show dictation errors
   useEffect(() => {
@@ -883,7 +903,7 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
             </ToolbarButton>
 
         {/* Voice Dictation Button */}
-        {isSupported && (
+        {showMicButton && (
           <button
             onMouseDown={(e) => {
               e.preventDefault();
@@ -904,7 +924,13 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
                 e.currentTarget.style.backgroundColor = 'transparent';
               }
             }}
-            title={isRecording ? 'Stop Recording' : 'Start Voice Dictation'}
+            title={
+              isRecording 
+                ? 'Stop Recording' 
+                : !isSecureContext && !isLocalhost && isMobile
+                  ? 'Voice Dictation (may require HTTPS on mobile)'
+                  : 'Start Voice Dictation'
+            }
             type="button"
           >
             <Mic className="h-4 w-4" />
