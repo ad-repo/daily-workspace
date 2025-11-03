@@ -13,7 +13,7 @@ services:
     volumes:
       - ./backend/data:/app/data
       - ./backend:/app
-    command: ./start.sh
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --ssl-keyfile=/app/data/key.pem --ssl-certfile=/app/data/cert.pem
     restart: unless-stopped
 
   frontend:
@@ -24,7 +24,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - VITE_API_URL=http://192.168.0.186:8000
+      - VITE_API_URL=https://192.168.0.186:8000
     volumes:
       - ./frontend:/app
       - /app/node_modules
