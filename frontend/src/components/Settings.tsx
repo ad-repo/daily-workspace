@@ -5,6 +5,8 @@ import { useTimezone } from '../contexts/TimezoneContext';
 import { useTheme, Theme } from '../contexts/ThemeContext';
 import { useCustomBackground } from '../contexts/CustomBackgroundContext';
 import { useTransparentLabels } from '../contexts/TransparentLabelsContext';
+import { useDailyGoals } from '../contexts/DailyGoalsContext';
+import { useDayLabels } from '../contexts/DayLabelsContext';
 import CustomThemeCreator from './CustomThemeCreator';
 import CustomBackgroundSettings from './CustomBackgroundSettings';
 
@@ -42,6 +44,8 @@ const Settings = () => {
   } = useCustomBackground();
   
   const { transparentLabels, toggleTransparentLabels } = useTransparentLabels();
+  const { showDailyGoals, setShowDailyGoals } = useDailyGoals();
+  const { showDayLabels, setShowDayLabels } = useDayLabels();
   
   const [labels, setLabels] = useState<Label[]>([]);
   const [deletingLabelId, setDeletingLabelId] = useState<number | null>(null);
@@ -389,6 +393,77 @@ const Settings = () => {
             {message.text}
           </div>
         )}
+
+        {/* General Settings Section */}
+        <section className="mb-8">
+          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2" style={{ color: 'var(--color-text-primary)' }}>
+            <SettingsIcon className="h-5 w-5" />
+            General
+          </h2>
+          <div className="rounded-lg p-6" style={{ backgroundColor: 'var(--color-bg-primary)' }}>
+            {/* Show Daily Goals Toggle */}
+            <div className="mb-4 p-4 rounded-lg" style={{ backgroundColor: 'var(--color-bg-secondary)', border: '1px solid var(--color-border-primary)' }}>
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <h3 className="font-medium mb-1" style={{ color: 'var(--color-text-primary)' }}>
+                    Show Daily Goals
+                  </h3>
+                  <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+                    Display the daily goals section on the day view. Disable to remove it completely.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowDailyGoals(!showDailyGoals)}
+                  className={`ml-4 relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2`}
+                  style={{
+                    backgroundColor: showDailyGoals ? 'var(--color-accent)' : 'var(--color-bg-secondary)',
+                    borderColor: 'var(--color-border-primary)',
+                    borderWidth: '1px'
+                  }}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full transition-transform`}
+                    style={{
+                      backgroundColor: 'var(--color-bg-primary)',
+                      transform: showDailyGoals ? 'translateX(1.5rem)' : 'translateX(0.25rem)'
+                    }}
+                  />
+                </button>
+              </div>
+            </div>
+
+            {/* Show Day Labels Toggle */}
+            <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--color-bg-secondary)', border: '1px solid var(--color-border-primary)' }}>
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <h3 className="font-medium mb-1" style={{ color: 'var(--color-text-primary)' }}>
+                    Show Day Labels
+                  </h3>
+                  <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+                    Display the day labels section on the day view. Disable to remove it completely.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowDayLabels(!showDayLabels)}
+                  className={`ml-4 relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2`}
+                  style={{
+                    backgroundColor: showDayLabels ? 'var(--color-accent)' : 'var(--color-bg-secondary)',
+                    borderColor: 'var(--color-border-primary)',
+                    borderWidth: '1px'
+                  }}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full transition-transform`}
+                    style={{
+                      backgroundColor: 'var(--color-bg-primary)',
+                      transform: showDayLabels ? 'translateX(1.5rem)' : 'translateX(0.25rem)'
+                    }}
+                  />
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
 
         {/* Theme Selection Section */}
         <section className="mb-8">

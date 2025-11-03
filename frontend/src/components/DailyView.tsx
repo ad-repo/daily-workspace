@@ -10,6 +10,8 @@ import LabelSelector from './LabelSelector';
 import EntryTimeline from './EntryTimeline';
 import { useFullScreen } from '../contexts/FullScreenContext';
 import { useTimelineVisibility } from '../contexts/TimelineVisibilityContext';
+import { useDailyGoals } from '../contexts/DailyGoalsContext';
+import { useDayLabels } from '../contexts/DayLabelsContext';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -18,6 +20,8 @@ const DailyView = () => {
   const navigate = useNavigate();
   const { isFullScreen } = useFullScreen();
   const { isTimelineVisible } = useTimelineVisibility();
+  const { showDailyGoals } = useDailyGoals();
+  const { showDayLabels } = useDayLabels();
   const [note, setNote] = useState<DailyNote | null>(null);
   const [entries, setEntries] = useState<NoteEntry[]>([]);
   const [loading, setLoading] = useState(false);
@@ -302,33 +306,39 @@ const DailyView = () => {
           </button>
         </div>
 
-          <div className="flex flex-col items-center gap-6 w-full">
-            {/* Daily Goals Section */}
-            <div className="w-full">
-              <label className="block text-lg font-semibold mb-2" style={{ color: 'var(--color-text-primary)' }}>Daily Goals:</label>
-              <textarea
-                value={dailyGoal}
-                onChange={(e) => handleDailyGoalChange(e.target.value)}
-                placeholder="What are your main goals for today?"
-                className="w-full px-0 border-none resize-none focus:outline-none focus:ring-0"
-                style={{
-                  backgroundColor: 'transparent',
-                  color: 'var(--color-text-primary)',
-                }}
-                rows={2}
-              />
+          {(showDailyGoals || showDayLabels) && (
+            <div className="flex flex-col items-center gap-6 w-full">
+              {/* Daily Goals Section - only show if enabled */}
+              {showDailyGoals && (
+                <div className="w-full">
+                  <label className="block text-lg font-semibold mb-2" style={{ color: 'var(--color-text-primary)' }}>Daily Goals:</label>
+                  <textarea
+                    value={dailyGoal}
+                    onChange={(e) => handleDailyGoalChange(e.target.value)}
+                    placeholder="What are your main goals for today?"
+                    className="w-full px-0 border-none resize-none focus:outline-none focus:ring-0"
+                    style={{
+                      backgroundColor: 'transparent',
+                      color: 'var(--color-text-primary)',
+                    }}
+                    rows={2}
+                  />
+                </div>
+              )}
+              
+              {/* Day Labels Section - only show if enabled */}
+              {showDayLabels && (
+                <div className="w-full">
+                  <label className="block text-lg font-semibold mb-2" style={{ color: 'var(--color-text-primary)' }}>Day Labels:</label>
+                  <LabelSelector
+                    date={date}
+                    selectedLabels={note?.labels || []}
+                    onLabelsChange={() => loadDailyNote(true)}
+                  />
+                </div>
+              )}
             </div>
-            
-            {/* Labels Section */}
-            <div className="w-full">
-              <label className="block text-lg font-semibold mb-2" style={{ color: 'var(--color-text-primary)' }}>Day Labels:</label>
-              <LabelSelector
-                date={date}
-                selectedLabels={note?.labels || []}
-                onLabelsChange={() => loadDailyNote(true)}
-              />
-            </div>
-          </div>
+          )}
       </div>
 
       {/* Entries */}

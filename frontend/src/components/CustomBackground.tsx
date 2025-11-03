@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useCustomBackground } from '../contexts/CustomBackgroundContext';
 
 const CustomBackground = () => {
-  const { enabled, currentImage } = useCustomBackground();
+  const { enabled, currentImage, tileMode } = useCustomBackground();
   const [opacity, setOpacity] = useState(0);
   const [displayImage, setDisplayImage] = useState<string | null>(null);
 
@@ -41,9 +41,9 @@ const CustomBackground = () => {
         height: '100%',
         zIndex: 0,
         backgroundImage: `url(${displayImage})`,
-        backgroundSize: 'cover',
+        backgroundSize: tileMode ? 'auto' : 'cover',
         backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
+        backgroundRepeat: tileMode ? 'repeat' : 'no-repeat',
         opacity: opacity * 0.2, // Low opacity for readability (20%)
         transition: 'opacity 0.5s ease-in-out',
         pointerEvents: 'none', // Allow clicks to pass through
