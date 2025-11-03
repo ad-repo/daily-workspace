@@ -77,6 +77,12 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
   const [isRecordingVideo, setIsRecordingVideo] = useState(false);
   const recordedChunksRef = useRef<Blob[]>([]);
   
+  // Check if camera/video should be available
+  // Camera requires HTTPS (secure context) on mobile browsers when accessed over network
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const isSecureContext = window.isSecureContext;
+  const showMediaButtons = !isMobile || isSecureContext;
+  
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -880,15 +886,19 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
           </button>
         )}
 
-        {/* Camera Button */}
-        <ToolbarButton onClick={openCamera} title="Take Photo">
-          <Camera className="h-4 w-4" />
-        </ToolbarButton>
+        {/* Camera Button - Only show on desktop or HTTPS mobile */}
+        {showMediaButtons && (
+          <ToolbarButton onClick={openCamera} title="Take Photo">
+            <Camera className="h-4 w-4" />
+          </ToolbarButton>
+        )}
 
-        {/* Video Button */}
-        <ToolbarButton onClick={openVideoRecorder} title="Record Video">
-          <Video className="h-4 w-4" />
-        </ToolbarButton>
+        {/* Video Button - Only show on desktop or HTTPS mobile */}
+        {showMediaButtons && (
+          <ToolbarButton onClick={openVideoRecorder} title="Record Video">
+            <Video className="h-4 w-4" />
+          </ToolbarButton>
+        )}
 
         <ToolbarButton
           onClick={() => editor.chain().focus().undo().run()}
