@@ -87,11 +87,11 @@ const Navigation = () => {
               );
             })}
 
-            {/* Timeline toggle - only show on day view */}
+            {/* Timeline toggle - only show on day view and desktop */}
             {isOnDayView && (
               <button
                 onClick={handleTimelineToggle}
-                className="flex items-center px-3 py-2 rounded-lg transition-colors"
+                className="hidden sm:flex items-center px-3 py-2 rounded-lg transition-colors"
                 style={{
                   backgroundColor: 'transparent',
                   color: 'var(--color-text-secondary)'
@@ -109,11 +109,11 @@ const Navigation = () => {
               </button>
             )}
 
-            {/* Full-screen toggle - only show on day view */}
+            {/* Full-screen toggle - only show on day view and desktop */}
             {isOnDayView && (
               <button
                 onClick={toggleFullScreen}
-                className="flex items-center px-3 py-2 rounded-lg transition-colors"
+                className="hidden sm:flex items-center px-3 py-2 rounded-lg transition-colors"
                 style={{
                   backgroundColor: 'transparent',
                   color: 'var(--color-text-secondary)'
