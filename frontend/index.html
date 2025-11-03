@@ -3,7 +3,26 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/logo.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- Android-optimized viewport -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
+    
+    <!-- Android Chrome theme color -->
+    <meta name="theme-color" content="#3b82f6" />
+    
+    <!-- Android app-like behavior -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="application-name" content="Track the Thing" />
+    
+    <!-- Prevent Android from auto-detecting phone numbers and formatting -->
+    <meta name="format-detection" content="telephone=no" />
+    
+    <!-- Android Chrome: disable tap highlight -->
+    <meta name="msapplication-tap-highlight" content="no" />
+    
+    <!-- PWA manifest for Add to Home Screen on Android -->
+    <link rel="manifest" href="/manifest.json" />
+    
     <title>Track the Thing</title>
   </head>
   <body>

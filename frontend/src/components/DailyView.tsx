@@ -251,10 +251,10 @@ const DailyView = () => {
   return (
     <div className="relative page-fade-in" style={{ zIndex: 1 }}>
       {isTimelineVisible && !isFullScreen && <EntryTimeline entries={entries} />}
-      <div className={`mx-auto px-4 xl:px-8 ${isFullScreen ? 'max-w-full' : 'max-w-4xl'}`}>
+      <div className={`mx-auto px-2 sm:px-4 xl:px-8 ${isFullScreen ? 'max-w-full' : 'max-w-4xl'}`}>
       {/* Header */}
       <div 
-        className="rounded-lg shadow-lg p-8 mb-8"
+        className="rounded-lg shadow-lg p-4 sm:p-6 lg:p-8 mb-4 sm:mb-6 lg:mb-8"
         style={{ backgroundColor: 'var(--color-card-bg)' }}
       >
         <div className="flex items-center justify-between mb-4">
@@ -274,7 +274,7 @@ const DailyView = () => {
           </button>
 
           <div className="text-center">
-            <h1 className="text-3xl font-bold" style={{ color: 'var(--color-text-primary)' }}>
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold" style={{ color: 'var(--color-text-primary)' }}>
               {format(currentDate, 'EEEE, MMMM d, yyyy')}
             </h1>
             {isToday && (
