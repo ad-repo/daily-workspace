@@ -23,6 +23,8 @@ interface CustomBackgroundContextType {
   toggleAutoRotate: () => void;
   rotationInterval: number; // in minutes
   setRotationInterval: (minutes: number) => void;
+  tileMode: boolean;
+  toggleTileMode: () => void;
 }
 
 const CustomBackgroundContext = createContext<CustomBackgroundContextType | undefined>(undefined);
@@ -32,6 +34,7 @@ const STORAGE_KEYS = {
   CURRENT_INDEX: 'custom_background_current_index',
   AUTO_ROTATE: 'custom_background_auto_rotate',
   ROTATION_INTERVAL: 'custom_background_rotation_interval',
+  TILE_MODE: 'custom_background_tile_mode',
 };
 
 export const CustomBackgroundProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -55,6 +58,11 @@ export const CustomBackgroundProvider: React.FC<{ children: ReactNode }> = ({ ch
   const [rotationInterval, setRotationIntervalState] = useState<number>(() => {
     const stored = localStorage.getItem(STORAGE_KEYS.ROTATION_INTERVAL);
     return stored ? parseInt(stored, 10) : 60; // Default 60 minutes
+  });
+
+  const [tileMode, setTileMode] = useState<boolean>(() => {
+    const stored = localStorage.getItem(STORAGE_KEYS.TILE_MODE);
+    return stored ? JSON.parse(stored) : false; // Default to cover/center mode
   });
 
   // Fetch uploaded images from backend
@@ -102,6 +110,13 @@ export const CustomBackgroundProvider: React.FC<{ children: ReactNode }> = ({ ch
     localStorage.setItem(STORAGE_KEYS.ROTATION_INTERVAL, minutes.toString());
   };
 
+  // Toggle tile mode
+  const toggleTileMode = () => {
+    const newTileMode = !tileMode;
+    setTileMode(newTileMode);
+    localStorage.setItem(STORAGE_KEYS.TILE_MODE, JSON.stringify(newTileMode));
+  };
+
   // Fetch uploaded images on mount
   useEffect(() => {
     fetchUploadedImages();
@@ -133,6 +148,8 @@ export const CustomBackgroundProvider: React.FC<{ children: ReactNode }> = ({ ch
         toggleAutoRotate,
         rotationInterval,
         setRotationInterval,
+        tileMode,
+        toggleTileMode,
       }}
     >
       {children}

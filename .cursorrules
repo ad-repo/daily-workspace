@@ -1,0 +1,73 @@
+# Cursor Rules for Track the Thing
+
+## Database Changes
+- **CRITICAL**: Any change involving database schema modifications MUST include:
+  - Proper migration scripts in `backend/migrations/`
+  - Migration script must handle upgrades from all previous versions
+  - Update all backup/restore scripts in `backend/app/routers/backup.py`
+  - Test migration on a copy of the database before committing
+  - Verify backward compatibility or document breaking changes
+
+## Code Quality
+- Run linter checks before committing
+- Fix all linter errors - no exceptions
+- Keep TypeScript strict mode enabled
+- No console.log statements in production code (except critical errors)
+
+## Code Consistency
+- **CRITICAL**: If there is an established style/pattern for similar functionality in the project, use it
+- Always check existing implementations before writing new code
+- Keep all similar UI components uniform (buttons, toggles, forms, etc.)
+- Match existing naming conventions, file structure, and code organization
+- Don't introduce new patterns when established ones exist
+
+## UI/UX Standards
+- All toggle buttons must have consistent styling across the app
+- Use theme variables (var(--color-*)) instead of hardcoded colors
+- Maintain responsive design - test in both wide and compact modes
+- Preserve user preferences in localStorage where appropriate
+
+## Context & State Management
+- Use React Context for global state (themes, settings, user preferences)
+- Keep component state local when it doesn't need to be shared
+- Always provide default values for localStorage items
+- Clean up effects and intervals properly
+
+## Git Workflow
+- Create feature branches from main: `feature/descriptive-name`
+- Write clear, descriptive commit messages following conventional commits
+- No force push to main/master without explicit approval
+- Always check `git status` before committing
+
+## Before Pushing
+- [ ] All linter errors fixed
+- [ ] Database migrations created (if schema changed)
+- [ ] Backup/restore scripts updated (if data model changed)
+- [ ] Documentation updated to reflect all changes
+- [ ] README/docs updated if user-facing functionality changed
+- [ ] Verified existing docs still accurate
+- [ ] No hardcoded sensitive data or API keys
+- [ ] Followed established patterns and styles in codebase
+- [ ] Test in development environment
+
+## File Organization
+- Components in `frontend/src/components/`
+- Contexts in `frontend/src/contexts/`
+- Custom hooks in `frontend/src/hooks/`
+- Backend routers in `backend/app/routers/`
+- Migrations in `backend/migrations/` with incremental numbering
+
+## Testing
+- Test user flows manually before pushing
+- Verify theme compatibility across all new UI elements
+- Check mobile/responsive layouts
+- Test with existing data (not just fresh installs)
+
+## Documentation
+- **CRITICAL**: Documentation must be updated with every change
+- Update relevant .md files when adding any features (not just major ones)
+- Update README if user-facing functionality changes
+- Keep migration guides up to date
+- Document breaking changes prominently
+- Add inline comments for complex logic
+- Verify existing docs still match current implementation

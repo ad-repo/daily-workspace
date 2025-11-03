@@ -13,6 +13,8 @@ import { CustomBackgroundProvider } from './contexts/CustomBackgroundContext';
 import { TransparentLabelsProvider } from './contexts/TransparentLabelsContext';
 import { FullScreenProvider, useFullScreen } from './contexts/FullScreenContext';
 import { TimelineVisibilityProvider } from './contexts/TimelineVisibilityContext';
+import { DailyGoalsProvider } from './contexts/DailyGoalsContext';
+import { DayLabelsProvider } from './contexts/DayLabelsContext';
 import CustomBackground from './components/CustomBackground';
 
 const AppContent = () => {
@@ -72,11 +74,15 @@ function App() {
       <TimezoneProvider>
         <CustomBackgroundProvider>
           <TransparentLabelsProvider>
-            <FullScreenProvider>
-              <TimelineVisibilityProvider>
-                <AppContent />
-              </TimelineVisibilityProvider>
-            </FullScreenProvider>
+            <DailyGoalsProvider>
+              <DayLabelsProvider>
+                <FullScreenProvider>
+                  <TimelineVisibilityProvider>
+                    <AppContent />
+                  </TimelineVisibilityProvider>
+                </FullScreenProvider>
+              </DayLabelsProvider>
+            </DailyGoalsProvider>
           </TransparentLabelsProvider>
         </CustomBackgroundProvider>
       </TimezoneProvider>

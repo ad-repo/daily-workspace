@@ -8,9 +8,12 @@ A modern, powerful daily workspace application for capturing and organizing your
 - **Entry Titles**: Add optional one-line titles to note entries for quick identification
 - **Daily View**: Focus on a single day with multiple content entries
 - **Rich Text Editor**: Modern WYSIWYG editor powered by TipTap with support for:
-  - Text formatting (bold, italic, strikethrough, headings, lists)
+  - Text formatting (bold, italic, strikethrough, inline code, headings, lists)
   - Code blocks with syntax highlighting
   - Images and file uploads (with persistent storage)
+  - **Voice Dictation**: Real-time speech-to-text with Web Speech API (Safari/Chrome)
+  - **Camera Capture**: Take photos directly in the editor
+  - **Video Recording**: Record videos with audio directly in the editor
   - Hyperlinks with automatic link previews
   - Blockquotes and preformatted text
 - **Code Entries**: Dedicated code editor for multi-line code snippets
@@ -28,6 +31,9 @@ A modern, powerful daily workspace application for capturing and organizing your
 - **Emoji Labels**: Special rendering for emoji-only labels
 - **Transparent Mode**: Toggle between solid or transparent label backgrounds
 - **Daily Goals**: Set goals for each day (visible as tooltips in calendar)
+  - Toggle visibility in Settings → General
+- **Day Labels**: Organize days with labels for quick filtering
+  - Toggle visibility in Settings → General
 
 ### 📅 Calendar & Visualization
 - **Calendar View**: Visual overview with animated indicators:
@@ -87,6 +93,8 @@ A modern, powerful daily workspace application for capturing and organizing your
 - **Transparent Labels**: Toggle between solid or transparent label backgrounds
 - **Custom Backgrounds**: Upload and rotate your own background images
 - **Auto-Rotate**: Set interval for automatic background image cycling
+- **Tile or Cover**: Choose between tiled pattern or centered/covered background
+- **Unified Toggle Styles**: Consistent toggle button design across all settings
 - **Theme Variables**: CSS custom properties for consistent styling
 
 ## 🛠️ Tech Stack

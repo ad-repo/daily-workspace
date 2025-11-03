@@ -207,9 +207,28 @@ code {
 }
 
 .ProseMirror img {
-  max-width: 100%;
+  width: 100%;
   height: auto;
   border-radius: 0.5rem;
+  display: block;
+}
+
+.ProseMirror video {
+  width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+  display: block;
+  margin: 0.5rem 0;
+}
+
+/* Hide scrollbar for toolbar but keep functionality */
+.editor-toolbar::-webkit-scrollbar {
+  display: none;
+}
+
+.editor-toolbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 .ProseMirror blockquote {
@@ -334,5 +353,19 @@ code {
 
 .dramatic-pulse {
   animation: dramatic-pulse 1.5s ease-in-out infinite;
+}
+
+/* Voice Recording Pulse Animation */
+@keyframes recording-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
+  }
+}
+
+.recording-pulse {
+  animation: recording-pulse 1.5s ease-in-out infinite;
 }
 

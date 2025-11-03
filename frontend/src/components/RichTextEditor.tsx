@@ -1,5 +1,5 @@
 import { useEditor, EditorContent } from '@tiptap/react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import Image from '@tiptap/extension-image';
@@ -25,8 +25,12 @@ import {
   FileText,
   Paperclip,
   ExternalLink,
+  Mic,
+  Camera,
+  Video,
 } from 'lucide-react';
 import { LinkPreviewExtension, fetchLinkPreview } from '../extensions/LinkPreview';
+import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
 
 interface RichTextEditorProps {
   content: string;
@@ -60,6 +64,16 @@ const PreformattedText = Node.create({
 const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }: RichTextEditorProps) => {
   const lowlight = createLowlight(common);
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
+  const [dictationError, setDictationError] = useState<string | null>(null);
+  const [interimText, setInterimText] = useState<string>('');
+  const cursorPosRef = useRef<number | null>(null);
+  const [showCamera, setShowCamera] = useState(false);
+  const [showVideoRecorder, setShowVideoRecorder] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const [isRecordingVideo, setIsRecordingVideo] = useState(false);
+  const recordedChunksRef = useRef<Blob[]>([]);
   
   const editor = useEditor({
     extensions: [
@@ -77,7 +91,36 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
       }),
       Image.configure({
         HTMLAttributes: {
-          class: 'max-w-full h-auto rounded-lg',
+          class: 'w-full h-auto rounded-lg',
+        },
+      }),
+      // Add custom node for video tags
+      Node.create({
+        name: 'video',
+        group: 'block',
+        atom: true,
+        addAttributes() {
+          return {
+            src: {
+              default: null,
+            },
+            controls: {
+              default: true,
+            },
+            style: {
+              default: 'width: 100%; height: auto; border-radius: 0.5rem;',
+            },
+          };
+        },
+        parseHTML() {
+          return [
+            {
+              tag: 'video',
+            },
+          ];
+        },
+        renderHTML({ HTMLAttributes }) {
+          return ['video', HTMLAttributes];
         },
       }),
       CodeBlockLowlight.configure({
@@ -228,6 +271,91 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
       },
     },
   });
+
+  // Speech recognition callback
+  const handleTranscript = useCallback((text: string, isFinal: boolean) => {
+    if (!editor || !text.trim()) return;
+    
+    if (isFinal) {
+      // Final result: insert permanently and clear interim
+      // If there's interim text showing, remove it first
+      if (interimText && cursorPosRef.current !== null) {
+        const { from, to } = editor.state.selection;
+        // Remove interim text by deleting from saved position
+        editor.chain()
+          .focus()
+          .deleteRange({ from: cursorPosRef.current, to: cursorPosRef.current + interimText.length })
+          .insertContentAt(cursorPosRef.current, text)
+          .run();
+      } else {
+        // No interim text, just insert
+        editor.chain().focus().insertContent(text).run();
+      }
+      
+      setInterimText('');
+      cursorPosRef.current = null;
+      setDictationError(null);
+    } else {
+      // Interim result: show as preview
+      // Remove previous interim text and insert new one
+      if (interimText && cursorPosRef.current !== null) {
+        editor.chain()
+          .focus()
+          .deleteRange({ from: cursorPosRef.current, to: cursorPosRef.current + interimText.length })
+          .insertContentAt(cursorPosRef.current, `<span style="color: #9ca3af; font-style: italic;">${text}</span>`)
+          .run();
+      } else {
+        // First interim text, save cursor position
+        const { from } = editor.state.selection;
+        cursorPosRef.current = from;
+        editor.chain()
+          .focus()
+          .insertContent(`<span style="color: #9ca3af; font-style: italic;">${text}</span>`)
+          .run();
+      }
+      
+      setInterimText(text);
+    }
+  }, [editor, interimText]);
+
+  // Initialize speech recognition
+  const {
+    isRecording,
+    isSupported,
+    error: speechError,
+    toggleRecording,
+  } = useSpeechRecognition({
+    onTranscript: handleTranscript,
+    continuous: true,
+  });
+  
+  // Clear interim text when recording stops
+  useEffect(() => {
+    if (!isRecording && interimText && cursorPosRef.current !== null && editor) {
+      editor.chain()
+        .focus()
+        .deleteRange({ from: cursorPosRef.current, to: cursorPosRef.current + interimText.length })
+        .run();
+      setInterimText('');
+      cursorPosRef.current = null;
+    }
+  }, [isRecording, interimText, editor]);
+
+  // Show dictation errors
+  useEffect(() => {
+    if (speechError) {
+      setDictationError(speechError);
+      
+      // Don't auto-clear permission errors - user needs to take action
+      if (speechError.includes('permission') || speechError.includes('denied') || speechError.includes('allow')) {
+        return; // Keep error visible until user takes action
+      }
+      
+      // Clear other errors after 8 seconds
+      const timeout = setTimeout(() => setDictationError(null), 8000);
+      return () => clearTimeout(timeout);
+    }
+  }, [speechError]);
 
   if (!editor) {
     return null;
@@ -406,6 +534,163 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
     }
   };
 
+  const openCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      setShowCamera(true);
+      
+      // Wait for video element to be available
+      setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      }, 100);
+    } catch (error) {
+      console.error('Failed to access camera:', error);
+      alert('Failed to access camera. Please check your camera permissions.');
+    }
+  };
+
+  const capturePhoto = async () => {
+    if (!videoRef.current || !canvasRef.current || !editor) return;
+    
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    
+    const context = canvas.getContext('2d');
+    if (!context) return;
+    
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    
+    canvas.toBlob(async (blob) => {
+      if (!blob) return;
+      
+      const formData = new FormData();
+      formData.append('file', blob, 'camera-photo.jpg');
+      
+      try {
+        const response = await fetch('http://localhost:8000/api/uploads/image', {
+          method: 'POST',
+          body: formData,
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          const imageUrl = `http://localhost:8000${data.url}`;
+          editor.chain().focus().setImage({ src: imageUrl }).run();
+          closeCamera();
+        }
+      } catch (error) {
+        console.error('Failed to upload photo:', error);
+        alert('Failed to upload photo. Please try again.');
+      }
+    }, 'image/jpeg', 1.0);
+  };
+
+  const closeCamera = () => {
+    if (videoRef.current && videoRef.current.srcObject) {
+      const stream = videoRef.current.srcObject as MediaStream;
+      stream.getTracks().forEach(track => track.stop());
+      videoRef.current.srcObject = null;
+    }
+    setShowCamera(false);
+  };
+
+  const openVideoRecorder = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: true, 
+        audio: true 
+      });
+      setShowVideoRecorder(true);
+      
+      setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      }, 100);
+    } catch (error) {
+      console.error('Failed to access camera/microphone:', error);
+      alert('Failed to access camera and microphone. Please check your permissions.');
+    }
+  };
+
+  const startVideoRecording = () => {
+    if (!videoRef.current || !videoRef.current.srcObject) return;
+    
+    const stream = videoRef.current.srcObject as MediaStream;
+    recordedChunksRef.current = [];
+    
+    const mediaRecorder = new MediaRecorder(stream, {
+      mimeType: 'video/webm',
+    });
+    
+    mediaRecorder.ondataavailable = (event) => {
+      if (event.data.size > 0) {
+        recordedChunksRef.current.push(event.data);
+      }
+    };
+    
+    mediaRecorder.onstop = async () => {
+      const blob = new Blob(recordedChunksRef.current, { type: 'video/webm' });
+      const formData = new FormData();
+      formData.append('file', blob, 'recorded-video.webm');
+      
+      try {
+        const response = await fetch('http://localhost:8000/api/uploads/file', {
+          method: 'POST',
+          body: formData,
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          const videoUrl = `http://localhost:8000${data.url}`;
+          
+          // Insert video using the custom video node
+          editor?.chain().focus().insertContent({
+            type: 'video',
+            attrs: {
+              src: videoUrl,
+              controls: true,
+              style: 'width: 100%; height: auto; border-radius: 0.5rem;',
+            },
+          }).run();
+          
+          closeVideoRecorder();
+        }
+      } catch (error) {
+        console.error('Failed to upload video:', error);
+        alert('Failed to upload video. Please try again.');
+      }
+    };
+    
+    mediaRecorderRef.current = mediaRecorder;
+    mediaRecorder.start();
+    setIsRecordingVideo(true);
+  };
+
+  const stopVideoRecording = () => {
+    if (mediaRecorderRef.current && isRecordingVideo) {
+      mediaRecorderRef.current.stop();
+      setIsRecordingVideo(false);
+    }
+  };
+
+  const closeVideoRecorder = () => {
+    if (mediaRecorderRef.current && isRecordingVideo) {
+      mediaRecorderRef.current.stop();
+    }
+    if (videoRef.current && videoRef.current.srcObject) {
+      const stream = videoRef.current.srcObject as MediaStream;
+      stream.getTracks().forEach(track => track.stop());
+      videoRef.current.srcObject = null;
+    }
+    setShowVideoRecorder(false);
+    setIsRecordingVideo(false);
+  };
+
   const ToolbarButton = ({
     onClick,
     active,
@@ -454,7 +739,7 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
     >
       {/* Toolbar */}
       <div 
-        className="flex flex-wrap gap-1 p-2"
+        className="editor-toolbar flex flex-nowrap justify-around items-center p-2 overflow-x-auto"
         style={{
           borderBottom: '1px solid var(--color-border-primary)',
           backgroundColor: 'var(--color-bg-tertiary)'
@@ -485,16 +770,6 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
         </ToolbarButton>
 
         <ToolbarButton
-          onClick={() => editor.chain().focus().toggleCode().run()}
-          active={editor.isActive('code')}
-          title="Inline Code"
-        >
-          <Code className="h-4 w-4" />
-        </ToolbarButton>
-
-        <div className="w-px h-6 mx-1" style={{ backgroundColor: 'var(--color-border-secondary)' }} />
-
-        <ToolbarButton
           onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
           active={editor.isActive('heading', { level: 1 })}
           title="Heading 1"
@@ -509,8 +784,6 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
         >
           <Heading2 className="h-4 w-4" />
         </ToolbarButton>
-
-        <div className="w-px h-6 mx-1" style={{ backgroundColor: 'var(--color-border-secondary)' }} />
 
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleBulletList().run()}
@@ -537,6 +810,14 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
         </ToolbarButton>
 
         <ToolbarButton
+          onClick={() => editor.chain().focus().toggleCode().run()}
+          active={editor.isActive('code')}
+          title="Inline Code"
+        >
+          <Code className="h-4 w-4" />
+        </ToolbarButton>
+
+        <ToolbarButton
           onClick={handleCodeBlockClick}
           active={editor.isActive('codeBlock')}
           title="Code Block"
@@ -551,8 +832,6 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
         >
           <FileText className="h-4 w-4" />
         </ToolbarButton>
-
-        <div className="w-px h-6 mx-1" style={{ backgroundColor: 'var(--color-border-secondary)' }} />
 
         <ToolbarButton onClick={addLink} active={editor.isActive('link')} title="Add Link">
           <Link2 className="h-4 w-4" />
@@ -570,7 +849,44 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
               <Paperclip className="h-4 w-4" />
             </ToolbarButton>
 
-        <div className="w-px h-6 mx-1" style={{ backgroundColor: 'var(--color-border-secondary)' }} />
+        {/* Voice Dictation Button */}
+        {isSupported && (
+          <button
+            onMouseDown={(e) => {
+              e.preventDefault();
+              toggleRecording();
+            }}
+            className={`p-2 rounded transition-colors ${isRecording ? 'recording-pulse' : ''}`}
+            style={{
+              backgroundColor: isRecording ? '#ef4444' : 'transparent',
+              color: isRecording ? 'white' : 'var(--color-text-primary)'
+            }}
+            onMouseEnter={(e) => {
+              if (!isRecording) {
+                e.currentTarget.style.backgroundColor = 'var(--color-bg-hover)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!isRecording) {
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }
+            }}
+            title={isRecording ? 'Stop Recording' : 'Start Voice Dictation'}
+            type="button"
+          >
+            <Mic className="h-4 w-4" />
+          </button>
+        )}
+
+        {/* Camera Button */}
+        <ToolbarButton onClick={openCamera} title="Take Photo">
+          <Camera className="h-4 w-4" />
+        </ToolbarButton>
+
+        {/* Video Button */}
+        <ToolbarButton onClick={openVideoRecorder} title="Record Video">
+          <Video className="h-4 w-4" />
+        </ToolbarButton>
 
         <ToolbarButton
           onClick={() => editor.chain().focus().undo().run()}
@@ -590,6 +906,33 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
       {/* Editor */}
       <EditorContent editor={editor} className="prose max-w-none" />
 
+      {/* Dictation Error Alert */}
+      {dictationError && (
+        <div 
+          className="m-4 p-4 rounded-lg text-sm shadow-lg relative"
+          style={{
+            backgroundColor: '#fef2f2',
+            color: '#991b1b',
+            border: '2px solid #ef4444'
+          }}
+        >
+          <button
+            onClick={() => setDictationError(null)}
+            className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 text-xl leading-none"
+            title="Dismiss"
+          >
+            ×
+          </button>
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0 text-lg">🎤</div>
+            <div className="pr-6">
+              <strong className="block mb-1">Voice Dictation Issue</strong>
+              <p className="text-sm whitespace-pre-line">{dictationError}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {lightboxSrc && (
         <div
           className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
@@ -601,6 +944,105 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
             onClick={(e) => e.stopPropagation()}
             alt="Preview"
           />
+        </div>
+      )}
+
+      {/* Camera Modal */}
+      {showCamera && (
+        <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-2xl max-w-4xl w-full p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Take Photo</h3>
+              <button
+                onClick={closeCamera}
+                className="text-gray-500 hover:text-gray-700 text-2xl leading-none"
+              >
+                ×
+              </button>
+            </div>
+            <div className="relative">
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                className="w-full rounded-lg"
+              />
+              <canvas ref={canvasRef} className="hidden" />
+            </div>
+            <div className="mt-4 flex gap-3 justify-center">
+              <button
+                onClick={capturePhoto}
+                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              >
+                <Camera className="h-5 w-5 inline mr-2" />
+                Capture Photo
+              </button>
+              <button
+                onClick={closeCamera}
+                className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Video Recorder Modal */}
+      {showVideoRecorder && (
+        <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-2xl max-w-4xl w-full p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Record Video</h3>
+              <button
+                onClick={closeVideoRecorder}
+                className="text-gray-500 hover:text-gray-700 text-2xl leading-none"
+              >
+                ×
+              </button>
+            </div>
+            <div className="relative">
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted={!isRecordingVideo}
+                className="w-full rounded-lg"
+              />
+              {isRecordingVideo && (
+                <div className="absolute top-4 left-4 bg-red-600 text-white px-3 py-1 rounded-full flex items-center gap-2 animate-pulse">
+                  <div className="w-3 h-3 bg-white rounded-full"></div>
+                  Recording...
+                </div>
+              )}
+            </div>
+            <div className="mt-4 flex gap-3 justify-center">
+              {!isRecordingVideo ? (
+                <>
+                  <button
+                    onClick={startVideoRecording}
+                    className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+                  >
+                    <Video className="h-5 w-5 inline mr-2" />
+                    Start Recording
+                  </button>
+                  <button
+                    onClick={closeVideoRecorder}
+                    className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+                  >
+                    Cancel
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={stopVideoRecording}
+                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                >
+                  Stop & Save
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>
