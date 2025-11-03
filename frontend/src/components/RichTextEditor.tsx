@@ -97,7 +97,27 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
           rel: 'noopener noreferrer',
         },
       }),
-      Image.configure({
+      Image.extend({
+        addAttributes() {
+          return {
+            ...this.parent?.(),
+            src: {
+              default: null,
+              renderHTML: attributes => {
+                // Convert relative API URLs to absolute URLs
+                if (attributes.src && attributes.src.startsWith('/api/')) {
+                  return {
+                    src: `${API_BASE_URL}${attributes.src}`,
+                  };
+                }
+                return {
+                  src: attributes.src,
+                };
+              },
+            },
+          };
+        },
+      }).configure({
         HTMLAttributes: {
           class: 'w-full h-auto rounded-lg',
         },
@@ -128,7 +148,12 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
           ];
         },
         renderHTML({ HTMLAttributes }) {
-          return ['video', HTMLAttributes];
+          // Convert relative API URLs to absolute URLs for videos
+          const attrs = { ...HTMLAttributes };
+          if (attrs.src && attrs.src.startsWith('/api/')) {
+            attrs.src = `${API_BASE_URL}${attrs.src}`;
+          }
+          return ['video', attrs];
         },
       }),
       CodeBlockLowlight.configure({
