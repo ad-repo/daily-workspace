@@ -1,7 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from app.database import engine, Base
 from app.routers import notes, entries, uploads, labels, backup, reports, search, search_history, link_preview, background_images
+from pathlib import Path
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
@@ -30,11 +32,17 @@ app.include_router(search_history.router, prefix="/api/search-history", tags=["s
 app.include_router(link_preview.router, prefix="/api/link-preview", tags=["link-preview"])
 app.include_router(background_images.router, prefix="/api/background-images", tags=["background-images"])
 
-@app.get("/")
+@app.get("/api")
 async def root():
     return {"message": "Track the Thing API", "version": "1.0.0"}
 
-@app.get("/health")
+@app.get("/api/health")
 async def health():
     return {"status": "healthy"}
+
+# Mount static files directory for serving APK and download page
+# This must be LAST so API routes take precedence
+STATIC_DIR = Path("static")
+if STATIC_DIR.exists():
+    app.mount("/", StaticFiles(directory=STATIC_DIR, html=True), name="static")
 
