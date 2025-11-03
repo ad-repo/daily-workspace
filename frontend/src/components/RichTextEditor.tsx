@@ -741,7 +741,7 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
     >
       {/* Toolbar */}
       <div 
-        className="editor-toolbar flex flex-nowrap justify-around items-center p-2 overflow-x-auto"
+        className="editor-toolbar flex flex-wrap gap-1 items-center p-2"
         style={{
           borderBottom: '1px solid var(--color-border-primary)',
           backgroundColor: 'var(--color-bg-tertiary)'

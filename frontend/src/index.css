@@ -122,7 +122,7 @@ code {
 /* Tiptap Editor Styles */
 .ProseMirror {
   outline: none;
-  min-height: 200px;
+  min-height: 450px;
   padding: 1rem;
   color: var(--color-text-primary);
 }
@@ -428,7 +428,7 @@ select {
 
   /* Editor adjustments */
   .ProseMirror {
-    min-height: 150px;
+    min-height: 300px;
     padding: 0.75rem;
     font-size: 16px; /* Prevent zoom on iOS */
   }
