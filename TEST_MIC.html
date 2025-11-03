@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Microphone Test</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-box {
+            background: white;
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #3b82f6;
+        }
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #2563eb;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f0f0f0;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .success { color: #059669; font-weight: bold; }
+        .error { color: #dc2626; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>🎤 Microphone Diagnostic Test</h1>
+    <p>Run these tests in order to diagnose microphone issues:</p>
+
+    <div class="test-box">
+        <h3>Test 1: Check APIs Available</h3>
+        <button onclick="test1()">Run Test 1</button>
+        <div id="result1" class="result"></div>
+    </div>
+
+    <div class="test-box">
+        <h3>Test 2: Request Microphone Permission</h3>
+        <button onclick="test2()">Run Test 2</button>
+        <div id="result2" class="result"></div>
+    </div>
+
+    <div class="test-box">
+        <h3>Test 3: Test Speech Recognition</h3>
+        <button onclick="test3()">Run Test 3</button>
+        <button onclick="stopTest3()">Stop</button>
+        <div id="result3" class="result"></div>
+    </div>
+
+    <div class="test-box">
+        <h3>Test 4: Test Microphone Audio Levels</h3>
+        <button onclick="test4()">Run Test 4</button>
+        <button onclick="stopTest4()">Stop</button>
+        <div id="result4" class="result"></div>
+        <canvas id="canvas" width="600" height="100" style="background: #000; margin-top: 10px;"></canvas>
+    </div>
+
+    <script>
+        let recognition = null;
+        let audioContext = null;
+        let analyser = null;
+        let microphone = null;
+        let animationId = null;
+
+        function test1() {
+            const result = document.getElementById('result1');
+            let output = '';
+
+            output += '📍 Location: ' + window.location.href + '\n\n';
+            output += '🔒 Secure Context: ' + (window.isSecureContext ? '✅ YES' : '❌ NO') + '\n\n';
+            
+            const hasGetUserMedia = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+            output += '🎤 getUserMedia API: ' + (hasGetUserMedia ? '✅ Available' : '❌ Not Available') + '\n\n';
+            
+            const hasSpeechRecognition = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+            output += '🗣️ Speech Recognition API: ' + (hasSpeechRecognition ? '✅ Available' : '❌ Not Available') + '\n\n';
+            
+            if (hasSpeechRecognition) {
+                const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+                output += '   Vendor: ' + (window.webkitSpeechRecognition ? 'webkit (Chrome/Safari)' : 'standard') + '\n';
+            }
+
+            result.innerHTML = output;
+        }
+
+        async function test2() {
+            const result = document.getElementById('result2');
+            result.innerHTML = 'Requesting microphone permission...\n';
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                
+                result.innerHTML = '<span class="success">✅ SUCCESS!</span>\n\n';
+                result.innerHTML += 'Microphone permission granted!\n\n';
+                result.innerHTML += 'Audio Tracks:\n';
+                stream.getAudioTracks().forEach((track, i) => {
+                    result.innerHTML += `  Track ${i + 1}: ${track.label}\n`;
+                    result.innerHTML += `    Enabled: ${track.enabled}\n`;
+                    result.innerHTML += `    Muted: ${track.muted}\n`;
+                    result.innerHTML += `    ReadyState: ${track.readyState}\n`;
+                });
+
+                // Stop the stream
+                stream.getTracks().forEach(track => track.stop());
+
+            } catch (err) {
+                result.innerHTML = '<span class="error">❌ FAILED!</span>\n\n';
+                result.innerHTML += 'Error Name: ' + err.name + '\n';
+                result.innerHTML += 'Error Message: ' + err.message + '\n\n';
+                
+                if (err.name === 'NotAllowedError') {
+                    result.innerHTML += '💡 FIX: You blocked microphone access.\n';
+                    result.innerHTML += '   Click the 🔒 lock icon in address bar\n';
+                    result.innerHTML += '   Change Microphone to "Allow"\n';
+                    result.innerHTML += '   Refresh page and try again\n';
+                } else if (err.name === 'NotFoundError') {
+                    result.innerHTML += '💡 FIX: No microphone detected.\n';
+                    result.innerHTML += '   Make sure a microphone is connected\n';
+                    result.innerHTML += '   Check System Settings\n';
+                }
+            }
+        }
+
+        function test3() {
+            const result = document.getElementById('result3');
+            
+            if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
+                result.innerHTML = '<span class="error">❌ Speech Recognition not supported</span>';
+                return;
+            }
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'en-US';
+
+            result.innerHTML = '🎤 Listening... Speak now!\n\n';
+
+            recognition.onresult = (event) => {
+                let interim = '';
+                let final = '';
+
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        final += transcript + ' ';
+                    } else {
+                        interim += transcript;
+                    }
+                }
+
+                result.innerHTML = '🎤 Listening... Speak now!\n\n';
+                if (final) result.innerHTML += '<span class="success">Final: ' + final + '</span>\n';
+                if (interim) result.innerHTML += 'Interim: ' + interim + '\n';
+            };
+
+            recognition.onerror = (event) => {
+                result.innerHTML = '<span class="error">❌ Error: ' + event.error + '</span>\n';
+                result.innerHTML += 'Message: ' + (event.message || 'No message') + '\n\n';
+                
+                if (event.error === 'not-allowed') {
+                    result.innerHTML += '💡 Microphone permission denied.\n';
+                } else if (event.error === 'network') {
+                    result.innerHTML += '💡 Network error (Chrome bug on some systems).\n';
+                }
+            };
+
+            recognition.onstart = () => {
+                result.innerHTML = '<span class="success">✅ Recording started!</span>\n\n';
+                result.innerHTML += '🎤 Speak now...\n';
+            };
+
+            recognition.onend = () => {
+                result.innerHTML += '\n🛑 Recording stopped.\n';
+            };
+
+            try {
+                recognition.start();
+            } catch (err) {
+                result.innerHTML = '<span class="error">❌ Failed to start: ' + err.message + '</span>';
+            }
+        }
+
+        function stopTest3() {
+            if (recognition) {
+                recognition.stop();
+                recognition = null;
+            }
+        }
+
+        async function test4() {
+            const result = document.getElementById('result4');
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                
+                audioContext = new AudioContext();
+                analyser = audioContext.createAnalyser();
+                microphone = audioContext.createMediaStreamSource(stream);
+                microphone.connect(analyser);
+                analyser.fftSize = 256;
+
+                const bufferLength = analyser.frequencyBinCount;
+                const dataArray = new Uint8Array(bufferLength);
+
+                result.innerHTML = '<span class="success">✅ Microphone active!</span>\n';
+                result.innerHTML += 'Speak and watch the visualization below.\n';
+                result.innerHTML += 'If bars don\'t move, your mic isn\'t picking up sound.\n';
+
+                function draw() {
+                    animationId = requestAnimationFrame(draw);
+
+                    analyser.getByteFrequencyData(dataArray);
+
+                    ctx.fillStyle = 'rgb(0, 0, 0)';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                    const barWidth = (canvas.width / bufferLength) * 2.5;
+                    let barHeight;
+                    let x = 0;
+
+                    for (let i = 0; i < bufferLength; i++) {
+                        barHeight = dataArray[i] / 2;
+
+                        ctx.fillStyle = `rgb(${barHeight + 100}, 50, 50)`;
+                        ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+
+                        x += barWidth + 1;
+                    }
+                }
+
+                draw();
+
+            } catch (err) {
+                result.innerHTML = '<span class="error">❌ Failed: ' + err.message + '</span>';
+            }
+        }
+
+        function stopTest4() {
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+            }
+            if (microphone) {
+                microphone.disconnect();
+                microphone = null;
+            }
+            if (audioContext) {
+                audioContext.close();
+                audioContext = null;
+            }
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = 'rgb(0, 0, 0)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            document.getElementById('result4').innerHTML = '🛑 Stopped';
+        }
+    </script>
+</body>
+</html>
+

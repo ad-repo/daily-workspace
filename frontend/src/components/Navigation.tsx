@@ -26,11 +26,11 @@ const Navigation = () => {
 
   return (
     <nav className="shadow-sm" style={{ backgroundColor: 'var(--color-card-bg)', borderBottom: '1px solid var(--color-border-primary)' }}>
-      <div className="container mx-auto px-4 max-w-7xl">
-        <div className="flex items-center justify-between h-16">
+      <div className="container mx-auto px-2 sm:px-4 max-w-7xl">
+        <div className="flex items-center justify-between h-14 sm:h-16">
           <Link 
             to="/" 
-            className="flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors"
+            className="flex items-center space-x-2 px-2 sm:px-4 py-2 rounded-lg transition-colors"
             style={{
               backgroundColor: location.pathname === '/' ? 'var(--color-accent)' : 'transparent',
               color: location.pathname === '/' ? 'var(--color-accent-text)' : 'var(--color-text-secondary)'
@@ -48,10 +48,10 @@ const Navigation = () => {
             title="Track the Thing"
           >
             <Laptop className="h-6 w-6" />
-            <span className="text-xl font-bold">Track the Thing</span>
+            <span className="text-xl font-bold hidden sm:inline">Track the Thing</span>
           </Link>
 
-          <div className="flex space-x-4">
+          <div className="flex space-x-1 sm:space-x-2 lg:space-x-4">
             {[
               { to: `/day/${today}`, icon: BookOpen, label: dayName, path: '/day/' },
               { to: '/calendar', icon: Calendar, label: 'Calendar', path: '/calendar' },
@@ -79,18 +79,19 @@ const Navigation = () => {
                       e.currentTarget.style.backgroundColor = 'transparent';
                     }
                   }}
+                  title={label}
                 >
                   <Icon className="h-5 w-5" />
-                  <span className="font-medium">{label}</span>
+                  <span className="font-medium hidden sm:inline">{label}</span>
                 </Link>
               );
             })}
 
-            {/* Timeline toggle - only show on day view */}
+            {/* Timeline toggle - only show on day view and desktop */}
             {isOnDayView && (
               <button
                 onClick={handleTimelineToggle}
-                className="flex items-center px-3 py-2 rounded-lg transition-colors"
+                className="hidden sm:flex items-center px-3 py-2 rounded-lg transition-colors"
                 style={{
                   backgroundColor: 'transparent',
                   color: 'var(--color-text-secondary)'
@@ -108,11 +109,11 @@ const Navigation = () => {
               </button>
             )}
 
-            {/* Full-screen toggle - only show on day view */}
+            {/* Full-screen toggle - only show on day view and desktop */}
             {isOnDayView && (
               <button
                 onClick={toggleFullScreen}
-                className="flex items-center px-3 py-2 rounded-lg transition-colors"
+                className="hidden sm:flex items-center px-3 py-2 rounded-lg transition-colors"
                 style={{
                   backgroundColor: 'transparent',
                   color: 'var(--color-text-secondary)'
