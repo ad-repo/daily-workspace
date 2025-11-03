@@ -27,6 +27,7 @@ services:
       - VITE_API_URL=https://192.168.0.186:8000
     volumes:
       - ./frontend:/app
+      - ./backend/data:/app/../backend/data
       - /app/node_modules
     depends_on:
       - backend
