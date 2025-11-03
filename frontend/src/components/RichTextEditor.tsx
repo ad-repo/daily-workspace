@@ -32,6 +32,8 @@ import {
 import { LinkPreviewExtension, fetchLinkPreview } from '../extensions/LinkPreview';
 import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
 interface RichTextEditorProps {
   content: string;
   onChange: (content: string) => void;
@@ -75,6 +77,15 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
   const [isRecordingVideo, setIsRecordingVideo] = useState(false);
   const recordedChunksRef = useRef<Blob[]>([]);
   
+  // Check if camera/video should be available
+  // getUserMedia (camera/video) requires HTTPS on mobile browsers when accessed over network
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const isSecureContext = window.isSecureContext;
+  const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  
+  // Media buttons (camera/video) require secure context on mobile
+  const showMediaButtons = !isMobile || isSecureContext || isLocalhost;
+  
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -89,7 +100,27 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
           rel: 'noopener noreferrer',
         },
       }),
-      Image.configure({
+      Image.extend({
+        addAttributes() {
+          return {
+            ...this.parent?.(),
+            src: {
+              default: null,
+              renderHTML: attributes => {
+                // Convert relative API URLs to absolute URLs
+                if (attributes.src && attributes.src.startsWith('/api/')) {
+                  return {
+                    src: `${API_BASE_URL}${attributes.src}`,
+                  };
+                }
+                return {
+                  src: attributes.src,
+                };
+              },
+            },
+          };
+        },
+      }).configure({
         HTMLAttributes: {
           class: 'w-full h-auto rounded-lg',
         },
@@ -120,7 +151,12 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
           ];
         },
         renderHTML({ HTMLAttributes }) {
-          return ['video', HTMLAttributes];
+          // Convert relative API URLs to absolute URLs for videos
+          const attrs = { ...HTMLAttributes };
+          if (attrs.src && attrs.src.startsWith('/api/')) {
+            attrs.src = `${API_BASE_URL}${attrs.src}`;
+          }
+          return ['video', attrs];
         },
       }),
       CodeBlockLowlight.configure({
@@ -165,14 +201,14 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
             
             try {
               if (file.type.startsWith('image/')) {
-                const response = await fetch('http://localhost:8000/api/uploads/image', {
+                const response = await fetch(`${API_BASE_URL}/api/uploads/image`, {
                   method: 'POST',
                   body: formData,
                 });
                 
                 if (response.ok) {
                   const data = await response.json();
-                  const imageUrl = `http://localhost:8000${data.url}`;
+                  const imageUrl = `${API_BASE_URL}${data.url}`;
                   const pos = view.posAtCoords({ left: event.clientX, top: event.clientY });
                   if (pos && editor) {
                     editor.chain().focus().insertContentAt(pos.pos, {
@@ -182,7 +218,7 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
                   }
                 }
               } else {
-                const response = await fetch('http://localhost:8000/api/uploads/file', {
+                const response = await fetch(`${API_BASE_URL}/api/uploads/file`, {
                   method: 'POST',
                   body: formData,
                 });
@@ -218,13 +254,13 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
                 const formData = new FormData();
                 formData.append('file', file);
                 
-                fetch('http://localhost:8000/api/uploads/image', {
+                fetch(`${API_BASE_URL}/api/uploads/image`, {
                   method: 'POST',
                   body: formData,
                 })
                   .then(response => response.json())
                   .then(data => {
-                    const imageUrl = `http://localhost:8000${data.url}`;
+                    const imageUrl = `${API_BASE_URL}${data.url}`;
                     editor?.chain().focus().setImage({ src: imageUrl }).run();
                   })
                   .catch(error => {
@@ -340,6 +376,19 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
       cursorPosRef.current = null;
     }
   }, [isRecording, interimText, editor]);
+
+  // Debug: Log context info on mount
+  useEffect(() => {
+    console.log('🎤 Editor Media Context:', {
+      isMobile,
+      isSecureContext,
+      isLocalhost,
+      speechRecognitionSupported: isSupported,
+      getUserMediaAvailable: !!navigator.mediaDevices?.getUserMedia,
+      location: window.location.href,
+      showMediaButtons,
+    });
+  }, [isMobile, isSecureContext, isLocalhost, isSupported, showMediaButtons]);
 
   // Show dictation errors
   useEffect(() => {
@@ -457,7 +506,7 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
       formData.append('file', file);
       
       try {
-        const response = await fetch('http://localhost:8000/api/uploads/image', {
+        const response = await fetch(`${API_BASE_URL}/api/uploads/image`, {
           method: 'POST',
           body: formData,
         });
@@ -465,7 +514,7 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
         if (!response.ok) throw new Error('Upload failed');
         
         const data = await response.json();
-        const imageUrl = `http://localhost:8000${data.url}`;
+        const imageUrl = `${API_BASE_URL}${data.url}`;
         
         editor.chain().focus().setImage({ src: imageUrl }).run();
       } catch (error) {
@@ -571,14 +620,14 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
       formData.append('file', blob, 'camera-photo.jpg');
       
       try {
-        const response = await fetch('http://localhost:8000/api/uploads/image', {
+        const response = await fetch(`${API_BASE_URL}/api/uploads/image`, {
           method: 'POST',
           body: formData,
         });
         
         if (response.ok) {
           const data = await response.json();
-          const imageUrl = `http://localhost:8000${data.url}`;
+          const imageUrl = `${API_BASE_URL}${data.url}`;
           editor.chain().focus().setImage({ src: imageUrl }).run();
           closeCamera();
         }
@@ -639,14 +688,14 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
       formData.append('file', blob, 'recorded-video.webm');
       
       try {
-        const response = await fetch('http://localhost:8000/api/uploads/file', {
+        const response = await fetch(`${API_BASE_URL}/api/uploads/file`, {
           method: 'POST',
           body: formData,
         });
         
         if (response.ok) {
           const data = await response.json();
-          const videoUrl = `http://localhost:8000${data.url}`;
+          const videoUrl = `${API_BASE_URL}${data.url}`;
           
           // Insert video using the custom video node
           editor?.chain().focus().insertContent({
@@ -739,7 +788,7 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
     >
       {/* Toolbar */}
       <div 
-        className="editor-toolbar flex flex-nowrap justify-around items-center p-2 overflow-x-auto"
+        className="editor-toolbar flex flex-wrap gap-1 items-center p-2"
         style={{
           borderBottom: '1px solid var(--color-border-primary)',
           backgroundColor: 'var(--color-bg-tertiary)'
@@ -871,22 +920,32 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
                 e.currentTarget.style.backgroundColor = 'transparent';
               }
             }}
-            title={isRecording ? 'Stop Recording' : 'Start Voice Dictation'}
+            title={
+              isRecording 
+                ? 'Stop Recording' 
+                : !isSecureContext && !isLocalhost && isMobile
+                  ? 'Voice Dictation (may require HTTPS on mobile)'
+                  : 'Start Voice Dictation'
+            }
             type="button"
           >
             <Mic className="h-4 w-4" />
           </button>
         )}
 
-        {/* Camera Button */}
-        <ToolbarButton onClick={openCamera} title="Take Photo">
-          <Camera className="h-4 w-4" />
-        </ToolbarButton>
+        {/* Camera Button - Only show on desktop or HTTPS mobile */}
+        {showMediaButtons && (
+          <ToolbarButton onClick={openCamera} title="Take Photo">
+            <Camera className="h-4 w-4" />
+          </ToolbarButton>
+        )}
 
-        {/* Video Button */}
-        <ToolbarButton onClick={openVideoRecorder} title="Record Video">
-          <Video className="h-4 w-4" />
-        </ToolbarButton>
+        {/* Video Button - Only show on desktop or HTTPS mobile */}
+        {showMediaButtons && (
+          <ToolbarButton onClick={openVideoRecorder} title="Record Video">
+            <Video className="h-4 w-4" />
+          </ToolbarButton>
+        )}
 
         <ToolbarButton
           onClick={() => editor.chain().focus().undo().run()}

@@ -122,7 +122,7 @@ code {
 /* Tiptap Editor Styles */
 .ProseMirror {
   outline: none;
-  min-height: 200px;
+  min-height: 450px;
   padding: 1rem;
   color: var(--color-text-primary);
 }
@@ -367,5 +367,145 @@ code {
 
 .recording-pulse {
   animation: recording-pulse 1.5s ease-in-out infinite;
+}
+
+/* ========================================
+   MOBILE RESPONSIVE STYLES
+   ======================================== */
+
+/* Android-specific optimizations */
+* {
+  /* Disable tap highlight on Android */
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+/* Improve scrolling performance on Android */
+* {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Android Chrome: hardware acceleration */
+.page-fade-in,
+.entry-card-container,
+button,
+a {
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+/* Android: prevent text size adjustment */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* Android: improve input focus */
+input,
+textarea,
+select {
+  font-size: 16px !important; /* Prevent zoom on focus in Android */
+}
+
+/* Mobile devices (phones) */
+@media (max-width: 640px) {
+  /* Body adjustments for mobile */
+  body {
+    font-size: 14px;
+  }
+
+  /* Reduce padding on mobile */
+  .react-calendar__tile {
+    padding: 0.75rem 0.25rem;
+    font-size: 0.875rem;
+  }
+
+  .react-calendar__navigation button {
+    min-width: 36px;
+    font-size: 0.875rem;
+  }
+
+  /* Editor adjustments */
+  .ProseMirror {
+    min-height: 300px;
+    padding: 0.75rem;
+    font-size: 16px; /* Prevent zoom on iOS */
+  }
+
+  .ProseMirror h1 {
+    font-size: 1.5em;
+  }
+
+  .ProseMirror h2 {
+    font-size: 1.25em;
+  }
+
+  .ProseMirror h3 {
+    font-size: 1.1em;
+  }
+
+  /* Mobile-friendly editor toolbar */
+  .editor-toolbar {
+    padding: 0.5rem !important;
+    gap: 0.25rem !important;
+  }
+
+  .editor-toolbar button {
+    padding: 0.5rem !important;
+  }
+
+  .editor-toolbar button svg {
+    width: 1rem !important;
+    height: 1rem !important;
+  }
+
+  /* Mobile card spacing */
+  .space-y-6 > * + * {
+    margin-top: 1rem !important;
+  }
+
+  /* Mobile calendar adjustments */
+  .react-calendar__month-view__weekdays {
+    font-size: 0.625rem;
+  }
+}
+
+/* Tablet devices */
+@media (min-width: 641px) and (max-width: 1024px) {
+  /* Tablet-specific adjustments */
+  .ProseMirror {
+    padding: 0.875rem;
+  }
+
+  .editor-toolbar {
+    padding: 0.75rem !important;
+  }
+}
+
+/* Touch device improvements */
+@media (hover: none) and (pointer: coarse) {
+  /* Larger touch targets for mobile */
+  button, a, input[type="button"], input[type="submit"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Prevent double-tap zoom on buttons */
+  button {
+    touch-action: manipulation;
+  }
+}
+
+/* Landscape mobile orientation */
+@media (max-width: 896px) and (orientation: landscape) {
+  /* Reduce vertical spacing in landscape */
+  .ProseMirror {
+    min-height: 100px;
+  }
+
+  .react-calendar__tile {
+    padding: 0.5rem 0.25rem;
+  }
 }
 
