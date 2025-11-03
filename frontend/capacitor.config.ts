@@ -5,19 +5,19 @@ const config: CapacitorConfig = {
   appName: 'Track the Thing',
   webDir: 'dist',
   server: {
-    androidScheme: 'https',
+    androidScheme: 'http',
     cleartext: true,
     allowNavigation: [
       '192.168.0.186',
       'localhost',
-      '192.168.0.186'
+      '127.0.0.1'
     ]
   },
   android: {
     // Pixel 7a optimizations
     allowMixedContent: true,
     captureInput: true,
-    webContentsDebuggingEnabled: false,
+    webContentsDebuggingEnabled: true,
     // Handle display cutout (punch-hole camera)
     layoutFillScreen: true,
     // Optimize for gesture navigation
