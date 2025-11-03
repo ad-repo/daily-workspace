@@ -6,36 +6,28 @@ Your browser doesn't trust the self-signed SSL certificate yet!
 
 ---
 
-## **The Solution (2 Steps):**
+## **The Solution (1 Step):**
 
-### **Step 1: Accept Backend Certificate First**
-
-Before accessing the app, you need to tell your browser to trust the backend certificate:
+### **Accept the Certificate and Access the App**
 
 1. **On your mobile**, open Chrome
-2. Go to: **`https://192.168.0.186:8000/health`**
+2. Go to: **`https://192.168.0.186:3000`** (note: HTTPS!)
 3. You'll see: **"Your connection is not private"**
 4. Tap **"Advanced"**
 5. Tap **"Proceed to 192.168.0.186 (unsafe)"**
-6. You should see: `{"status":"healthy"}`
+6. **App loads!** ✅
+7. Camera/video buttons should appear!
 
-✅ **Done!** Browser now trusts the backend.
-
-### **Step 2: Access the App**
-
-Now go to the app:
-1. Go to: **`http://192.168.0.186:3000`** (yes, HTTP not HTTPS!)
-2. App should load normally
-3. Camera/video buttons should appear!
+That's it! Just one URL, one warning to accept.
 
 ---
 
 ## **Why This Works:**
 
-- Frontend serves on **HTTP** (no SSL needed)
-- Backend uses **HTTPS** (required for camera access)
-- Browser needs to trust the backend certificate first
-- Once trusted, HTTP frontend can talk to HTTPS backend
+- Both frontend and backend now use **HTTPS**
+- They share the same SSL certificate
+- Browser needs to trust the certificate once
+- Once trusted, all features work including camera/video!
 
 ---
 
@@ -43,9 +35,9 @@ Now go to the app:
 
 Same process:
 
-1. Visit: `https://localhost:8000/health` or `https://192.168.0.186:8000/health`
-2. Accept the warning
-3. Then visit: `http://localhost:3000` or `http://192.168.0.186:3000`
+1. Visit: `https://localhost:3000` or `https://192.168.0.186:3000`
+2. Accept the warning once
+3. App loads! All features work!
 
 ---
 
