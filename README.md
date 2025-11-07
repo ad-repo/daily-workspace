@@ -79,6 +79,8 @@ A modern, powerful daily workspace application for capturing and organizing your
 ### 🛠️ Productivity Tools
 - **Multi-Select & Merge**: Select multiple entries and combine them into one
 - **Copy Content**: Copy any entry's text content to clipboard
+- **Copy as Markdown**: Export entries with title and content as high-quality Markdown
+- **Copy as Jira/Confluence**: Export entries in Jira wiki markup format with full formatting preservation
 - **Continue from Previous Day**: Copy entries from past days to today
 - **Entry Management**: Edit, delete, and reorder entries
 
