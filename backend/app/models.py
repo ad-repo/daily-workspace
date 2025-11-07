@@ -39,6 +39,32 @@ class AppSettings(Base):
     id = Column(Integer, primary_key=True, index=True)
     sprint_goals = Column(Text, default="")  # Persistent sprint goals
     quarterly_goals = Column(Text, default="")  # Persistent quarterly goals
+    sprint_start_date = Column(String, default="")  # Format: YYYY-MM-DD
+    sprint_end_date = Column(String, default="")  # Format: YYYY-MM-DD
+    quarterly_start_date = Column(String, default="")  # Format: YYYY-MM-DD
+    quarterly_end_date = Column(String, default="")  # Format: YYYY-MM-DD
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+class SprintGoal(Base):
+    """Model for sprint goals with date ranges - supports historical tracking"""
+    __tablename__ = "sprint_goals"
+
+    id = Column(Integer, primary_key=True, index=True)
+    text = Column(Text, nullable=False, default="")
+    start_date = Column(String, nullable=False)  # Format: YYYY-MM-DD
+    end_date = Column(String, nullable=False)  # Format: YYYY-MM-DD
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+class QuarterlyGoal(Base):
+    """Model for quarterly goals with date ranges - supports historical tracking"""
+    __tablename__ = "quarterly_goals"
+
+    id = Column(Integer, primary_key=True, index=True)
+    text = Column(Text, nullable=False, default="")
+    start_date = Column(String, nullable=False)  # Format: YYYY-MM-DD
+    end_date = Column(String, nullable=False)  # Format: YYYY-MM-DD
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

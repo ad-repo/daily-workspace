@@ -2,6 +2,38 @@
 
 This directory contains database migration scripts for upgrading the Track the Thing database schema.
 
+## ⚠️ CRITICAL REQUIREMENTS (from .cursorrules)
+
+**BEFORE running ANY migration:**
+
+1. **Create a backup:**
+   ```bash
+   python migrations/pre_migration_backup.py
+   ```
+
+2. **Test on the test copy first:**
+   ```bash
+   # The backup script creates daily_notes.db.test
+   # Test your migration on this copy
+   python migrations/verify_migration.py  # Run before migration
+   # Apply migration to test DB
+   python migrations/verify_migration.py  # Run after migration
+   ```
+
+3. **Verify data integrity:**
+   - Check row counts before/after
+   - Verify foreign key constraints
+   - Test actual application functionality
+
+4. **Only then apply to production database**
+
+**Migration must:**
+- Handle upgrades from ALL previous versions
+- Be idempotent (safe to run multiple times)
+- Include both `migrate_up()` and `migrate_down()` functions
+- Preserve ALL data during schema changes
+- Update backup/restore scripts if data model changes
+
 ## Running Migrations
 
 ### Individual Migration
@@ -36,11 +68,25 @@ docker-compose exec backend python migrations/001_add_title_field.py up
 docker-compose exec backend python migrations/run_migrations.py
 ```
 
+## Utility Scripts
+
+| Script | Purpose |
+|--------|---------|
+| `pre_migration_backup.py` | **REQUIRED**: Create backup + test copy before any migration |
+| `verify_migration.py` | Verify database integrity and data counts |
+| `run_migrations.py` | Run all pending migrations in order |
+
 ## Migration List
 
 | Version | Description | Date |
 |---------|-------------|------|
 | 001 | Add title field to note_entries | 2025-10-30 |
+| 010 | Fix localhost URLs in content | 2025-11-01 |
+| 011 | Add sprint/quarterly goals to daily_notes | 2025-11-06 |
+| 012 | Move goals to app_settings table | 2025-11-06 |
+| 013 | Add goal date fields to app_settings | 2025-11-07 |
+| 014 | **Automatic timezone fix** - moves PAST entries to correct dates (skips future dates) | 2025-11-07 (fixed 11/7 evening) |
+| 015 | **Date-aware goals** - creates sprint_goals and quarterly_goals tables for historical tracking | 2025-11-07 |
 
 ## Creating New Migrations
 

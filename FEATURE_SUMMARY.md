@@ -2,7 +2,46 @@
 
 ## Latest Updates (2025-11-07)
 
-### 1. Copy to Jira/Confluence
+### 1. Calendar View Goal Integration
+- **What**: Sprint and quarterly goals now display on the calendar view with visual indicators
+- **Features**:
+  - **Goal Indicators**: 🚀 emoji for Sprint Goals, 🌟 emoji for Quarterly Goals
+  - **Smart Display**: Goals only appear on calendar dates within their date range
+  - **Rich Tooltips**: Hover over any date to see daily goal, sprint goal, quarterly goal, and entry count
+  - **Multiple States**: Calendar tiles can show multiple indicators at once (skull + star + check)
+  - **No Override Rule**: All entry states (dev/null, important, completed) display simultaneously
+  - **Updated Legend**: Separate sections for "Entry Status" and "Goals" with clear explanations
+- **API**: New endpoints `GET /api/goals/sprint` and `GET /api/goals/quarterly` for batch fetching
+- **UI**: Goals appear below entry indicators on calendar tiles
+- **Consistency**: Uses same emojis as Daily View (🚀 and 🌟)
+
+### 2. Date-Aware Goals System with Upcoming Goals
+- **What**: Sprint and quarterly goals are now contextual to the date you're viewing, with support for upcoming goals
+- **How**: Goals automatically load based on the date being viewed, including future goals not yet started
+- **Features**:
+  - **Historical Tracking**: Create multiple goals with specific date ranges (start/end dates)
+  - **Automatic Display**: Correct goal displays for the date you're viewing
+  - **Upcoming Goals**: Shows future goals with "X days until start" countdown in blue badge
+  - **Days Remaining**: Countdown calculated from the viewed date, not today
+  - **Always Editable**: End dates always editable for error correction (no read-only restriction)
+  - **Easy Creation**: Click "+ Create Sprint/Quarterly Goal" when viewing any date
+  - **Selectable Start Date**: Choose any start date when creating new goals
+  - **Date Range Validation**: Prevents overlapping goals for the same period
+  - **Date-Aware Navigation**: See different goals when browsing different dates
+  - **Auto-Close Date Pickers**: Date pickers close when navigating to different days
+- **UI**: 
+  - Blue badge: "X days until start" for upcoming goals
+  - Green badge: "X days left" for active goals
+  - Red badge: "X days overdue" for past goals
+  - All goals always editable (no read-only badges)
+  - Inline creation form with editable start date and end date picker
+  - Clear visual feedback for goal state
+- **Database**: New `sprint_goals` and `quarterly_goals` tables for historical tracking
+- **Migration**: Automated migration 015 migrates existing goals from `app_settings`
+- **Backup/Restore**: Goals included in JSON/Markdown exports with full history
+- **Fixed**: Migration 014 now preserves intentionally created future entries (2025-11-07)
+
+### 2. Copy to Jira/Confluence
 - **What**: Export note entries in Jira/Confluence wiki markup format
 - **How**: Click the Jira icon button in the entry toolbar (next to Markdown copy)
 - **Features**:

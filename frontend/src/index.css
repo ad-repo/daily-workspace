@@ -277,44 +277,64 @@ code {
   border: none;
   font-family: inherit;
   background: var(--color-card-bg);
-  border-radius: 0.5rem;
+  border-radius: 0.75rem;
   color: var(--color-text-primary);
+  padding: 1rem;
 }
 
 .react-calendar__tile {
-  padding: 1rem 0.5rem;
+  padding: 1.5rem 0.5rem;
   position: relative;
   color: var(--color-text-primary);
+  font-size: 1rem;
+  font-weight: 500;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
 }
 
 .react-calendar__tile:enabled:hover,
 .react-calendar__tile:enabled:focus {
   background-color: var(--color-bg-hover);
-  border-radius: 0.25rem;
+  border-radius: 0.5rem;
+  transform: scale(1.03);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .react-calendar__tile--active {
   background: var(--color-accent) !important;
   color: var(--color-accent-text) !important;
-  border-radius: 0.25rem;
+  border-radius: 0.5rem;
+  transform: scale(1.03);
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.2);
 }
 
 .react-calendar__tile--now {
   background: var(--color-warning);
   color: var(--color-bg-primary);
-  border-radius: 0.25rem;
+  border-radius: 0.5rem;
+  font-weight: 700;
+  box-shadow: 0 2px 4px rgba(245, 158, 11, 0.2);
+}
+
+.react-calendar__navigation {
+  margin-bottom: 1rem;
+  gap: 0.5rem;
 }
 
 .react-calendar__navigation button {
   min-width: 44px;
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-weight: 600;
   color: var(--color-text-primary);
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
 }
 
 .react-calendar__navigation button:enabled:hover,
 .react-calendar__navigation button:enabled:focus {
   background-color: var(--color-bg-hover);
+  transform: scale(1.02);
 }
 
 .react-calendar__month-view__weekdays {
@@ -323,10 +343,19 @@ code {
   font-weight: bold;
   font-size: 0.75rem;
   color: var(--color-text-secondary);
+  padding-bottom: 0.75rem;
+}
+
+.react-calendar__month-view__weekdays__weekday {
+  padding: 0.5rem;
 }
 
 .react-calendar__month-view__days__day--weekend {
   color: var(--color-error);
+}
+
+.react-calendar__tile abbr {
+  font-size: 1.1rem;
 }
 
 /* Star with rays animation */

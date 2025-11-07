@@ -51,6 +51,16 @@ def migrate_up(db_path):
     cursor = conn.cursor()
     
     try:
+        # CRITICAL: Check if app_settings table exists
+        # If it does, migration 012 has already moved goals there, so we should NOT add columns back
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='app_settings'")
+        app_settings_exists = cursor.fetchone() is not None
+        
+        if app_settings_exists:
+            print("✓ Migration 012 has already moved goals to app_settings table. Skipping column addition.")
+            print("✓ This migration is no longer needed for this database.")
+            return True
+        
         # Check and add sprint_goals column
         if not column_exists(cursor, 'daily_notes', 'sprint_goals'):
             print("Adding 'sprint_goals' column to daily_notes table...")
