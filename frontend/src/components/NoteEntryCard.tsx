@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Trash2, Clock, FileText, Star, Check, Copy, CheckCheck, ArrowRight, Skull, ArrowUp } from 'lucide-react';
+import { Trash2, Clock, FileText, Star, Check, Copy, CheckCheck, ArrowRight, Skull, ArrowUp, FileDown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import axios from 'axios';
+import TurndownService from 'turndown';
 import type { NoteEntry } from '../types';
 import RichTextEditor from './RichTextEditor';
 import CodeEditor from './CodeEditor';
@@ -11,6 +12,18 @@ import { useTimezone } from '../contexts/TimezoneContext';
 import { formatTimestamp } from '../utils/timezone';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
+// Jira Icon Component
+const JiraIcon = ({ className }: { className?: string }) => (
+  <svg 
+    viewBox="0 0 24 24" 
+    fill="currentColor" 
+    className={className}
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path d="M11.571 11.513H0a5.218 5.218 0 0 0 5.232 5.215h2.13v2.057A5.215 5.215 0 0 0 12.575 24V12.518a1.005 1.005 0 0 0-1.005-1.005zm5.723-5.756H5.736a5.215 5.215 0 0 0 5.215 5.214h2.129v2.058a5.218 5.218 0 0 0 5.215 5.214V6.758a1.001 1.001 0 0 0-1.001-1.001zM23.013 0H11.455a5.215 5.215 0 0 0 5.215 5.215h2.129v2.057A5.215 5.215 0 0 0 24 12.483V1.005A1.001 1.001 0 0 0 23.013 0z"/>
+  </svg>
+);
 
 interface NoteEntryCardProps {
   entry: NoteEntry;
@@ -35,6 +48,8 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onMoveToTop,
   const [isCompleted, setIsCompleted] = useState(entry.is_completed || false);
   const [isDevNull, setIsDevNull] = useState(entry.is_dev_null || false);
   const [copied, setCopied] = useState(false);
+  const [copiedMarkdown, setCopiedMarkdown] = useState(false);
+  const [copiedJira, setCopiedJira] = useState(false);
   const [isContinuing, setIsContinuing] = useState(false);
   const [isMoving, setIsMoving] = useState(false);
   const isCodeEntry = entry.content_type === 'code';
@@ -161,6 +176,136 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onMoveToTop,
     } catch (error) {
       console.error('Failed to copy:', error);
       alert('Failed to copy to clipboard');
+    }
+  };
+
+  const handleCopyMarkdown = async () => {
+    try {
+      let markdownContent = '';
+      
+      // Add title if present
+      if (title) {
+        markdownContent += `# ${title}\n\n`;
+      }
+      
+      // Convert content to markdown
+      if (isCodeEntry) {
+        // Code entries: wrap in code block
+        markdownContent += '```\n' + content + '\n```';
+      } else {
+        // Rich text: use turndown for high-quality HTML to Markdown conversion
+        const turndownService = new TurndownService({
+          headingStyle: 'atx',
+          codeBlockStyle: 'fenced',
+          bulletListMarker: '-',
+          emDelimiter: '*',
+          strongDelimiter: '**',
+        });
+        markdownContent += turndownService.turndown(content);
+      }
+      
+      await navigator.clipboard.writeText(markdownContent);
+      setCopiedMarkdown(true);
+      setTimeout(() => setCopiedMarkdown(false), 2000);
+    } catch (error) {
+      console.error('Failed to copy markdown:', error);
+      alert('Failed to copy markdown to clipboard');
+    }
+  };
+
+  const convertHtmlToJira = (html: string): string => {
+    // Convert various HTML elements to Jira markup
+    let jira = html;
+    
+    // Headings: h1-h6 -> h1. to h6.
+    jira = jira.replace(/<h1[^>]*>(.*?)<\/h1>/gi, 'h1. $1\n\n');
+    jira = jira.replace(/<h2[^>]*>(.*?)<\/h2>/gi, 'h2. $1\n\n');
+    jira = jira.replace(/<h3[^>]*>(.*?)<\/h3>/gi, 'h3. $1\n\n');
+    jira = jira.replace(/<h4[^>]*>(.*?)<\/h4>/gi, 'h4. $1\n\n');
+    jira = jira.replace(/<h5[^>]*>(.*?)<\/h5>/gi, 'h5. $1\n\n');
+    jira = jira.replace(/<h6[^>]*>(.*?)<\/h6>/gi, 'h6. $1\n\n');
+    
+    // Bold: <strong> or <b> -> *text*
+    jira = jira.replace(/<(?:strong|b)[^>]*>(.*?)<\/(?:strong|b)>/gi, '*$1*');
+    
+    // Italic: <em> or <i> -> _text_
+    jira = jira.replace(/<(?:em|i)[^>]*>(.*?)<\/(?:em|i)>/gi, '_$1_');
+    
+    // Strikethrough: <s> or <del> -> -text-
+    jira = jira.replace(/<(?:s|del|strike)[^>]*>(.*?)<\/(?:s|del|strike)>/gi, '-$1-');
+    
+    // Underline: <u> -> +text+
+    jira = jira.replace(/<u[^>]*>(.*?)<\/u>/gi, '+$1+');
+    
+    // Code inline: <code> -> {{text}}
+    jira = jira.replace(/<code[^>]*>(.*?)<\/code>/gi, '{{$1}}');
+    
+    // Pre/Code blocks: <pre> -> {code}text{code}
+    jira = jira.replace(/<pre[^>]*>(.*?)<\/pre>/gis, '{code}\n$1\n{code}\n\n');
+    
+    // Links: <a href="url">text</a> -> [text|url]
+    jira = jira.replace(/<a[^>]*href=["']([^"']*)["'][^>]*>(.*?)<\/a>/gi, '[$2|$1]');
+    
+    // Images: <img src="url" alt="text"> -> !url|alt=text!
+    jira = jira.replace(/<img[^>]*src=["']([^"']*)["'][^>]*alt=["']([^"']*)["'][^>]*\/?>/gi, '!$1|alt=$2!');
+    jira = jira.replace(/<img[^>]*src=["']([^"']*)["'][^>]*\/?>/gi, '!$1!');
+    
+    // Unordered lists: <ul><li> -> * item
+    jira = jira.replace(/<ul[^>]*>(.*?)<\/ul>/gis, (match, content) => {
+      return content.replace(/<li[^>]*>(.*?)<\/li>/gi, '* $1\n');
+    });
+    
+    // Ordered lists: <ol><li> -> # item
+    jira = jira.replace(/<ol[^>]*>(.*?)<\/ol>/gis, (match, content) => {
+      return content.replace(/<li[^>]*>(.*?)<\/li>/gi, '# $1\n');
+    });
+    
+    // Blockquotes: <blockquote> -> {quote}text{quote}
+    jira = jira.replace(/<blockquote[^>]*>(.*?)<\/blockquote>/gis, '{quote}\n$1\n{quote}\n\n');
+    
+    // Line breaks: <br> -> \n
+    jira = jira.replace(/<br\s*\/?>/gi, '\n');
+    
+    // Paragraphs: <p> -> text\n\n
+    jira = jira.replace(/<p[^>]*>(.*?)<\/p>/gis, '$1\n\n');
+    
+    // Remove remaining HTML tags
+    jira = jira.replace(/<[^>]+>/g, '');
+    
+    // Decode HTML entities
+    const textarea = document.createElement('textarea');
+    textarea.innerHTML = jira;
+    jira = textarea.value;
+    
+    // Clean up excessive whitespace
+    jira = jira.replace(/\n{3,}/g, '\n\n');
+    jira = jira.trim();
+    
+    return jira;
+  };
+
+  const handleCopyJira = async () => {
+    try {
+      let jiraContent = '';
+      
+      // Add title if present
+      if (title) {
+        jiraContent += `h1. ${title}\n\n`;
+      }
+      
+      // Convert content to Jira format
+      if (isCodeEntry) {
+        jiraContent += '{code}\n' + content + '\n{code}';
+      } else {
+        jiraContent += convertHtmlToJira(content);
+      }
+      
+      await navigator.clipboard.writeText(jiraContent);
+      setCopiedJira(true);
+      setTimeout(() => setCopiedJira(false), 2000);
+    } catch (error) {
+      console.error('Failed to copy Jira format:', error);
+      alert('Failed to copy Jira format to clipboard');
     }
   };
 
@@ -327,6 +472,48 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onMoveToTop,
               ) : (
                 <Copy className="h-5 w-5" />
               )}
+            </button>
+            
+            <button
+              onClick={handleCopyMarkdown}
+              className="p-2 rounded transition-colors"
+              style={{ color: copiedMarkdown ? 'var(--color-success)' : 'var(--color-text-tertiary)' }}
+              onMouseEnter={(e) => {
+                if (!copiedMarkdown) {
+                  e.currentTarget.style.backgroundColor = 'rgba(59, 130, 246, 0.1)';
+                  e.currentTarget.style.color = 'var(--color-accent)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!copiedMarkdown) {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = 'var(--color-text-tertiary)';
+                }
+              }}
+              title={copiedMarkdown ? "Copied as Markdown!" : "Copy as Markdown"}
+            >
+              {copiedMarkdown ? <CheckCheck className="h-5 w-5" /> : <FileDown className="h-5 w-5" />}
+            </button>
+            
+            <button
+              onClick={handleCopyJira}
+              className="p-2 rounded transition-colors"
+              style={{ color: copiedJira ? 'var(--color-success)' : 'var(--color-text-tertiary)' }}
+              onMouseEnter={(e) => {
+                if (!copiedJira) {
+                  e.currentTarget.style.backgroundColor = 'rgba(59, 130, 246, 0.1)';
+                  e.currentTarget.style.color = 'var(--color-accent)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!copiedJira) {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = 'var(--color-text-tertiary)';
+                }
+              }}
+              title={copiedJira ? "Copied as Jira!" : "Copy as Jira/Confluence"}
+            >
+              {copiedJira ? <CheckCheck className="h-5 w-5" /> : <JiraIcon className="h-5 w-5" />}
             </button>
             
             {isFromPastDay && (
