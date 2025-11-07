@@ -21,9 +21,11 @@ async def export_data(db: Session = Depends(get_db)):
     labels = db.query(models.Label).all()
     search_history = db.query(models.SearchHistory).order_by(models.SearchHistory.created_at.desc()).all()
     app_settings = db.query(models.AppSettings).filter(models.AppSettings.id == 1).first()
+    sprint_goals = db.query(models.SprintGoal).all()
+    quarterly_goals = db.query(models.QuarterlyGoal).all()
     
     export_data = {
-        "version": "4.0",
+        "version": "5.0",
         "exported_at": datetime.utcnow().isoformat(),
         "search_history": [
             {
@@ -44,9 +46,35 @@ async def export_data(db: Session = Depends(get_db)):
         "app_settings": {
             "sprint_goals": app_settings.sprint_goals if app_settings else "",
             "quarterly_goals": app_settings.quarterly_goals if app_settings else "",
+            "sprint_start_date": app_settings.sprint_start_date if app_settings else "",
+            "sprint_end_date": app_settings.sprint_end_date if app_settings else "",
+            "quarterly_start_date": app_settings.quarterly_start_date if app_settings else "",
+            "quarterly_end_date": app_settings.quarterly_end_date if app_settings else "",
             "created_at": app_settings.created_at.isoformat() if app_settings else datetime.utcnow().isoformat(),
             "updated_at": app_settings.updated_at.isoformat() if app_settings else datetime.utcnow().isoformat()
         },
+        "sprint_goals": [
+            {
+                "id": goal.id,
+                "text": goal.text,
+                "start_date": goal.start_date,
+                "end_date": goal.end_date,
+                "created_at": goal.created_at.isoformat(),
+                "updated_at": goal.updated_at.isoformat()
+            }
+            for goal in sprint_goals
+        ],
+        "quarterly_goals": [
+            {
+                "id": goal.id,
+                "text": goal.text,
+                "start_date": goal.start_date,
+                "end_date": goal.end_date,
+                "created_at": goal.created_at.isoformat(),
+                "updated_at": goal.updated_at.isoformat()
+            }
+            for goal in quarterly_goals
+        ],
         "notes": [
             {
                 "date": note.date,
@@ -165,12 +193,36 @@ async def export_markdown(db: Session = Depends(get_db)):
         markdown_lines.append("\n---\n")
     
     # Add persistent goals at the top
+    # First, add goals from new goal tables
+    sprint_goals = db.query(models.SprintGoal).order_by(models.SprintGoal.start_date).all()
+    if sprint_goals:
+        markdown_lines.append("\n## Sprint Goals (Historical)\n")
+        for goal in sprint_goals:
+            markdown_lines.append(f"### {goal.start_date} to {goal.end_date}\n")
+            markdown_lines.append(f"{goal.text}\n")
+        markdown_lines.append("\n---\n")
+    
+    quarterly_goals = db.query(models.QuarterlyGoal).order_by(models.QuarterlyGoal.start_date).all()
+    if quarterly_goals:
+        markdown_lines.append("\n## Quarterly Goals (Historical)\n")
+        for goal in quarterly_goals:
+            markdown_lines.append(f"### {goal.start_date} to {goal.end_date}\n")
+            markdown_lines.append(f"{goal.text}\n")
+        markdown_lines.append("\n---\n")
+    
+    # Legacy: Add goals from app_settings if they exist (for backwards compatibility)
     app_settings = db.query(models.AppSettings).filter(models.AppSettings.id == 1).first()
     if app_settings:
         if app_settings.sprint_goals:
-            markdown_lines.append(f"\n## Sprint Goals\n{app_settings.sprint_goals}\n\n---\n")
+            date_range = ""
+            if app_settings.sprint_start_date or app_settings.sprint_end_date:
+                date_range = f" ({app_settings.sprint_start_date} to {app_settings.sprint_end_date})"
+            markdown_lines.append(f"\n## Sprint Goals (Legacy){date_range}\n{app_settings.sprint_goals}\n\n---\n")
         if app_settings.quarterly_goals:
-            markdown_lines.append(f"\n## Quarterly Goals\n{app_settings.quarterly_goals}\n\n---\n")
+            date_range = ""
+            if app_settings.quarterly_start_date or app_settings.quarterly_end_date:
+                date_range = f" ({app_settings.quarterly_start_date} to {app_settings.quarterly_end_date})"
+            markdown_lines.append(f"\n## Quarterly Goals (Legacy){date_range}\n{app_settings.quarterly_goals}\n\n---\n")
     
     # Add notes
     for note in notes:
@@ -259,7 +311,9 @@ async def import_data(
             "entries_imported": 0,
             "labels_skipped": 0,
             "notes_skipped": 0,
-            "search_history_imported": 0
+            "search_history_imported": 0,
+            "sprint_goals_imported": 0,
+            "quarterly_goals_imported": 0
         }
         
         # Import search history
@@ -288,15 +342,65 @@ async def import_data(
             if existing_settings:
                 existing_settings.sprint_goals = settings_data.get("sprint_goals", "")
                 existing_settings.quarterly_goals = settings_data.get("quarterly_goals", "")
+                existing_settings.sprint_start_date = settings_data.get("sprint_start_date", "")
+                existing_settings.sprint_end_date = settings_data.get("sprint_end_date", "")
+                existing_settings.quarterly_start_date = settings_data.get("quarterly_start_date", "")
+                existing_settings.quarterly_end_date = settings_data.get("quarterly_end_date", "")
             else:
                 new_settings = models.AppSettings(
                     id=1,
                     sprint_goals=settings_data.get("sprint_goals", ""),
                     quarterly_goals=settings_data.get("quarterly_goals", ""),
+                    sprint_start_date=settings_data.get("sprint_start_date", ""),
+                    sprint_end_date=settings_data.get("sprint_end_date", ""),
+                    quarterly_start_date=settings_data.get("quarterly_start_date", ""),
+                    quarterly_end_date=settings_data.get("quarterly_end_date", ""),
                     created_at=datetime.fromisoformat(settings_data["created_at"]) if "created_at" in settings_data else datetime.utcnow(),
                     updated_at=datetime.fromisoformat(settings_data["updated_at"]) if "updated_at" in settings_data else datetime.utcnow()
                 )
                 db.add(new_settings)
+            db.commit()
+        
+        # Import sprint goals if present
+        if "sprint_goals" in data:
+            for goal_data in data["sprint_goals"]:
+                # Check if this goal already exists (by date range)
+                existing_goal = db.query(models.SprintGoal).filter(
+                    models.SprintGoal.start_date == goal_data["start_date"],
+                    models.SprintGoal.end_date == goal_data["end_date"]
+                ).first()
+                
+                if not existing_goal:
+                    new_goal = models.SprintGoal(
+                        text=goal_data["text"],
+                        start_date=goal_data["start_date"],
+                        end_date=goal_data["end_date"],
+                        created_at=datetime.fromisoformat(goal_data["created_at"]) if "created_at" in goal_data else datetime.utcnow(),
+                        updated_at=datetime.fromisoformat(goal_data["updated_at"]) if "updated_at" in goal_data else datetime.utcnow()
+                    )
+                    db.add(new_goal)
+                    stats["sprint_goals_imported"] += 1
+            db.commit()
+        
+        # Import quarterly goals if present
+        if "quarterly_goals" in data:
+            for goal_data in data["quarterly_goals"]:
+                # Check if this goal already exists (by date range)
+                existing_goal = db.query(models.QuarterlyGoal).filter(
+                    models.QuarterlyGoal.start_date == goal_data["start_date"],
+                    models.QuarterlyGoal.end_date == goal_data["end_date"]
+                ).first()
+                
+                if not existing_goal:
+                    new_goal = models.QuarterlyGoal(
+                        text=goal_data["text"],
+                        start_date=goal_data["start_date"],
+                        end_date=goal_data["end_date"],
+                        created_at=datetime.fromisoformat(goal_data["created_at"]) if "created_at" in goal_data else datetime.utcnow(),
+                        updated_at=datetime.fromisoformat(goal_data["updated_at"]) if "updated_at" in goal_data else datetime.utcnow()
+                    )
+                    db.add(new_goal)
+                    stats["quarterly_goals_imported"] += 1
             db.commit()
         
         # Import labels (support both old "tags" and new "labels" format)
@@ -453,7 +557,9 @@ async def full_restore(
             "entries_imported": 0,
             "labels_skipped": 0,
             "notes_skipped": 0,
-            "search_history_imported": 0
+            "search_history_imported": 0,
+            "sprint_goals_imported": 0,
+            "quarterly_goals_imported": 0
         }
         
         # Import search history
@@ -481,15 +587,63 @@ async def full_restore(
             if existing_settings:
                 existing_settings.sprint_goals = settings_data.get("sprint_goals", "")
                 existing_settings.quarterly_goals = settings_data.get("quarterly_goals", "")
+                existing_settings.sprint_start_date = settings_data.get("sprint_start_date", "")
+                existing_settings.sprint_end_date = settings_data.get("sprint_end_date", "")
+                existing_settings.quarterly_start_date = settings_data.get("quarterly_start_date", "")
+                existing_settings.quarterly_end_date = settings_data.get("quarterly_end_date", "")
             else:
                 new_settings = models.AppSettings(
                     id=1,
                     sprint_goals=settings_data.get("sprint_goals", ""),
                     quarterly_goals=settings_data.get("quarterly_goals", ""),
+                    sprint_start_date=settings_data.get("sprint_start_date", ""),
+                    sprint_end_date=settings_data.get("sprint_end_date", ""),
+                    quarterly_start_date=settings_data.get("quarterly_start_date", ""),
+                    quarterly_end_date=settings_data.get("quarterly_end_date", ""),
                     created_at=datetime.fromisoformat(settings_data["created_at"]) if "created_at" in settings_data else datetime.utcnow(),
                     updated_at=datetime.fromisoformat(settings_data["updated_at"]) if "updated_at" in settings_data else datetime.utcnow()
                 )
                 db.add(new_settings)
+            db.commit()
+        
+        # Import sprint goals if present
+        if "sprint_goals" in data:
+            for goal_data in data["sprint_goals"]:
+                existing_goal = db.query(models.SprintGoal).filter(
+                    models.SprintGoal.start_date == goal_data["start_date"],
+                    models.SprintGoal.end_date == goal_data["end_date"]
+                ).first()
+                
+                if not existing_goal:
+                    new_goal = models.SprintGoal(
+                        text=goal_data["text"],
+                        start_date=goal_data["start_date"],
+                        end_date=goal_data["end_date"],
+                        created_at=datetime.fromisoformat(goal_data["created_at"]) if "created_at" in goal_data else datetime.utcnow(),
+                        updated_at=datetime.fromisoformat(goal_data["updated_at"]) if "updated_at" in goal_data else datetime.utcnow()
+                    )
+                    db.add(new_goal)
+                    data_stats["sprint_goals_imported"] += 1
+            db.commit()
+        
+        # Import quarterly goals if present
+        if "quarterly_goals" in data:
+            for goal_data in data["quarterly_goals"]:
+                existing_goal = db.query(models.QuarterlyGoal).filter(
+                    models.QuarterlyGoal.start_date == goal_data["start_date"],
+                    models.QuarterlyGoal.end_date == goal_data["end_date"]
+                ).first()
+                
+                if not existing_goal:
+                    new_goal = models.QuarterlyGoal(
+                        text=goal_data["text"],
+                        start_date=goal_data["start_date"],
+                        end_date=goal_data["end_date"],
+                        created_at=datetime.fromisoformat(goal_data["created_at"]) if "created_at" in goal_data else datetime.utcnow(),
+                        updated_at=datetime.fromisoformat(goal_data["updated_at"]) if "updated_at" in goal_data else datetime.utcnow()
+                    )
+                    db.add(new_goal)
+                    data_stats["quarterly_goals_imported"] += 1
             db.commit()
         
         # Import labels

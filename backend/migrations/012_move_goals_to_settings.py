@@ -75,23 +75,30 @@ def migrate_up(db_path):
         else:
             print("✓ app_settings table already exists")
         
-        # Step 2: Migrate data from daily_notes to app_settings
+        # Step 2: Migrate data from daily_notes to app_settings (only if columns exist)
         # Get the most recent non-empty sprint_goals and quarterly_goals
-        cursor.execute("""
-            SELECT sprint_goals, quarterly_goals 
-            FROM daily_notes 
-            WHERE sprint_goals != '' OR quarterly_goals != ''
-            ORDER BY date DESC 
-            LIMIT 1
-        """)
-        row = cursor.fetchone()
+        has_sprint = column_exists(cursor, 'daily_notes', 'sprint_goals')
+        has_quarterly = column_exists(cursor, 'daily_notes', 'quarterly_goals')
         
-        if row:
-            sprint_goals, quarterly_goals = row
-            print(f"Found existing goals to migrate: sprint='{sprint_goals[:50]}...', quarterly='{quarterly_goals[:50]}...'")
+        if has_sprint or has_quarterly:
+            cursor.execute("""
+                SELECT sprint_goals, quarterly_goals 
+                FROM daily_notes 
+                WHERE sprint_goals != '' OR quarterly_goals != ''
+                ORDER BY date DESC 
+                LIMIT 1
+            """)
+            row = cursor.fetchone()
+            
+            if row:
+                sprint_goals, quarterly_goals = row
+                print(f"Found existing goals to migrate: sprint='{sprint_goals[:50]}...', quarterly='{quarterly_goals[:50]}...'")
+            else:
+                sprint_goals, quarterly_goals = '', ''
+                print("No existing goals found to migrate")
         else:
             sprint_goals, quarterly_goals = '', ''
-            print("No existing goals found to migrate")
+            print("✓ Goal columns don't exist, nothing to migrate")
         
         # Insert or update app_settings (ensure only one row exists)
         cursor.execute("SELECT COUNT(*) FROM app_settings")
@@ -108,8 +115,15 @@ def migrate_up(db_path):
             print("✓ app_settings already has data, skipping migration")
         
         # Step 3: Remove sprint_goals and quarterly_goals from daily_notes
-        if column_exists(cursor, 'daily_notes', 'sprint_goals') or column_exists(cursor, 'daily_notes', 'quarterly_goals'):
-            print("Removing goal columns from daily_notes table...")
+        # CRITICAL: Only run if columns exist AND we have data to preserve
+        # (We already checked has_sprint and has_quarterly in Step 2)
+        
+        if has_sprint or has_quarterly:
+            # Count existing rows to verify data preservation
+            cursor.execute('SELECT COUNT(*) FROM daily_notes')
+            row_count_before = cursor.fetchone()[0]
+            
+            print(f"Removing goal columns from daily_notes table (current rows: {row_count_before})...")
             print("Note: This requires recreating the table.")
             
             # Drop backup table if it exists from a previous failed run
@@ -168,7 +182,14 @@ def migrate_up(db_path):
                     cursor.execute("INSERT INTO note_labels (note_id, label_id) VALUES (?, ?)", 
                                  (note_id, label_id))
             
-            print("✓ Removed goal columns from daily_notes table")
+            # CRITICAL: Verify data was preserved
+            cursor.execute('SELECT COUNT(*) FROM daily_notes')
+            row_count_after = cursor.fetchone()[0]
+            
+            if row_count_after != row_count_before:
+                raise Exception(f"DATA LOSS! Had {row_count_before} rows, now have {row_count_after} rows")
+            
+            print(f"✓ Removed goal columns from daily_notes table (verified {row_count_after} rows preserved)")
         else:
             print("✓ Goal columns already removed from daily_notes")
         

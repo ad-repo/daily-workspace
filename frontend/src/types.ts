@@ -61,6 +61,10 @@ export interface AppSettings {
   id: number;
   sprint_goals: string;
   quarterly_goals: string;
+  sprint_start_date: string;
+  sprint_end_date: string;
+  quarterly_start_date: string;
+  quarterly_end_date: string;
   created_at: string;
   updated_at: string;
 }
@@ -68,5 +72,31 @@ export interface AppSettings {
 export interface AppSettingsUpdate {
   sprint_goals?: string;
   quarterly_goals?: string;
+  sprint_start_date?: string;
+  sprint_end_date?: string;
+  quarterly_start_date?: string;
+  quarterly_end_date?: string;
+}
+
+export interface Goal {
+  id: number;
+  text: string;
+  start_date: string;
+  end_date: string;
+  created_at: string;
+  updated_at: string;
+  days_remaining?: number;  // Calculated field relative to queried date
+}
+
+export interface GoalCreate {
+  text: string;
+  start_date: string;
+  end_date: string;
+}
+
+export interface GoalUpdate {
+  text?: string;
+  start_date?: string;
+  end_date?: string;
 }
 

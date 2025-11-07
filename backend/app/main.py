@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine, Base
-from app.routers import notes, entries, uploads, labels, backup, reports, search, search_history, link_preview, background_images, app_settings
+from app.routers import notes, entries, uploads, labels, backup, reports, search, search_history, link_preview, background_images, app_settings, goals
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
@@ -30,6 +30,7 @@ app.include_router(search_history.router, prefix="/api/search-history", tags=["s
 app.include_router(link_preview.router, prefix="/api/link-preview", tags=["link-preview"])
 app.include_router(background_images.router, prefix="/api/background-images", tags=["background-images"])
 app.include_router(app_settings.router)
+app.include_router(goals.router)
 
 @app.get("/")
 async def root():
