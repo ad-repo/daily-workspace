@@ -38,22 +38,31 @@ A modern, powerful daily workspace application for capturing and organizing your
 - **Daily Goals**: Set goals for each day (visible as tooltips in calendar)
   - Toggle visibility in Settings → General
   - Click-to-edit with automatic save
-- **Sprint Goals**: Track sprint-level goals (persists across days)
+- **Sprint Goals**: Date-aware goal tracking with historical support
+  - Automatically shows the correct goal for the date being viewed
+  - Shows upcoming goals with "X days until start" countdown
+  - Create goals with specific start/end dates
+  - Days remaining calculated from viewed date, not today
+  - End dates always editable (for error correction)
+  - Full history - see different goals when browsing different dates
   - Toggle visibility in Settings → General
-  - Click-to-edit with automatic save
-- **Quarterly Goals**: Set and track quarterly objectives (persists across days)
+- **Quarterly Goals**: Date-aware quarterly objectives with historical tracking
+  - Same powerful features as Sprint Goals
+  - Shows upcoming goals before they start
+  - Separate goal history for quarterly planning
   - Toggle visibility in Settings → General
-  - Click-to-edit with automatic save
 - **Day Labels**: Organize days with labels for quick filtering (displayed above goals)
   - Toggle visibility in Settings → General
 
 ### 📅 Calendar & Visualization
-- **Calendar View**: Visual overview with animated indicators:
-  - 💀 Skull: Has /dev/null entries (highest priority)
-  - ⭐ Green pulsing star: Has important AND completed
-  - ✓ Green bouncing checkmark: Has completed entries
+- **Calendar View**: Visual overview with animated indicators (multiple can show):
+  - 💀 Skull: Has /dev/null entries
   - ⭐ Yellow glowing star: Has important entries
-  - • Blue dot: Has regular notes
+  - ✓ Green bouncing checkmark: Has completed entries
+  - • Blue dot: Has regular notes (only if no other states)
+  - 🚀 Rocket: Sprint Goal active on this date
+  - 🌟 Star: Quarterly Goal active on this date
+- **Smart Tooltips**: Hover over any date to see daily goals, sprint goals, quarterly goals, and entry count
 - **Month Navigation**: Browse notes by month
 - **Today Button**: Quick jump to current day (shows day name)
 - **Timezone Support**: Display times in your preferred timezone (Eastern US by default)

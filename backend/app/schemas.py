@@ -123,3 +123,49 @@ class SearchResult(NoteEntryBase):
     class Config:
         from_attributes = True
 
+# App Settings Schemas
+class AppSettingsUpdate(BaseModel):
+    sprint_goals: Optional[str] = None
+    quarterly_goals: Optional[str] = None
+    sprint_start_date: Optional[str] = None
+    sprint_end_date: Optional[str] = None
+    quarterly_start_date: Optional[str] = None
+    quarterly_end_date: Optional[str] = None
+
+class AppSettingsResponse(BaseModel):
+    id: int
+    sprint_goals: str
+    quarterly_goals: str
+    sprint_start_date: str
+    sprint_end_date: str
+    quarterly_start_date: str
+    quarterly_end_date: str
+    created_at: str
+    updated_at: str
+
+    class Config:
+        from_attributes = True
+
+# Goal Schemas
+class GoalBase(BaseModel):
+    text: str
+    start_date: str  # Format: YYYY-MM-DD
+    end_date: str  # Format: YYYY-MM-DD
+
+class GoalCreate(GoalBase):
+    pass
+
+class GoalUpdate(BaseModel):
+    text: Optional[str] = None
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+
+class GoalResponse(GoalBase):
+    id: int
+    created_at: datetime
+    updated_at: datetime
+    days_remaining: Optional[int] = None  # Calculated field, relative to queried date
+
+    class Config:
+        from_attributes = True
+
