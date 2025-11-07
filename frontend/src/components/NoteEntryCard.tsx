@@ -124,8 +124,6 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onMoveToTop,
       await axios.patch(`${API_URL}/api/entries/${entry.id}`, {
         is_completed: newValue
       });
-      // Reload the note to sync data
-      onLabelsChange();
     } catch (error) {
       console.error('Failed to update completed status:', error);
       setIsCompleted(!newValue); // Revert on error
@@ -140,8 +138,6 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onMoveToTop,
       await axios.patch(`${API_URL}/api/entries/${entry.id}`, {
         is_dev_null: newValue
       });
-      // Reload the note to sync data
-      onLabelsChange();
     } catch (error) {
       console.error('Failed to update dev_null status:', error);
       setIsDevNull(!newValue); // Revert on error
@@ -220,7 +216,7 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onMoveToTop,
 
   return (
     <div 
-      className={`rounded-lg shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl ${isSelected ? 'ring-2' : ''}`}
+      className={`rounded-2xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl ${isSelected ? 'ring-2' : ''}`}
       style={{
         backgroundColor: 'var(--color-card-bg)',
         borderColor: isSelected ? 'var(--color-accent)' : 'var(--color-card-border)',
@@ -269,15 +265,10 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onMoveToTop,
             
             <button
               onClick={handleCompletedToggle}
-              className="p-2 rounded transition-colors"
-              style={{ color: isCompleted ? 'var(--color-success)' : 'var(--color-text-tertiary)' }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = isCompleted ? 'transparent' : 'rgba(16, 185, 129, 0.1)';
-                if (!isCompleted) e.currentTarget.style.color = 'var(--color-success)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'transparent';
-                if (!isCompleted) e.currentTarget.style.color = 'var(--color-text-tertiary)';
+              className={`p-2 rounded transition-colors ${isCompleted ? 'completed-active' : ''}`}
+              style={{ 
+                color: isCompleted ? 'var(--color-success)' : 'var(--color-text-tertiary)',
+                backgroundColor: isCompleted ? 'rgba(16, 185, 129, 0.1)' : 'transparent'
               }}
               title={isCompleted ? "Mark as not completed" : "Mark as completed"}
             >
@@ -303,15 +294,10 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onMoveToTop,
             
             <button
               onClick={handleDevNullToggle}
-              className="p-2 rounded transition-colors"
-              style={{ color: isDevNull ? 'var(--color-text-primary)' : 'var(--color-text-tertiary)' }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'rgba(107, 114, 128, 0.1)';
-                if (!isDevNull) e.currentTarget.style.color = 'var(--color-text-secondary)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'transparent';
-                if (!isDevNull) e.currentTarget.style.color = 'var(--color-text-tertiary)';
+              className={`p-2 rounded transition-colors ${isDevNull ? 'devnull-active' : ''}`}
+              style={{ 
+                color: isDevNull ? 'var(--color-text-primary)' : 'var(--color-text-tertiary)',
+                backgroundColor: isDevNull ? 'rgba(107, 114, 128, 0.1)' : 'transparent'
               }}
               title={isDevNull ? "Remove from /dev/null" : "Mark as /dev/null"}
             >

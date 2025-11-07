@@ -1,16 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { format, parse, addDays, subDays } from 'date-fns';
-import { ChevronLeft, ChevronRight, Plus, Code, CheckSquare, Combine } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, CheckSquare, Combine } from 'lucide-react';
 import axios from 'axios';
 import { notesApi, entriesApi } from '../api';
 import type { DailyNote, NoteEntry } from '../types';
 import NoteEntryCard from './NoteEntryCard';
 import LabelSelector from './LabelSelector';
-import EntryTimeline from './EntryTimeline';
+import EntryDropdown from './EntryDropdown';
 import { useFullScreen } from '../contexts/FullScreenContext';
-import { useTimelineVisibility } from '../contexts/TimelineVisibilityContext';
 import { useDailyGoals } from '../contexts/DailyGoalsContext';
+import { useSprintGoals } from '../contexts/SprintGoalsContext';
+import { useQuarterlyGoals } from '../contexts/QuarterlyGoalsContext';
 import { useDayLabels } from '../contexts/DayLabelsContext';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -19,24 +20,47 @@ const DailyView = () => {
   const { date } = useParams<{ date: string }>();
   const navigate = useNavigate();
   const { isFullScreen } = useFullScreen();
-  const { isTimelineVisible } = useTimelineVisibility();
   const { showDailyGoals } = useDailyGoals();
+  const { showSprintGoals } = useSprintGoals();
+  const { showQuarterlyGoals } = useQuarterlyGoals();
   const { showDayLabels } = useDayLabels();
   const [note, setNote] = useState<DailyNote | null>(null);
   const [entries, setEntries] = useState<NoteEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [dailyGoal, setDailyGoal] = useState('');
+  const [sprintGoals, setSprintGoals] = useState('');
+  const [quarterlyGoals, setQuarterlyGoals] = useState('');
+  const [editingDailyGoal, setEditingDailyGoal] = useState(false);
+  const [editingSprintGoals, setEditingSprintGoals] = useState(false);
+  const [editingQuarterlyGoals, setEditingQuarterlyGoals] = useState(false);
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedEntries, setSelectedEntries] = useState<Set<number>>(new Set());
   const [isMerging, setIsMerging] = useState(false);
+
+  // Load persistent goals on component mount and whenever date changes
+  useEffect(() => {
+    loadPersistentGoals();
+  }, []); // Load once on mount
 
   useEffect(() => {
     if (date) {
       // Scroll to top immediately when date changes
       window.scrollTo({ top: 0, behavior: 'instant' });
       loadDailyNote();
+      // Also reload persistent goals to ensure they're always fresh
+      loadPersistentGoals();
     }
   }, [date]);
+
+  const loadPersistentGoals = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/api/settings`);
+      setSprintGoals(response.data.sprint_goals || '');
+      setQuarterlyGoals(response.data.quarterly_goals || '');
+    } catch (error) {
+      console.error('Failed to load persistent goals:', error);
+    }
+  };
 
   // Scroll to specific entry if hash is present
   useEffect(() => {
@@ -194,6 +218,36 @@ const DailyView = () => {
     return () => clearTimeout(timeoutId);
   };
 
+  const handleSprintGoalsChange = async (newGoals: string) => {
+    setSprintGoals(newGoals);
+    
+    // Debounce the save
+    const timeoutId = setTimeout(async () => {
+      try {
+        await axios.patch(`${API_URL}/api/settings`, { sprint_goals: newGoals });
+      } catch (error) {
+        console.error('Failed to update sprint goals:', error);
+      }
+    }, 1000);
+
+    return () => clearTimeout(timeoutId);
+  };
+
+  const handleQuarterlyGoalsChange = async (newGoals: string) => {
+    setQuarterlyGoals(newGoals);
+    
+    // Debounce the save
+    const timeoutId = setTimeout(async () => {
+      try {
+        await axios.patch(`${API_URL}/api/settings`, { quarterly_goals: newGoals });
+      } catch (error) {
+        console.error('Failed to update quarterly goals:', error);
+      }
+    }, 1000);
+
+    return () => clearTimeout(timeoutId);
+  };
+
   const handleSelectionChange = (entryId: number, selected: boolean) => {
     setSelectedEntries(prev => {
       const newSet = new Set(prev);
@@ -249,12 +303,11 @@ const DailyView = () => {
   const isToday = format(new Date(), 'yyyy-MM-dd') === date;
 
   return (
-    <div className="relative page-fade-in" style={{ zIndex: 1 }}>
-      {isTimelineVisible && !isFullScreen && <EntryTimeline entries={entries} />}
-      <div className={`mx-auto px-2 sm:px-4 xl:px-8 ${isFullScreen ? 'max-w-full' : 'max-w-4xl'}`}>
+    <div className="relative page-fade-in">
+      <div className={`mx-auto px-2 sm:px-4 xl:px-8 ${isFullScreen ? 'max-w-full' : 'max-w-4xl'}`} style={{ position: 'relative', zIndex: 20 }}>
       {/* Header */}
       <div 
-        className="rounded-lg shadow-lg p-4 sm:p-6 lg:p-8 mb-4 sm:mb-6 lg:mb-8"
+        className="rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8 mb-4 sm:mb-6 lg:mb-8"
         style={{ backgroundColor: 'var(--color-card-bg)' }}
       >
         <div className="flex items-center justify-between mb-4">
@@ -273,7 +326,7 @@ const DailyView = () => {
             <ChevronLeft className="h-6 w-6" />
           </button>
 
-          <div className="text-center">
+          <div className="text-center flex-1">
             <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold" style={{ color: 'var(--color-text-primary)' }}>
               {format(currentDate, 'EEEE, MMMM d, yyyy')}
             </h1>
@@ -290,42 +343,27 @@ const DailyView = () => {
             )}
           </div>
 
-          <button
-            onClick={handleNextDay}
-            className="p-2 rounded-lg transition-colors"
-            style={{ color: 'var(--color-text-secondary)' }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = 'var(--color-bg-hover)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent';
-            }}
-            aria-label="Next day"
-          >
-            <ChevronRight className="h-6 w-6" />
-          </button>
+          <div className="flex items-center gap-2">
+            <EntryDropdown entries={entries} />
+            <button
+              onClick={handleNextDay}
+              className="p-2 rounded-lg transition-colors"
+              style={{ color: 'var(--color-text-secondary)' }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--color-bg-hover)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }}
+              aria-label="Next day"
+            >
+              <ChevronRight className="h-6 w-6" />
+            </button>
+          </div>
         </div>
 
-          {(showDailyGoals || showDayLabels) && (
+          {(showDailyGoals || showSprintGoals || showQuarterlyGoals || showDayLabels) && (
             <div className="flex flex-col items-center gap-6 w-full">
-              {/* Daily Goals Section - only show if enabled */}
-              {showDailyGoals && (
-                <div className="w-full">
-                  <label className="block text-lg font-semibold mb-2" style={{ color: 'var(--color-text-primary)' }}>Daily Goals:</label>
-                  <textarea
-                    value={dailyGoal}
-                    onChange={(e) => handleDailyGoalChange(e.target.value)}
-                    placeholder="What are your main goals for today?"
-                    className="w-full px-0 border-none resize-none focus:outline-none focus:ring-0"
-                    style={{
-                      backgroundColor: 'transparent',
-                      color: 'var(--color-text-primary)',
-                    }}
-                    rows={2}
-                  />
-                </div>
-              )}
-              
               {/* Day Labels Section - only show if enabled */}
               {showDayLabels && (
                 <div className="w-full">
@@ -337,6 +375,129 @@ const DailyView = () => {
                   />
                 </div>
               )}
+              
+              {/* Daily Goals Section - only show if enabled */}
+              {showDailyGoals && (
+                <div className="w-full">
+                  <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>Daily Goals</label>
+                  {editingDailyGoal ? (
+                    <textarea
+                      value={dailyGoal}
+                      onChange={(e) => handleDailyGoalChange(e.target.value)}
+                      placeholder="What are your main goals for today?"
+                      className="w-full px-4 py-3 border rounded-lg resize-vertical focus:outline-none focus:ring-2 transition-all"
+                      style={{
+                        backgroundColor: 'var(--color-bg-secondary)',
+                        color: 'var(--color-text-primary)',
+                        borderColor: 'var(--color-accent)',
+                        boxShadow: `0 0 0 3px ${getComputedStyle(document.documentElement).getPropertyValue('--color-accent')}20`,
+                        minHeight: '80px'
+                      }}
+                      onBlur={() => setEditingDailyGoal(false)}
+                      autoFocus
+                    />
+                  ) : (
+                    <div
+                      onClick={() => setEditingDailyGoal(true)}
+                      className="w-full px-4 py-3 rounded-lg cursor-pointer transition-colors min-h-[80px] whitespace-pre-wrap"
+                      style={{
+                        color: dailyGoal ? 'var(--color-text-primary)' : 'var(--color-text-tertiary)',
+                        backgroundColor: 'transparent'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = 'var(--color-bg-hover)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                      }}
+                    >
+                      {dailyGoal || 'Click to add daily goals...'}
+                    </div>
+                  )}
+                </div>
+              )}
+              
+              {/* Sprint Goals Section - only show if enabled */}
+              {showSprintGoals && (
+                <div className="w-full">
+                  <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>Sprint Goals</label>
+                  {editingSprintGoals ? (
+                    <textarea
+                      value={sprintGoals}
+                      onChange={(e) => handleSprintGoalsChange(e.target.value)}
+                      placeholder="What are your sprint goals?"
+                      className="w-full px-4 py-3 border rounded-lg resize-vertical focus:outline-none focus:ring-2 transition-all"
+                      style={{
+                        backgroundColor: 'var(--color-bg-secondary)',
+                        color: 'var(--color-text-primary)',
+                        borderColor: 'var(--color-accent)',
+                        boxShadow: `0 0 0 3px ${getComputedStyle(document.documentElement).getPropertyValue('--color-accent')}20`,
+                        minHeight: '80px'
+                      }}
+                      onBlur={() => setEditingSprintGoals(false)}
+                      autoFocus
+                    />
+                  ) : (
+                    <div
+                      onClick={() => setEditingSprintGoals(true)}
+                      className="w-full px-4 py-3 rounded-lg cursor-pointer transition-colors min-h-[80px] whitespace-pre-wrap"
+                      style={{
+                        color: sprintGoals ? 'var(--color-text-primary)' : 'var(--color-text-tertiary)',
+                        backgroundColor: 'transparent'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = 'var(--color-bg-hover)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                      }}
+                    >
+                      {sprintGoals || 'Click to add sprint goals...'}
+                    </div>
+                  )}
+                </div>
+              )}
+              
+              {/* Quarterly Goals Section - only show if enabled */}
+              {showQuarterlyGoals && (
+                <div className="w-full">
+                  <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>Quarterly Goals</label>
+                  {editingQuarterlyGoals ? (
+                    <textarea
+                      value={quarterlyGoals}
+                      onChange={(e) => handleQuarterlyGoalsChange(e.target.value)}
+                      placeholder="What are your quarterly goals?"
+                      className="w-full px-4 py-3 border rounded-lg resize-vertical focus:outline-none focus:ring-2 transition-all"
+                      style={{
+                        backgroundColor: 'var(--color-bg-secondary)',
+                        color: 'var(--color-text-primary)',
+                        borderColor: 'var(--color-accent)',
+                        boxShadow: `0 0 0 3px ${getComputedStyle(document.documentElement).getPropertyValue('--color-accent')}20`,
+                        minHeight: '80px'
+                      }}
+                      onBlur={() => setEditingQuarterlyGoals(false)}
+                      autoFocus
+                    />
+                  ) : (
+                    <div
+                      onClick={() => setEditingQuarterlyGoals(true)}
+                      className="w-full px-4 py-3 rounded-lg cursor-pointer transition-colors min-h-[80px] whitespace-pre-wrap"
+                      style={{
+                        color: quarterlyGoals ? 'var(--color-text-primary)' : 'var(--color-text-tertiary)',
+                        backgroundColor: 'transparent'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = 'var(--color-bg-hover)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                      }}
+                    >
+                      {quarterlyGoals || 'Click to add quarterly goals...'}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
       </div>
@@ -345,7 +506,7 @@ const DailyView = () => {
       <div className="space-y-6">
         {loading ? (
           <div 
-            className="rounded-lg shadow-lg p-8 text-center"
+            className="rounded-2xl shadow-lg p-8 text-center"
             style={{ 
               backgroundColor: 'var(--color-bg-primary)',
               color: 'var(--color-text-secondary)'
@@ -355,110 +516,77 @@ const DailyView = () => {
           </div>
         ) : entries.length === 0 ? (
           <div 
-            className="rounded-lg shadow-lg p-8 text-center"
+            className="rounded-2xl shadow-lg p-8"
             style={{ backgroundColor: 'var(--color-bg-primary)' }}
           >
-            <p className="mb-4" style={{ color: 'var(--color-text-secondary)' }}>No entries for this day yet.</p>
-            <div className="flex gap-3 justify-center">
-              <button
-                onClick={() => handleAddEntry('rich_text')}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg transition-colors"
-                style={{
-                  backgroundColor: 'var(--color-accent)',
-                  color: 'var(--color-accent-text)'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = 'var(--color-accent-hover)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'var(--color-accent)';
-                }}
-              >
-                <Plus className="h-5 w-5" />
-                Add Text Entry
-              </button>
-              <button
-                onClick={() => handleAddEntry('code')}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg transition-colors"
-                style={{
-                  backgroundColor: 'var(--color-text-secondary)',
-                  color: 'var(--color-bg-primary)'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = 'var(--color-text-primary)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'var(--color-text-secondary)';
-                }}
-              >
-                <Code className="h-5 w-5" />
-                Add Code Entry
-              </button>
-            </div>
+            <p className="mb-4 text-center" style={{ color: 'var(--color-text-secondary)' }}>No entries for this day yet.</p>
+            <button
+              onClick={() => handleAddEntry('rich_text')}
+              className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-lg transition-all font-medium shadow-sm"
+              style={{
+                backgroundColor: 'var(--color-accent)',
+                color: 'var(--color-accent-text)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--color-accent-hover)';
+                e.currentTarget.style.transform = 'translateY(-1px)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.3)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--color-accent)';
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 1px 2px 0 rgba(0, 0, 0, 0.05)';
+              }}
+            >
+              <Plus className="h-5 w-5" />
+              New Entry
+            </button>
           </div>
         ) : (
           <>
-            <div className="flex gap-3 items-center">
+            <div className="flex gap-3 items-center" style={{ minHeight: '52px' }}>
               {!selectionMode ? (
                 <>
                   <button
                     onClick={() => handleAddEntry('rich_text')}
-                    className="flex-1 p-4 border-2 border-dashed rounded-lg transition-colors flex items-center justify-center gap-2"
+                    className="flex-1 px-6 py-3 rounded-lg transition-all font-medium shadow-sm flex items-center justify-center gap-2"
                     style={{
-                      borderColor: 'var(--color-border-secondary)',
-                      color: 'var(--color-text-secondary)'
+                      animation: 'fadeIn 0.2s ease-out',
+                      backgroundColor: 'var(--color-accent)',
+                      color: 'var(--color-accent-text)'
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = 'var(--color-accent)';
-                      e.currentTarget.style.backgroundColor = `${getComputedStyle(document.documentElement).getPropertyValue('--color-accent')}10`;
-                      e.currentTarget.style.color = 'var(--color-accent)';
+                      e.currentTarget.style.backgroundColor = 'var(--color-accent-hover)';
+                      e.currentTarget.style.transform = 'translateY(-1px)';
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.3)';
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = 'var(--color-border-secondary)';
-                      e.currentTarget.style.backgroundColor = 'transparent';
-                      e.currentTarget.style.color = 'var(--color-text-secondary)';
+                      e.currentTarget.style.backgroundColor = 'var(--color-accent)';
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 1px 2px 0 rgba(0, 0, 0, 0.05)';
                     }}
                   >
                     <Plus className="h-5 w-5" />
-                    Add Text Entry
-                  </button>
-                  <button
-                    onClick={() => handleAddEntry('code')}
-                    className="flex-1 p-4 border-2 border-dashed rounded-lg transition-colors flex items-center justify-center gap-2"
-                    style={{
-                      borderColor: 'var(--color-border-secondary)',
-                      color: 'var(--color-text-secondary)'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = 'var(--color-text-primary)';
-                      e.currentTarget.style.backgroundColor = `${getComputedStyle(document.documentElement).getPropertyValue('--color-text-primary')}10`;
-                      e.currentTarget.style.color = 'var(--color-text-primary)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = 'var(--color-border-secondary)';
-                      e.currentTarget.style.backgroundColor = 'transparent';
-                      e.currentTarget.style.color = 'var(--color-text-secondary)';
-                    }}
-                  >
-                    <Code className="h-5 w-5" />
-                    Add Code Entry
+                    New Entry
                   </button>
                   <button
                     onClick={toggleSelectionMode}
-                    className="p-4 border-2 rounded-lg transition-colors flex items-center justify-center gap-2"
+                    className="px-4 py-3 rounded-lg transition-all shadow-sm flex items-center justify-center gap-2"
                     style={{
-                      borderColor: 'var(--color-border-secondary)',
-                      color: 'var(--color-text-secondary)'
+                      animation: 'fadeIn 0.2s ease-out',
+                      backgroundColor: 'var(--color-bg-tertiary)',
+                      color: 'var(--color-text-primary)',
+                      border: '1px solid var(--color-border-primary)'
                     }}
                     onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'var(--color-bg-hover)';
                       e.currentTarget.style.borderColor = 'var(--color-accent)';
-                      e.currentTarget.style.backgroundColor = `${getComputedStyle(document.documentElement).getPropertyValue('--color-accent')}10`;
                       e.currentTarget.style.color = 'var(--color-accent)';
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = 'var(--color-border-secondary)';
-                      e.currentTarget.style.backgroundColor = 'transparent';
-                      e.currentTarget.style.color = 'var(--color-text-secondary)';
+                      e.currentTarget.style.backgroundColor = 'var(--color-bg-tertiary)';
+                      e.currentTarget.style.borderColor = 'var(--color-border-primary)';
+                      e.currentTarget.style.color = 'var(--color-text-primary)';
                     }}
                     title="Select entries to merge"
                   >
@@ -469,16 +597,20 @@ const DailyView = () => {
                 <>
                   <button
                     onClick={toggleSelectionMode}
-                    className="px-4 py-2 rounded-lg transition-colors"
+                    className="px-6 py-3 rounded-lg transition-all font-medium shadow-sm"
                     style={{
-                      backgroundColor: 'var(--color-text-secondary)',
-                      color: 'var(--color-bg-primary)'
+                      animation: 'fadeIn 0.2s ease-out',
+                      backgroundColor: 'var(--color-bg-tertiary)',
+                      color: 'var(--color-text-primary)',
+                      border: '1px solid var(--color-border-primary)'
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = 'var(--color-text-primary)';
+                      e.currentTarget.style.backgroundColor = 'var(--color-bg-hover)';
+                      e.currentTarget.style.borderColor = 'var(--color-text-secondary)';
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = 'var(--color-text-secondary)';
+                      e.currentTarget.style.backgroundColor = 'var(--color-bg-tertiary)';
+                      e.currentTarget.style.borderColor = 'var(--color-border-primary)';
                     }}
                   >
                     Cancel
@@ -486,20 +618,24 @@ const DailyView = () => {
                   <button
                     onClick={handleMergeEntries}
                     disabled={selectedEntries.size < 2 || isMerging}
-                    className="flex-1 px-4 py-2 rounded-lg transition-colors flex items-center justify-center gap-2"
+                    className="flex-1 px-6 py-3 rounded-lg transition-all font-medium shadow-sm flex items-center justify-center gap-2"
                     style={{
-                      backgroundColor: selectedEntries.size >= 2 && !isMerging ? 'var(--color-accent)' : 'var(--color-bg-tertiary)',
-                      color: selectedEntries.size >= 2 && !isMerging ? 'var(--color-accent-text)' : 'var(--color-text-tertiary)',
-                      cursor: selectedEntries.size >= 2 && !isMerging ? 'pointer' : 'not-allowed'
+                      animation: 'fadeIn 0.2s ease-out',
+                      backgroundColor: selectedEntries.size >= 2 && !isMerging ? 'var(--color-success)' : 'var(--color-bg-tertiary)',
+                      color: selectedEntries.size >= 2 && !isMerging ? '#ffffff' : 'var(--color-text-tertiary)',
+                      cursor: selectedEntries.size >= 2 && !isMerging ? 'pointer' : 'not-allowed',
+                      opacity: selectedEntries.size >= 2 && !isMerging ? '1' : '0.6'
                     }}
                     onMouseEnter={(e) => {
                       if (selectedEntries.size >= 2 && !isMerging) {
-                        e.currentTarget.style.backgroundColor = 'var(--color-accent-hover)';
+                        e.currentTarget.style.transform = 'translateY(-1px)';
+                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.3)';
                       }
                     }}
                     onMouseLeave={(e) => {
                       if (selectedEntries.size >= 2 && !isMerging) {
-                        e.currentTarget.style.backgroundColor = 'var(--color-accent)';
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 1px 2px 0 rgba(0, 0, 0, 0.05)';
                       }
                     }}
                   >

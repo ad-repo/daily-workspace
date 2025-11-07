@@ -12,8 +12,9 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import { CustomBackgroundProvider } from './contexts/CustomBackgroundContext';
 import { TransparentLabelsProvider } from './contexts/TransparentLabelsContext';
 import { FullScreenProvider, useFullScreen } from './contexts/FullScreenContext';
-import { TimelineVisibilityProvider } from './contexts/TimelineVisibilityContext';
 import { DailyGoalsProvider } from './contexts/DailyGoalsContext';
+import { SprintGoalsProvider } from './contexts/SprintGoalsContext';
+import { QuarterlyGoalsProvider } from './contexts/QuarterlyGoalsContext';
 import { DayLabelsProvider } from './contexts/DayLabelsContext';
 import CustomBackground from './components/CustomBackground';
 
@@ -75,13 +76,15 @@ function App() {
         <CustomBackgroundProvider>
           <TransparentLabelsProvider>
             <DailyGoalsProvider>
-              <DayLabelsProvider>
-                <FullScreenProvider>
-                  <TimelineVisibilityProvider>
-                    <AppContent />
-                  </TimelineVisibilityProvider>
-                </FullScreenProvider>
-              </DayLabelsProvider>
+              <SprintGoalsProvider>
+                <QuarterlyGoalsProvider>
+                  <DayLabelsProvider>
+                    <FullScreenProvider>
+                      <AppContent />
+                    </FullScreenProvider>
+                  </DayLabelsProvider>
+                </QuarterlyGoalsProvider>
+              </SprintGoalsProvider>
             </DailyGoalsProvider>
           </TransparentLabelsProvider>
         </CustomBackgroundProvider>
