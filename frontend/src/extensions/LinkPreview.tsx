@@ -1,6 +1,7 @@
 import { Node, mergeAttributes } from '@tiptap/core';
 import { ReactNodeViewRenderer, NodeViewWrapper } from '@tiptap/react';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, X } from 'lucide-react';
+import { useState } from 'react';
 
 interface LinkPreviewData {
   url: string;
@@ -13,16 +14,46 @@ interface LinkPreviewData {
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 // React component for rendering the preview
-const LinkPreviewComponent = ({ node }: { node: any }) => {
+const LinkPreviewComponent = ({ node, updateAttributes, deleteNode }: { node: any; updateAttributes: (attrs: any) => void; deleteNode: () => void }) => {
   const { url, title, description, image, site_name } = node.attrs;
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [editingDescription, setEditingDescription] = useState(false);
+  const [localTitle, setLocalTitle] = useState(title || '');
+  const [localDescription, setLocalDescription] = useState(description || '');
 
   return (
-    <NodeViewWrapper className="link-preview">
+    <NodeViewWrapper className="link-preview relative group">
+      <button
+        onClick={deleteNode}
+        className="absolute top-2 right-2 z-10 p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+        style={{
+          backgroundColor: '#ef4444',
+          color: 'white'
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = '#dc2626';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = '#ef4444';
+        }}
+        title="Remove link preview"
+      >
+        <X className="h-4 w-4" />
+      </button>
       <a
         href={url}
         target="_blank"
         rel="noopener noreferrer"
-        className="block border border-gray-200 rounded-lg overflow-hidden hover:border-blue-400 transition-colors my-4 no-underline"
+        className="block border rounded-lg overflow-hidden transition-colors my-4 no-underline"
+        style={{
+          borderColor: 'var(--color-border-primary)'
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.borderColor = 'var(--color-accent)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.borderColor = 'var(--color-border-primary)';
+        }}
       >
         <div className="flex gap-4 p-4">
           {image && (
@@ -40,15 +71,82 @@ const LinkPreviewComponent = ({ node }: { node: any }) => {
           )}
           <div className="flex-1 min-w-0">
             {site_name && (
-              <p className="text-xs text-gray-500 mb-1">{site_name}</p>
+              <p className="text-xs mb-1" style={{ color: 'var(--color-text-tertiary)' }}>{site_name}</p>
             )}
-            {title && (
-              <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">{title}</h3>
+            
+            {/* Editable Title */}
+            {editingTitle ? (
+              <input
+                type="text"
+                value={localTitle}
+                onChange={(e) => setLocalTitle(e.target.value)}
+                onBlur={() => {
+                  updateAttributes({ title: localTitle });
+                  setEditingTitle(false);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    updateAttributes({ title: localTitle });
+                    setEditingTitle(false);
+                  }
+                }}
+                className="font-semibold mb-2 w-full px-2 py-1 border rounded"
+                style={{
+                  color: 'var(--color-text-primary)',
+                  backgroundColor: 'var(--color-bg-secondary)',
+                  borderColor: 'var(--color-accent)'
+                }}
+                autoFocus
+              />
+            ) : (
+              <h3
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setEditingTitle(true);
+                }}
+                className="font-semibold mb-2 line-clamp-2 cursor-pointer hover:opacity-70 transition-opacity"
+                style={{ color: 'var(--color-text-primary)' }}
+                title="Click to edit title"
+              >
+                {title || 'Click to add title'}
+              </h3>
             )}
-            {description && (
-              <p className="text-sm text-gray-600 line-clamp-2 mb-2">{description}</p>
+            
+            {/* Editable Description */}
+            {editingDescription ? (
+              <textarea
+                value={localDescription}
+                onChange={(e) => setLocalDescription(e.target.value)}
+                onBlur={() => {
+                  updateAttributes({ description: localDescription });
+                  setEditingDescription(false);
+                }}
+                className="text-sm mb-2 w-full px-2 py-1 border rounded resize-vertical"
+                style={{
+                  color: 'var(--color-text-secondary)',
+                  backgroundColor: 'var(--color-bg-secondary)',
+                  borderColor: 'var(--color-accent)',
+                  minHeight: '60px'
+                }}
+                autoFocus
+              />
+            ) : (
+              <p
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setEditingDescription(true);
+                }}
+                className="text-sm line-clamp-3 mb-2 cursor-pointer hover:opacity-70 transition-opacity"
+                style={{ color: 'var(--color-text-secondary)' }}
+                title="Click to edit description"
+              >
+                {description && description.trim() ? description : 'Click to add description'}
+              </p>
             )}
-            <div className="flex items-center gap-1 text-xs text-blue-600">
+            
+            <div className="flex items-center gap-1 text-xs mt-auto" style={{ color: 'var(--color-accent)' }}>
               <ExternalLink className="h-3 w-3" />
               <span className="truncate">{new URL(url).hostname}</span>
             </div>

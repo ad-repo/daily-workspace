@@ -9,13 +9,18 @@ A modern, powerful daily workspace application for capturing and organizing your
 - **Daily View**: Focus on a single day with multiple content entries
 - **Rich Text Editor**: Modern WYSIWYG editor powered by TipTap with support for:
   - Text formatting (bold, italic, strikethrough, inline code, headings, lists)
-  - Code blocks with syntax highlighting
+  - **Text Color**: Pick any color for your text with color picker
+  - **Font Family**: Choose from 8 font options (Arial, Times, Courier, Georgia, Verdana, Comic Sans, Impact)
+  - **Font Size**: Select from multiple sizes (12px-48px)
+  - Code blocks with syntax highlighting (multi-line smart conversion)
   - Images and file uploads (with persistent storage)
   - **Voice Dictation**: Real-time speech-to-text with Web Speech API (Safari/Chrome)
   - **Camera Capture**: Take photos directly in the editor
   - **Video Recording**: Record videos with audio directly in the editor
-  - Hyperlinks with automatic link previews
+  - **Link Previews**: Automatic metadata fetching with click-to-edit titles/descriptions
+  - **Editable Previews**: Click any preview title or description to edit inline
   - Blockquotes and preformatted text
+  - **Smart Code Handling**: Multi-line selections automatically become code blocks
 - **Code Entries**: Dedicated code editor for multi-line code snippets
 - **Timeline Navigation**: Visual timeline on the left sidebar for quick entry navigation
 - **Entry States**: Mark entries as:
@@ -32,7 +37,14 @@ A modern, powerful daily workspace application for capturing and organizing your
 - **Transparent Mode**: Toggle between solid or transparent label backgrounds
 - **Daily Goals**: Set goals for each day (visible as tooltips in calendar)
   - Toggle visibility in Settings → General
-- **Day Labels**: Organize days with labels for quick filtering
+  - Click-to-edit with automatic save
+- **Sprint Goals**: Track sprint-level goals (persists across days)
+  - Toggle visibility in Settings → General
+  - Click-to-edit with automatic save
+- **Quarterly Goals**: Set and track quarterly objectives (persists across days)
+  - Toggle visibility in Settings → General
+  - Click-to-edit with automatic save
+- **Day Labels**: Organize days with labels for quick filtering (displayed above goals)
   - Toggle visibility in Settings → General
 
 ### 📅 Calendar & Visualization
@@ -186,7 +198,7 @@ The frontend will be available at `http://localhost:3000`
 ## 📁 Project Structure
 
 ```
-daily-notes/
+track-the-thing/
 ├── backend/                     # FastAPI backend
 │   ├── app/
 │   │   ├── main.py             # FastAPI app entry point
@@ -194,7 +206,7 @@ daily-notes/
 │   │   ├── models.py           # SQLAlchemy models
 │   │   ├── schemas.py          # Pydantic schemas
 │   │   └── routers/            # API route handlers
-│   │       ├── notes.py        # Daily notes endpoints
+│   │       ├── notes.py        # Daily note endpoints
 │   │       ├── entries.py      # Note entries endpoints
 │   │       ├── labels.py       # Label management
 │   │       ├── uploads.py      # File upload handling
@@ -282,7 +294,7 @@ daily-notes/
 
 ## 📊 API Endpoints
 
-### Daily Notes
+### Notes
 - `GET /api/notes/` - Get all notes
 - `GET /api/notes/{date}` - Get note for specific date
 - `POST /api/notes/` - Create new note
@@ -387,6 +399,4 @@ This project is open source and available under the MIT License.
 
 ---
 
-**Pull Your Shit Together! 💼✨**
-
-*Quote attributed to Kamesh*
+**Track the Thing! 🎯✨**

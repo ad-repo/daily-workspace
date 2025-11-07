@@ -20,6 +20,7 @@ async def export_data(db: Session = Depends(get_db)):
     notes = db.query(models.DailyNote).all()
     labels = db.query(models.Label).all()
     search_history = db.query(models.SearchHistory).order_by(models.SearchHistory.created_at.desc()).all()
+    app_settings = db.query(models.AppSettings).filter(models.AppSettings.id == 1).first()
     
     export_data = {
         "version": "4.0",
@@ -40,6 +41,12 @@ async def export_data(db: Session = Depends(get_db)):
             }
             for label in labels
         ],
+        "app_settings": {
+            "sprint_goals": app_settings.sprint_goals if app_settings else "",
+            "quarterly_goals": app_settings.quarterly_goals if app_settings else "",
+            "created_at": app_settings.created_at.isoformat() if app_settings else datetime.utcnow().isoformat(),
+            "updated_at": app_settings.updated_at.isoformat() if app_settings else datetime.utcnow().isoformat()
+        },
         "notes": [
             {
                 "date": note.date,
@@ -157,6 +164,14 @@ async def export_markdown(db: Session = Depends(get_db)):
             markdown_lines.append(f"- **{label.name}**")
         markdown_lines.append("\n---\n")
     
+    # Add persistent goals at the top
+    app_settings = db.query(models.AppSettings).filter(models.AppSettings.id == 1).first()
+    if app_settings:
+        if app_settings.sprint_goals:
+            markdown_lines.append(f"\n## Sprint Goals\n{app_settings.sprint_goals}\n\n---\n")
+        if app_settings.quarterly_goals:
+            markdown_lines.append(f"\n## Quarterly Goals\n{app_settings.quarterly_goals}\n\n---\n")
+    
     # Add notes
     for note in notes:
         if not note.entries and not note.daily_goal:
@@ -265,6 +280,24 @@ async def import_data(
                 stats["search_history_imported"] += 1
         
         db.commit()
+        
+        # Import app_settings if present
+        if "app_settings" in data and data["app_settings"]:
+            settings_data = data["app_settings"]
+            existing_settings = db.query(models.AppSettings).filter(models.AppSettings.id == 1).first()
+            if existing_settings:
+                existing_settings.sprint_goals = settings_data.get("sprint_goals", "")
+                existing_settings.quarterly_goals = settings_data.get("quarterly_goals", "")
+            else:
+                new_settings = models.AppSettings(
+                    id=1,
+                    sprint_goals=settings_data.get("sprint_goals", ""),
+                    quarterly_goals=settings_data.get("quarterly_goals", ""),
+                    created_at=datetime.fromisoformat(settings_data["created_at"]) if "created_at" in settings_data else datetime.utcnow(),
+                    updated_at=datetime.fromisoformat(settings_data["updated_at"]) if "updated_at" in settings_data else datetime.utcnow()
+                )
+                db.add(new_settings)
+            db.commit()
         
         # Import labels (support both old "tags" and new "labels" format)
         label_id_mapping = {}
@@ -440,6 +473,24 @@ async def full_restore(
                 data_stats["search_history_imported"] += 1
         
         db.commit()
+        
+        # Import app_settings if present
+        if "app_settings" in data and data["app_settings"]:
+            settings_data = data["app_settings"]
+            existing_settings = db.query(models.AppSettings).filter(models.AppSettings.id == 1).first()
+            if existing_settings:
+                existing_settings.sprint_goals = settings_data.get("sprint_goals", "")
+                existing_settings.quarterly_goals = settings_data.get("quarterly_goals", "")
+            else:
+                new_settings = models.AppSettings(
+                    id=1,
+                    sprint_goals=settings_data.get("sprint_goals", ""),
+                    quarterly_goals=settings_data.get("quarterly_goals", ""),
+                    created_at=datetime.fromisoformat(settings_data["created_at"]) if "created_at" in settings_data else datetime.utcnow(),
+                    updated_at=datetime.fromisoformat(settings_data["updated_at"]) if "updated_at" in settings_data else datetime.utcnow()
+                )
+                db.add(new_settings)
+            db.commit()
         
         # Import labels
         label_id_mapping = {}

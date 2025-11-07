@@ -5,6 +5,9 @@ import Link from '@tiptap/extension-link';
 import Image from '@tiptap/extension-image';
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
 import Placeholder from '@tiptap/extension-placeholder';
+import TextStyle from '@tiptap/extension-text-style';
+import { Color } from '@tiptap/extension-color';
+import FontFamily from '@tiptap/extension-font-family';
 import { createLowlight, common } from 'lowlight';
 import { Node } from '@tiptap/core';
 import {
@@ -28,6 +31,10 @@ import {
   Mic,
   Camera,
   Video,
+  Maximize2,
+  Minimize2,
+  Type,
+  CaseSensitive,
 } from 'lucide-react';
 import { LinkPreviewExtension, fetchLinkPreview } from '../extensions/LinkPreview';
 import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
@@ -48,6 +55,7 @@ const PreformattedText = Node.create({
   marks: '',
   code: true,
   defining: true,
+  isolating: true,
   addAttributes() {
     return {
       class: {
@@ -60,6 +68,32 @@ const PreformattedText = Node.create({
   },
   renderHTML({ HTMLAttributes }) {
     return ['pre', HTMLAttributes, 0];
+  },
+  addKeyboardShortcuts() {
+    return {
+      // Allow backspace at start to convert to paragraph
+      'Backspace': () => {
+        const { $from } = this.editor.state.selection;
+        if ($from.parentOffset === 0 && this.editor.isActive('preformattedText')) {
+          return this.editor.commands.setNode('paragraph');
+        }
+        return false;
+      },
+      // Allow arrow up at start to exit to paragraph above
+      'ArrowUp': () => {
+        const { $from } = this.editor.state.selection;
+        if ($from.parentOffset === 0 && this.editor.isActive('preformattedText')) {
+          const pos = $from.before();
+          if (pos <= 1) {
+            // At document start, insert paragraph before
+            this.editor.commands.insertContentAt(0, { type: 'paragraph' });
+            this.editor.commands.setTextSelection(1);
+            return true;
+          }
+        }
+        return false;
+      },
+    };
   },
 });
 
@@ -76,6 +110,9 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const [isRecordingVideo, setIsRecordingVideo] = useState(false);
   const recordedChunksRef = useRef<Blob[]>([]);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [showFontFamilyMenu, setShowFontFamilyMenu] = useState(false);
+  const [showFontSizeMenu, setShowFontSizeMenu] = useState(false);
   
   // Check if camera/video should be available
   // getUserMedia (camera/video) requires HTTPS on mobile browsers when accessed over network
@@ -159,7 +196,35 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
           return ['video', attrs];
         },
       }),
-      CodeBlockLowlight.configure({
+      CodeBlockLowlight.extend({
+        isolating: true,
+        addKeyboardShortcuts() {
+          return {
+            // Allow backspace at start to convert to paragraph
+            'Backspace': () => {
+              const { $from } = this.editor.state.selection;
+              if ($from.parentOffset === 0 && this.editor.isActive('codeBlock')) {
+                return this.editor.commands.setNode('paragraph');
+              }
+              return false;
+            },
+            // Allow arrow up at start to exit to paragraph above
+            'ArrowUp': () => {
+              const { $from } = this.editor.state.selection;
+              if ($from.parentOffset === 0 && this.editor.isActive('codeBlock')) {
+                const pos = $from.before();
+                if (pos <= 1) {
+                  // At document start, insert paragraph before
+                  this.editor.commands.insertContentAt(0, { type: 'paragraph' });
+                  this.editor.commands.setTextSelection(1);
+                  return true;
+                }
+              }
+              return false;
+            },
+          };
+        },
+      }).configure({
         lowlight,
         HTMLAttributes: {
           class: 'bg-gray-900 text-white p-4 rounded-lg',
@@ -168,6 +233,29 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
       LinkPreviewExtension,
       Placeholder.configure({
         placeholder,
+      }),
+      TextStyle.extend({
+        addAttributes() {
+          return {
+            ...this.parent?.(),
+            fontSize: {
+              default: null,
+              parseHTML: element => element.style.fontSize,
+              renderHTML: attributes => {
+                if (!attributes.fontSize) {
+                  return {};
+                }
+                return {
+                  style: `font-size: ${attributes.fontSize}`,
+                };
+              },
+            },
+          };
+        },
+      }),
+      Color,
+      FontFamily.configure({
+        types: ['textStyle'],
       }),
     ],
     content,
@@ -178,7 +266,7 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
       attributes: {
         class: 'prose max-w-none focus:outline-none',
       },
-        handleClick: (view, pos, event) => {
+        handleClick: (_view, _pos, event) => {
           const target = event.target as HTMLElement | null;
           if (target && target.tagName === 'IMG') {
             event.preventDefault();
@@ -188,7 +276,7 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
           }
           return false;
         },
-      handleDrop: (view, event, slice, moved) => {
+      handleDrop: (_view, event, _slice, _moved) => {
         event.preventDefault();
         
         // Handle file drops
@@ -209,7 +297,7 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
                 if (response.ok) {
                   const data = await response.json();
                   const imageUrl = `${API_BASE_URL}${data.url}`;
-                  const pos = view.posAtCoords({ left: event.clientX, top: event.clientY });
+                  const pos = _view.posAtCoords({ left: event.clientX, top: event.clientY });
                   if (pos && editor) {
                     editor.chain().focus().insertContentAt(pos.pos, {
                       type: 'image',
@@ -226,7 +314,7 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
                 if (response.ok) {
                   const data = await response.json();
                   const fileUrl = `http://localhost:8000${data.url}`;
-                  const pos = view.posAtCoords({ left: event.clientX, top: event.clientY });
+                  const pos = _view.posAtCoords({ left: event.clientX, top: event.clientY });
                   if (pos && editor) {
                     editor.chain().focus().insertContentAt(pos.pos, `<a href="${fileUrl}" download="${data.filename}" class="inline-flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700 border border-gray-300">📎 ${data.filename}</a> `).run();
                   }
@@ -242,7 +330,7 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
         
         return false;
       },
-      handlePaste: (view, event) => {
+      handlePaste: (_view, event) => {
         const items = event.clipboardData?.items;
         if (items) {
           // Check for images first
@@ -284,19 +372,37 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
             fetchLinkPreview(text.trim())
               .then(preview => {
                 if (preview && editor) {
-                  // Insert link preview card
+                  // Insert link preview card (user can click to edit title/description)
                   editor.chain().focus().insertContent({
                     type: 'linkPreview',
                     attrs: preview,
                   }).run();
                 } else {
-                  // Fallback to regular link if preview fails
-                  editor?.chain().focus().insertContent(`<a href="${text.trim()}" target="_blank" rel="noopener noreferrer">${text.trim()}</a> `).run();
+                  // Insert a basic preview that can be edited
+                  editor?.chain().focus().insertContent({
+                    type: 'linkPreview',
+                    attrs: {
+                      url: text.trim(),
+                      title: 'Click to add title',
+                      description: 'Click to add description',
+                      image: null,
+                      site_name: new URL(text.trim()).hostname,
+                    },
+                  }).run();
                 }
               })
               .catch(() => {
-                // Fallback to regular link on error
-                editor?.chain().focus().insertContent(`<a href="${text.trim()}" target="_blank" rel="noopener noreferrer">${text.trim()}</a> `).run();
+                // Insert a basic preview that can be edited
+                editor?.chain().focus().insertContent({
+                  type: 'linkPreview',
+                  attrs: {
+                    url: text.trim(),
+                    title: 'Click to add title',
+                    description: 'Click to add description',
+                    image: null,
+                    site_name: new URL(text.trim()).hostname,
+                  },
+                }).run();
               });
             
             return true;
@@ -316,7 +422,6 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
       // Final result: insert permanently and clear interim
       // If there's interim text showing, remove it first
       if (interimText && cursorPosRef.current !== null) {
-        const { from, to } = editor.state.selection;
         // Remove interim text by deleting from saved position
         editor.chain()
           .focus()
@@ -417,6 +522,21 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, []);
+
+  // Close font menus when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('.font-menu-container')) {
+        setShowFontFamilyMenu(false);
+        setShowFontSizeMenu(false);
+      }
+    };
+    if (showFontFamilyMenu || showFontSizeMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showFontFamilyMenu, showFontSizeMenu]);
 
   const handlePreformattedClick = () => {
     const { empty } = editor.state.selection;
@@ -570,16 +690,37 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
     try {
       const preview = await fetchLinkPreview(url);
       if (preview) {
+        // Insert preview (user can click to edit title/description)
         editor?.chain().focus().insertContent({
           type: 'linkPreview',
           attrs: preview,
         }).run();
       } else {
-        alert('Failed to fetch link preview. The link might not support previews.');
+        // Insert a basic preview that can be edited
+        editor?.chain().focus().insertContent({
+          type: 'linkPreview',
+          attrs: {
+            url: url,
+            title: 'Click to add title',
+            description: 'Click to add description',
+            image: null,
+            site_name: new URL(url).hostname,
+          },
+        }).run();
       }
     } catch (error) {
       console.error('Failed to add link preview:', error);
-      alert('Failed to add link preview.');
+      // Insert a basic preview that can be edited
+      editor?.chain().focus().insertContent({
+        type: 'linkPreview',
+        attrs: {
+          url: url,
+          title: 'Click to add title',
+          description: 'Click to add description',
+          image: null,
+          site_name: new URL(url).hostname,
+        },
+      }).run();
     }
   };
 
@@ -818,6 +959,108 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
           <Strikethrough className="h-4 w-4" />
         </ToolbarButton>
 
+        {/* Text Color */}
+        <input
+          type="color"
+          onChange={(e) => {
+            const color = e.target.value;
+            editor.chain().focus().setColor(color).run();
+          }}
+          value={editor.getAttributes('textStyle').color || '#000000'}
+          className="h-8 w-8 rounded cursor-pointer border"
+          style={{ borderColor: 'var(--color-border-primary)' }}
+          title="Text Color"
+        />
+
+        {/* Font Family */}
+        <div className="relative font-menu-container">
+          <ToolbarButton
+            onClick={() => setShowFontFamilyMenu(!showFontFamilyMenu)}
+            active={showFontFamilyMenu}
+            title="Font Family"
+          >
+            <Type className="h-4 w-4" />
+          </ToolbarButton>
+          {showFontFamilyMenu && (
+            <div
+              className="absolute top-full left-0 mt-1 rounded shadow-lg z-50 border font-menu-container"
+              style={{
+                backgroundColor: 'var(--color-bg-secondary)',
+                borderColor: 'var(--color-border-primary)',
+                minWidth: '150px'
+              }}
+            >
+              {[
+                { label: 'Default', value: '' },
+                { label: 'Arial', value: 'Arial, sans-serif' },
+                { label: 'Times', value: "'Times New Roman', serif" },
+                { label: 'Courier', value: "'Courier New', monospace" },
+                { label: 'Georgia', value: 'Georgia, serif' },
+                { label: 'Verdana', value: 'Verdana, sans-serif' },
+                { label: 'Comic Sans', value: "'Comic Sans MS', cursive" },
+                { label: 'Impact', value: 'Impact, fantasy' },
+              ].map((font) => (
+                <button
+                  key={font.value}
+                  onClick={() => {
+                    editor.chain().focus().setFontFamily(font.value).run();
+                    setShowFontFamilyMenu(false);
+                  }}
+                  className="w-full text-left px-3 py-2 text-sm hover:opacity-80 transition-colors"
+                  style={{
+                    color: 'var(--color-text-primary)',
+                    backgroundColor: editor.getAttributes('textStyle').fontFamily === font.value
+                      ? 'var(--color-bg-hover)'
+                      : 'transparent'
+                  }}
+                >
+                  {font.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Font Size */}
+        <div className="relative font-menu-container">
+          <ToolbarButton
+            onClick={() => setShowFontSizeMenu(!showFontSizeMenu)}
+            active={showFontSizeMenu}
+            title="Font Size"
+          >
+            <CaseSensitive className="h-4 w-4" />
+          </ToolbarButton>
+          {showFontSizeMenu && (
+            <div
+              className="absolute top-full left-0 mt-1 rounded shadow-lg z-50 border font-menu-container"
+              style={{
+                backgroundColor: 'var(--color-bg-secondary)',
+                borderColor: 'var(--color-border-primary)',
+                minWidth: '100px'
+              }}
+            >
+              {['12px', '14px', '16px', '18px', '20px', '24px', '32px', '48px'].map((size) => (
+                <button
+                  key={size}
+                  onClick={() => {
+                    editor.chain().focus().setMark('textStyle', { fontSize: size }).run();
+                    setShowFontSizeMenu(false);
+                  }}
+                  className="w-full text-left px-3 py-2 text-sm hover:opacity-80 transition-colors"
+                  style={{
+                    color: 'var(--color-text-primary)',
+                    backgroundColor: editor.getAttributes('textStyle').fontSize === size
+                      ? 'var(--color-bg-hover)'
+                      : 'transparent'
+                  }}
+                >
+                  {size}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
           active={editor.isActive('heading', { level: 1 })}
@@ -859,7 +1102,20 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
         </ToolbarButton>
 
         <ToolbarButton
-          onClick={() => editor.chain().focus().toggleCode().run()}
+          onClick={() => {
+            // Check if selection spans multiple lines
+            const { from, to } = editor.state.selection;
+            const text = editor.state.doc.textBetween(from, to, '\n');
+            const hasMultipleLines = text.includes('\n');
+            
+            if (hasMultipleLines) {
+              // If multiline, convert to code block instead
+              editor.chain().focus().setCodeBlock().run();
+            } else {
+              // If single line, toggle inline code
+              editor.chain().focus().toggleCode().run();
+            }
+          }}
           active={editor.isActive('code')}
           title="Inline Code"
         >
@@ -960,10 +1216,20 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
         >
           <Redo className="h-4 w-4" />
         </ToolbarButton>
+
+        <ToolbarButton
+          onClick={() => setIsExpanded(!isExpanded)}
+          active={isExpanded}
+          title={isExpanded ? "Collapse editor" : "Expand editor"}
+        >
+          {isExpanded ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+        </ToolbarButton>
       </div>
 
       {/* Editor */}
-      <EditorContent editor={editor} className="prose max-w-none" />
+      <div className={isExpanded ? 'editor-expanded' : ''}>
+        <EditorContent editor={editor} className="prose max-w-none" />
+      </div>
 
       {/* Dictation Error Alert */}
       {dictationError && (

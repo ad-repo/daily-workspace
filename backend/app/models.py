@@ -32,6 +32,16 @@ class Label(Base):
     notes = relationship("DailyNote", secondary=note_labels, back_populates="labels")
     entries = relationship("NoteEntry", secondary=entry_labels, back_populates="labels")
 
+class AppSettings(Base):
+    """Model for application settings - single row table for persistent settings"""
+    __tablename__ = "app_settings"
+
+    id = Column(Integer, primary_key=True, index=True)
+    sprint_goals = Column(Text, default="")  # Persistent sprint goals
+    quarterly_goals = Column(Text, default="")  # Persistent quarterly goals
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
 class DailyNote(Base):
     """Model for daily notes - one per day"""
     __tablename__ = "daily_notes"
@@ -39,7 +49,7 @@ class DailyNote(Base):
     id = Column(Integer, primary_key=True, index=True)
     date = Column(String, unique=True, index=True, nullable=False)  # Format: YYYY-MM-DD
     fire_rating = Column(Integer, default=0)  # 0-5 fire rating
-    daily_goal = Column(Text, default="")  # Daily goal/objective
+    daily_goal = Column(Text, default="")  # Daily goal/objective (refreshes daily)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { Edit, Check } from 'lucide-react';
+import { Edit, Check, Maximize2, Minimize2 } from 'lucide-react';
 
 interface CodeEditorProps {
   content: string;
@@ -12,6 +12,7 @@ const CodeEditor = ({ content, onChange }: CodeEditorProps) => {
   const [isEditing, setIsEditing] = useState(!content); // Start in edit mode if empty
   const [editContent, setEditContent] = useState(content);
   const [language, setLanguage] = useState<'python' | 'bash'>('python');
+  const [isExpanded, setIsExpanded] = useState(false);
 
   // Detect language from content
   const detectLanguage = (code: string): 'python' | 'bash' => {
@@ -78,6 +79,13 @@ const CodeEditor = ({ content, onChange }: CodeEditorProps) => {
           </div>
           <div className="flex gap-2">
             <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="flex items-center gap-1 px-3 py-1 bg-gray-700 text-white rounded text-sm hover:bg-gray-600"
+              title={isExpanded ? "Collapse editor" : "Expand editor"}
+            >
+              {isExpanded ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+            </button>
+            <button
               onClick={handleSave}
               className="flex items-center gap-1 px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700"
             >
@@ -98,11 +106,14 @@ const CodeEditor = ({ content, onChange }: CodeEditorProps) => {
           value={editContent}
           onChange={handleTextareaChange}
           rows={15}
-          className="w-full p-4 font-mono text-sm rounded-lg focus:outline-none resize-y"
+          className={`w-full p-4 font-mono text-sm rounded-lg focus:outline-none resize-y ${isExpanded ? '' : 'code-editor-textarea'}`}
           style={{
             backgroundColor: 'var(--color-bg-tertiary)',
             color: 'var(--color-text-primary)',
             border: '1px solid var(--color-border-primary)',
+            maxHeight: isExpanded ? 'none' : '600px',
+            overflowY: 'auto',
+            transition: 'max-height 0.3s ease',
           }}
           onFocus={(e) => {
             e.currentTarget.style.borderColor = 'var(--color-accent)';
