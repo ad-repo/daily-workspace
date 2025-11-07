@@ -2,7 +2,22 @@
 
 ## Latest Updates (2025-11-07)
 
-### 1. Rich Text Formatting Enhancements
+### 1. Copy to Jira/Confluence
+- **What**: Export note entries in Jira/Confluence wiki markup format
+- **How**: Click the Jira icon button in the entry toolbar (next to Markdown copy)
+- **Features**:
+  - High-quality HTML to Jira wiki markup conversion
+  - Preserves all formatting: headings (h1.-h6.), bold (*), italic (_), strikethrough (-), underline (+)
+  - Code blocks: `{code}...{code}`, inline code: `{{...}}`
+  - Links: `[text|url]`, Images: `!url!` or `!url|alt=text!`
+  - Lists: `*` for bullets, `#` for numbered
+  - Blockquotes: `{quote}...{quote}`
+  - Includes title as h1. heading
+  - Works with both rich text and code entries
+- **UI**: Official Jira logo icon, success feedback with checkmark
+- **Use Case**: Paste formatted content directly into Jira issues or Confluence pages
+
+### 2. Rich Text Formatting Enhancements
 - **Text Color**: Color picker for custom text colors
 - **Font Family**: Dropdown with 8 font options (Arial, Times, Courier, Georgia, Verdana, Comic Sans, Impact)
 - **Font Size**: Dropdown with sizes from 12px to 48px
