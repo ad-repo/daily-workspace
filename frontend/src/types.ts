@@ -49,9 +49,24 @@ export interface NoteEntryUpdate {
 export interface DailyNoteCreate {
   date: string;
   fire_rating?: number;
+  daily_goal?: string;
 }
 
 export interface DailyNoteUpdate {
   fire_rating?: number;
+  daily_goal?: string;
+}
+
+export interface AppSettings {
+  id: number;
+  sprint_goals: string;
+  quarterly_goals: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AppSettingsUpdate {
+  sprint_goals?: string;
+  quarterly_goals?: string;
 }
 

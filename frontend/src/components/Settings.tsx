@@ -6,6 +6,8 @@ import { useTheme, Theme } from '../contexts/ThemeContext';
 import { useCustomBackground } from '../contexts/CustomBackgroundContext';
 import { useTransparentLabels } from '../contexts/TransparentLabelsContext';
 import { useDailyGoals } from '../contexts/DailyGoalsContext';
+import { useSprintGoals } from '../contexts/SprintGoalsContext';
+import { useQuarterlyGoals } from '../contexts/QuarterlyGoalsContext';
 import { useDayLabels } from '../contexts/DayLabelsContext';
 import CustomThemeCreator from './CustomThemeCreator';
 import CustomBackgroundSettings from './CustomBackgroundSettings';
@@ -45,6 +47,8 @@ const Settings = () => {
   
   const { transparentLabels, toggleTransparentLabels } = useTransparentLabels();
   const { showDailyGoals, setShowDailyGoals } = useDailyGoals();
+  const { showSprintGoals, setShowSprintGoals } = useSprintGoals();
+  const { showQuarterlyGoals, setShowQuarterlyGoals } = useQuarterlyGoals();
   const { showDayLabels, setShowDayLabels } = useDayLabels();
   
   const [labels, setLabels] = useState<Label[]>([]);
@@ -426,6 +430,68 @@ const Settings = () => {
                     style={{
                       backgroundColor: 'var(--color-bg-primary)',
                       transform: showDailyGoals ? 'translateX(1.5rem)' : 'translateX(0.25rem)'
+                    }}
+                  />
+                </button>
+              </div>
+            </div>
+
+            {/* Show Sprint Goals Toggle */}
+            <div className="mb-4 p-4 rounded-lg" style={{ backgroundColor: 'var(--color-bg-secondary)', border: '1px solid var(--color-border-primary)' }}>
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <h3 className="font-medium mb-1" style={{ color: 'var(--color-text-primary)' }}>
+                    Show Sprint Goals
+                  </h3>
+                  <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+                    Display the sprint goals section on the day view. Disable to remove it completely.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowSprintGoals(!showSprintGoals)}
+                  className={`ml-4 relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2`}
+                  style={{
+                    backgroundColor: showSprintGoals ? 'var(--color-accent)' : 'var(--color-bg-secondary)',
+                    borderColor: 'var(--color-border-primary)',
+                    borderWidth: '1px'
+                  }}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full transition-transform`}
+                    style={{
+                      backgroundColor: 'var(--color-bg-primary)',
+                      transform: showSprintGoals ? 'translateX(1.5rem)' : 'translateX(0.25rem)'
+                    }}
+                  />
+                </button>
+              </div>
+            </div>
+
+            {/* Show Quarterly Goals Toggle */}
+            <div className="mb-4 p-4 rounded-lg" style={{ backgroundColor: 'var(--color-bg-secondary)', border: '1px solid var(--color-border-primary)' }}>
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <h3 className="font-medium mb-1" style={{ color: 'var(--color-text-primary)' }}>
+                    Show Quarterly Goals
+                  </h3>
+                  <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+                    Display the quarterly goals section on the day view. Disable to remove it completely.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowQuarterlyGoals(!showQuarterlyGoals)}
+                  className={`ml-4 relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2`}
+                  style={{
+                    backgroundColor: showQuarterlyGoals ? 'var(--color-accent)' : 'var(--color-bg-secondary)',
+                    borderColor: 'var(--color-border-primary)',
+                    borderWidth: '1px'
+                  }}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full transition-transform`}
+                    style={{
+                      backgroundColor: 'var(--color-bg-primary)',
+                      transform: showQuarterlyGoals ? 'translateX(1.5rem)' : 'translateX(0.25rem)'
                     }}
                   />
                 </button>

@@ -1,6 +1,49 @@
 # Recent Features Summary
 
-## Latest Updates (2025-11-02)
+## Latest Updates (2025-11-07)
+
+### 1. Rich Text Formatting Enhancements
+- **Text Color**: Color picker for custom text colors
+- **Font Family**: Dropdown with 8 font options (Arial, Times, Courier, Georgia, Verdana, Comic Sans, Impact)
+- **Font Size**: Dropdown with sizes from 12px to 48px
+- **Smart Code Blocks**: Multi-line selections automatically convert to code blocks (not split inline code)
+- **UI**: Compact icon buttons with popup menus for font controls
+
+### 2. Editable Link Previews
+- **Click-to-Edit**: Click any link preview title or description to edit inline
+- **No Prompts**: Previews insert immediately, edit as needed
+- **Fallback Handling**: If metadata fetch fails, placeholder text appears ("Click to add title/description")
+- **Delete Button**: Hover over preview to reveal delete button (X)
+- **UI**: Inline editing with themed input fields and textarea
+
+### 3. Persistent Goals System
+- **Sprint Goals**: Track sprint-level goals that persist across all days
+- **Quarterly Goals**: Set quarterly objectives that persist across all days
+- **Daily Goals**: Day-specific goals (existing feature, now with click-to-edit)
+- **Click-to-Edit**: Click any goal text to edit inline, automatic save on blur
+- **Database**: New `app_settings` table for persistent goals
+- **Migration**: Automated migration from old system (012_move_goals_to_settings.py)
+- **Toggle Visibility**: Show/hide each goal type in Settings → General
+
+### 4. UI Layout Improvements
+- **Day Labels Above Goals**: Day labels now appear at the top, before all goal sections
+- **Full-Width New Entry**: "New Entry" button spans full width when no entries exist
+- **Improved Goal Styling**: Visible borders, better multi-line input, hover indicators
+- **Rounded Corners**: More stylish rounded corners on all cards (rounded-2xl)
+
+### 5. Code Block Enhancements
+- **Isolating Property**: Code blocks no longer affect adjacent lines
+- **Escape to Paragraph**: Press Backspace at start of code block to convert to paragraph
+- **Navigate Above**: Press Arrow Up at top of code block (when at document start) to insert paragraph above
+- **Smart Multi-line**: Selecting multiple lines and clicking inline code button creates a code block
+
+### 6. Technical Improvements
+- **Unused Import Cleanup**: Removed unused imports across all context files and components
+- **Parameter Naming**: Prefixed unused parameters with underscore (_view, _pos, etc.)
+- **Database Migrations**: Migration 012 handles upgrades from older versions
+- **Backup/Restore**: App settings (sprint/quarterly goals) included in JSON and Markdown exports
+
+## Previous Updates (2025-11-02)
 
 ### 1. Voice Dictation
 - **What**: Real-time speech-to-text directly in the rich text editor
