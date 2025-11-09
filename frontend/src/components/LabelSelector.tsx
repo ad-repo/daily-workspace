@@ -230,12 +230,6 @@ const LabelSelector = ({ date, entryId, selectedLabels, onLabelsChange, onOptimi
             value={newLabelName}
             onChange={(e) => handleInputChange(e.target.value)}
             onKeyPress={handleKeyPress}
-            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-            onFocus={() => {
-              if (newLabelName.trim() && filteredSuggestions.length > 0) {
-                setShowSuggestions(true);
-              }
-            }}
             placeholder="Type a label name or emoji..."
             disabled={loading}
             className="w-full px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 disabled:opacity-50"
