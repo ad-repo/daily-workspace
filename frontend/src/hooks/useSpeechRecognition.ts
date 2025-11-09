@@ -156,7 +156,7 @@ export const useSpeechRecognition = ({
         case 'not-allowed':
           // Permission error already shown by requestPermission, don't show again
           break;
-        case 'network':
+        case 'network': {
           // Auto-retry up to 2 times with a slight delay
           if (retryCountRef.current < 2 && shouldBeRecordingRef.current) {
             retryCountRef.current++;
@@ -185,6 +185,7 @@ export const useSpeechRecognition = ({
           networkErrorMsg += '• Use a different computer/Chrome profile';
           setError(networkErrorMsg);
           break;
+        }
         default:
           setError(`Speech recognition error: ${event.error}`);
       }

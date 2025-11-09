@@ -511,10 +511,7 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
     }
   }, [speechError]);
 
-  if (!editor) {
-    return null;
-  }
-
+  // Close lightbox on Escape key (must be before conditional return)
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setLightboxSrc(null);
@@ -523,7 +520,7 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
-  // Close font menus when clicking outside
+  // Close font menus when clicking outside (must be before conditional return)
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
@@ -537,6 +534,10 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }
   }, [showFontFamilyMenu, showFontSizeMenu]);
+
+  if (!editor) {
+    return null;
+  }
 
   const handlePreformattedClick = () => {
     const { empty } = editor.state.selection;
