@@ -268,7 +268,24 @@ track-the-thing/
 
 Track the Thing has comprehensive test coverage with **558 tests** across all layers:
 
-### Test Suite
+### Test Suite Structure
+```
+tests/
+├── backend/          # Backend tests (pytest)
+│   ├── unit/         # Model and utility tests
+│   ├── integration/  # API endpoint tests
+│   ├── migrations/   # Database schema tests
+│   └── fixtures/     # Test data and helpers
+└── e2e/              # End-to-end tests (Playwright)
+    ├── tests/        # E2E test suites
+    └── fixtures/     # Test helpers and baseline data
+
+frontend/tests/       # Frontend tests (vitest)
+├── components/       # React component tests
+├── contexts/         # Context and hook tests
+└── integration/      # Integration tests
+```
+
 - **Backend Tests**: 211 tests (pytest)
   - Unit tests for models and utilities
   - Integration tests for all API endpoints
@@ -291,23 +308,23 @@ Track the Thing has comprehensive test coverage with **558 tests** across all la
 
 **Backend only**:
 ```bash
-cd backend
+cd tests/backend
 ./run_tests.sh
 # or with coverage:
-python -m pytest --cov=app --cov-report=html
+python -m pytest --cov=../../backend/app --cov-report=html
 ```
 
 **Frontend only**:
 ```bash
 cd frontend
-npm test
+npx vitest
 # or with coverage:
-npm run test:coverage
+npx vitest --coverage
 ```
 
 **E2E only**:
 ```bash
-cd e2e
+cd tests/e2e
 npx playwright test
 # or with UI:
 npx playwright test --ui

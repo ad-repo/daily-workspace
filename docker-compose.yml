@@ -38,8 +38,8 @@ services:
       dockerfile: Dockerfile.test
     volumes:
       - ./frontend:/app
-      - ./frontend/coverage:/app/coverage
       - /app/node_modules
+    command: npx vitest --run --coverage
     profiles:
       - test
 
@@ -49,10 +49,13 @@ services:
       dockerfile: Dockerfile
     environment:
       - DATABASE_URL=sqlite:///./data/test_daily_notes.db
+      - BACKEND_PATH=/app
     volumes:
       - ./backend:/app
-      - ./backend/htmlcov:/app/htmlcov
-    command: python -m pytest --tb=short -v --cov=app --cov-report=html --cov-report=term
+      - ./tests/backend:/tests
+      - ./tests/backend/htmlcov:/tests/htmlcov
+    working_dir: /tests
+    command: python -m pytest --tb=short -v --cov=/app/app --cov-report=html --cov-report=term
     profiles:
       - test
 
@@ -93,15 +96,15 @@ services:
 
   e2e:
     build:
-      context: ./e2e
+      context: ./tests/e2e
       dockerfile: Dockerfile
     environment:
       - BASE_URL=http://frontend-e2e:3000
       - API_URL=http://backend-e2e:8000
     volumes:
-      - ./e2e:/app
-      - ./e2e/playwright-report:/app/playwright-report
-      - ./e2e/test-results:/app/test-results
+      - ./tests/e2e:/app
+      - ./tests/e2e/playwright-report:/app/playwright-report
+      - ./tests/e2e/test-results:/app/test-results
       - /app/node_modules
     depends_on:
       - backend-e2e
