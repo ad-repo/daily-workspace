@@ -173,8 +173,6 @@ export const useSpeechRecognition = ({
           }
           
           // After retries failed, show detailed error
-          const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-          const isHttps = window.location.protocol === 'https:';
           let networkErrorMsg = '⚠️ Chrome Speech Recognition API Failed\n\n';
           networkErrorMsg += 'This is a known bug in Chrome 130-141 where the Speech API fails immediately.\n\n';
           networkErrorMsg += 'Your microphone and internet work fine, but Chrome cannot connect to Google\'s speech service.\n\n';
