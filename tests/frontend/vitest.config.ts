@@ -7,7 +7,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
-    setupFiles: ['./src/tests/setup.ts'],
+    setupFiles: ['./setup.ts'],
     include: ['**/*.{test,spec}.{ts,tsx}'],
     exclude: ['**/node_modules/**', '**/dist/**', '**/android/**'],
     testTimeout: 5000, // 5 second timeout per test
@@ -17,7 +17,6 @@ export default defineConfig({
       reporter: ['text', 'html', 'json'],
       exclude: [
         'node_modules/',
-        'src/tests/',
         '**/*.test.{ts,tsx}',
         '**/*.spec.{ts,tsx}',
         'src/main.tsx',
@@ -28,7 +27,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      '@': path.resolve(__dirname, '../../frontend/src'),
     },
   },
 });

@@ -49,11 +49,11 @@ backend/data/
 
 # CI/CD
 .cache/
-htmlcov/
-.coverage
+*.pid
 
 # Test artifacts
-frontend/coverage/
-e2e/playwright-report/
-e2e/test-results/
-*.pid
+tests/*/htmlcov/
+tests/*/coverage/
+tests/e2e/playwright-report/
+tests/e2e/test-results/
+.coverage

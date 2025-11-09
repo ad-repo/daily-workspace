@@ -30,7 +30,7 @@ echo ""
 
 echo "✅ All tests complete!"
 echo "================================"
-echo "📊 Backend coverage: backend/htmlcov/index.html"
-echo "📊 Frontend coverage: frontend/coverage/index.html"
-echo "📊 E2E report: e2e/playwright-report/index.html"
+echo "📊 Backend coverage: tests/backend/htmlcov/index.html"
+echo "📊 Frontend coverage: tests/frontend/coverage/index.html"
+echo "📊 E2E report: tests/e2e/playwright-report/index.html"
 

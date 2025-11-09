@@ -13,8 +13,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
-# Add parent directory to path for imports
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+# Add backend directory to path for imports (from tests/backend/ -> ../../backend/)
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'backend')))
 
 from app.database import Base, get_db  # noqa: E402
 from app.main import app  # noqa: E402
