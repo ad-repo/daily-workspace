@@ -160,4 +160,180 @@ test.describe('Goals System', () => {
       await expect(page.locator('text="🚀 Sprint Goals"')).toBeVisible();
     }
   });
+
+  test('should format daily goals with bold text', async ({ page }) => {
+    // Click on daily goals to edit
+    const dailyGoalsClickable = page.locator('text="Click to add daily goals..."');
+    if (await dailyGoalsClickable.count() > 0) {
+      await dailyGoalsClickable.click();
+    } else {
+      const dailyGoalsArea = page.locator('text="🎯 Daily Goals"').locator('..');
+      await dailyGoalsArea.click();
+    }
+    await page.waitForTimeout(500);
+    
+    // Find the editor and toolbar
+    const editor = page.locator('.ProseMirror').first();
+    await expect(editor).toBeVisible({ timeout: 5000 });
+    
+    // Type some text
+    await editor.fill('Important goal');
+    await page.waitForTimeout(200);
+    
+    // Select all text
+    await editor.press('Control+a');
+    
+    // Click bold button
+    const boldButton = page.locator('button[title="Bold"]').first();
+    await boldButton.click();
+    await page.waitForTimeout(200);
+    
+    // Click outside to save
+    await page.locator('body').click({ position: { x: 10, y: 10 } });
+    await page.waitForTimeout(1000);
+    
+    // Verify HTML contains bold tag
+    const dailyGoalsDisplay = page.locator('text="🎯 Daily Goals"').locator('..').locator('div').nth(1);
+    const innerHTML = await dailyGoalsDisplay.innerHTML();
+    expect(innerHTML).toContain('<strong>');
+  });
+
+  test('should format sprint goals with bullet list', async ({ page }) => {
+    // Click to create sprint goal
+    const createButton = page.locator('button:has-text("Create Sprint Goal")');
+    if (await createButton.count() > 0) {
+      await createButton.click();
+      await page.waitForTimeout(500);
+      
+      // Find the editor
+      const editor = page.locator('.ProseMirror').first();
+      await expect(editor).toBeVisible();
+      
+      // Type some text
+      await editor.fill('Goal item 1');
+      await page.waitForTimeout(200);
+      
+      // Click bullet list button
+      const bulletButton = page.locator('button[title="Bullet List"]').first();
+      await bulletButton.click();
+      await page.waitForTimeout(200);
+      
+      // Verify list is active
+      await expect(bulletButton).toHaveAttribute('style', /var\(--color-accent\)/);
+    }
+  });
+
+  test('should format quarterly goals with numbered list', async ({ page }) => {
+    // Click to create quarterly goal
+    const createButton = page.locator('button:has-text("Create Quarterly Goal")');
+    if (await createButton.count() > 0) {
+      await createButton.click();
+      await page.waitForTimeout(500);
+      
+      // Find the editor
+      const editor = page.locator('.ProseMirror').first();
+      await expect(editor).toBeVisible();
+      
+      // Type some text
+      await editor.fill('Q1 Objective');
+      await page.waitForTimeout(200);
+      
+      // Click numbered list button
+      const numberedButton = page.locator('button[title="Numbered List"]').first();
+      await numberedButton.click();
+      await page.waitForTimeout(200);
+      
+      // Verify list is active
+      await expect(numberedButton).toHaveAttribute('style', /var\(--color-accent\)/);
+    }
+  });
+
+  test('should make daily goals editor resizable', async ({ page }) => {
+    // Click on daily goals to edit
+    const dailyGoalsClickable = page.locator('text="Click to add daily goals..."');
+    if (await dailyGoalsClickable.count() > 0) {
+      await dailyGoalsClickable.click();
+    } else {
+      const dailyGoalsArea = page.locator('text="🎯 Daily Goals"').locator('..');
+      await dailyGoalsArea.click();
+    }
+    await page.waitForTimeout(500);
+    
+    // Find the editor container
+    const editorContainer = page.locator('.resize-both').first();
+    await expect(editorContainer).toBeVisible();
+    
+    // Verify it has resize CSS property
+    const resizeValue = await editorContainer.evaluate((el) => 
+      window.getComputedStyle(el).resize
+    );
+    expect(resizeValue).toBe('both');
+  });
+
+  test('should render HTML in daily goals display', async ({ page }) => {
+    // Click on daily goals to edit
+    const dailyGoalsClickable = page.locator('text="Click to add daily goals..."');
+    if (await dailyGoalsClickable.count() > 0) {
+      await dailyGoalsClickable.click();
+    } else {
+      const dailyGoalsArea = page.locator('text="🎯 Daily Goals"').locator('..');
+      await dailyGoalsArea.click();
+    }
+    await page.waitForTimeout(500);
+    
+    // Find the editor
+    const editor = page.locator('.ProseMirror').first();
+    await expect(editor).toBeVisible();
+    
+    // Type and format text
+    await editor.fill('Test goal with formatting');
+    await page.waitForTimeout(200);
+    
+    // Select all and make italic
+    await editor.press('Control+a');
+    const italicButton = page.locator('button[title="Italic"]').first();
+    await italicButton.click();
+    await page.waitForTimeout(200);
+    
+    // Click outside to save and exit edit mode
+    await page.locator('body').click({ position: { x: 10, y: 10 } });
+    await page.waitForTimeout(1000);
+    
+    // Verify HTML rendering in display mode
+    const dailyGoalsDisplay = page.locator('text="🎯 Daily Goals"').locator('..').locator('div').nth(1);
+    const innerHTML = await dailyGoalsDisplay.innerHTML();
+    expect(innerHTML).toContain('<em>');
+  });
+
+  test('should handle existing plain text goals', async ({ page }) => {
+    // This test verifies backward compatibility with plain text goals
+    // The display should work even if the goal contains plain text (no HTML tags)
+    const dailyGoalsSection = page.locator('text="🎯 Daily Goals"');
+    await expect(dailyGoalsSection).toBeVisible();
+    
+    // Click on daily goals - should work regardless of whether it's HTML or plain text
+    const dailyGoalsClickable = page.locator('text="Click to add daily goals..."');
+    if (await dailyGoalsClickable.count() > 0) {
+      await dailyGoalsClickable.click();
+      await page.waitForTimeout(500);
+      
+      const editor = page.locator('.ProseMirror').first();
+      await expect(editor).toBeVisible();
+      
+      // Type plain text
+      await editor.fill('Plain text goal');
+      await page.waitForTimeout(200);
+      
+      // Exit without formatting
+      await page.locator('body').click({ position: { x: 10, y: 10 } });
+      await page.waitForTimeout(1000);
+      
+      // Reload page to verify persistence
+      await page.reload();
+      await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
+      
+      // Goal should still be visible
+      await expect(page.locator('text="Plain text goal"')).toBeVisible();
+    }
+  });
 });

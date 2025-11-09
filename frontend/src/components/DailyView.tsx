@@ -8,6 +8,7 @@ import type { DailyNote, NoteEntry, Goal } from '../types';
 import NoteEntryCard from './NoteEntryCard';
 import LabelSelector from './LabelSelector';
 import EntryDropdown from './EntryDropdown';
+import SimpleRichTextEditor from './SimpleRichTextEditor';
 import { useFullScreen } from '../contexts/FullScreenContext';
 import { useDailyGoals } from '../contexts/DailyGoalsContext';
 import { useSprintGoals } from '../contexts/SprintGoalsContext';
@@ -476,25 +477,17 @@ const DailyView = () => {
                 <div className="w-full">
                   <label className="block text-lg font-semibold mb-2" style={{ color: 'var(--color-text-primary)' }}>🎯 Daily Goals</label>
                   {editingDailyGoal ? (
-                    <textarea
-                      value={dailyGoal}
-                      onChange={(e) => handleDailyGoalChange(e.target.value)}
-                      placeholder="What are your main goals for today?"
-                      className="w-full px-4 py-3 border rounded-lg resize-vertical focus:outline-none focus:ring-2 transition-all"
-                      style={{
-                        backgroundColor: 'var(--color-bg-secondary)',
-                        color: 'var(--color-text-primary)',
-                        borderColor: 'var(--color-accent)',
-                        boxShadow: `0 0 0 3px ${getComputedStyle(document.documentElement).getPropertyValue('--color-accent')}20`,
-                        minHeight: '80px'
-                      }}
-                      onBlur={() => setEditingDailyGoal(false)}
-                      autoFocus
-                    />
+                    <div onBlur={() => setEditingDailyGoal(false)}>
+                      <SimpleRichTextEditor
+                        content={dailyGoal}
+                        onChange={handleDailyGoalChange}
+                        placeholder="What are your main goals for today?"
+                      />
+                    </div>
                   ) : (
                     <div
                       onClick={() => setEditingDailyGoal(true)}
-                      className="w-full px-4 py-3 rounded-lg cursor-pointer transition-colors min-h-[80px] whitespace-pre-wrap"
+                      className="w-full px-4 py-3 rounded-lg cursor-pointer transition-colors min-h-[80px]"
                       style={{
                         color: dailyGoal ? 'var(--color-text-primary)' : 'var(--color-text-tertiary)',
                         backgroundColor: 'transparent'
@@ -505,9 +498,8 @@ const DailyView = () => {
                       onMouseLeave={(e) => {
                         e.currentTarget.style.backgroundColor = 'transparent';
                       }}
-                    >
-                      {dailyGoal || 'Click to add daily goals...'}
-                    </div>
+                      dangerouslySetInnerHTML={{ __html: dailyGoal || 'Click to add daily goals...' }}
+                    />
                   )}
                 </div>
               )}
@@ -551,30 +543,24 @@ const DailyView = () => {
                     // Existing goal - always editable
                     <>
                       {editingSprintGoal ? (
-                        <textarea
-                          value={sprintGoal.text}
-                          onChange={(e) => {
-                            setSprintGoal({ ...sprintGoal, text: e.target.value });
-                          }}
-                          onBlur={(e) => {
+                        <div
+                          onBlur={() => {
                             setEditingSprintGoal(false);
-                            handleSprintGoalUpdate(e.target.value);
+                            handleSprintGoalUpdate(sprintGoal.text);
                           }}
-                          placeholder="What are your sprint goals?"
-                          className="w-full px-4 py-3 border rounded-lg resize-vertical focus:outline-none focus:ring-2 transition-all"
-                          style={{
-                            backgroundColor: 'var(--color-bg-secondary)',
-                            color: 'var(--color-text-primary)',
-                            borderColor: 'var(--color-accent)',
-                            boxShadow: `0 0 0 3px ${getComputedStyle(document.documentElement).getPropertyValue('--color-accent')}20`,
-                            minHeight: '80px'
-                          }}
-                          autoFocus
-                        />
+                        >
+                          <SimpleRichTextEditor
+                            content={sprintGoal.text}
+                            onChange={(newText) => {
+                              setSprintGoal({ ...sprintGoal, text: newText });
+                            }}
+                            placeholder="What are your sprint goals?"
+                          />
+                        </div>
                       ) : (
                         <div
                           onClick={() => setEditingSprintGoal(true)}
-                          className="w-full px-4 py-3 rounded-lg transition-colors min-h-[80px] whitespace-pre-wrap cursor-pointer"
+                          className="w-full px-4 py-3 rounded-lg transition-colors min-h-[80px] cursor-pointer"
                           style={{
                             color: sprintGoal.text ? 'var(--color-text-primary)' : 'var(--color-text-tertiary)',
                             backgroundColor: 'transparent'
@@ -585,9 +571,8 @@ const DailyView = () => {
                           onMouseLeave={(e) => {
                             e.currentTarget.style.backgroundColor = 'transparent';
                           }}
-                        >
-                          {sprintGoal.text || 'Click to edit sprint goals...'}
-                        </div>
+                          dangerouslySetInnerHTML={{ __html: sprintGoal.text || 'Click to edit sprint goals...' }}
+                        />
                       )}
                     </>
                   ) : (
@@ -595,18 +580,10 @@ const DailyView = () => {
                     <>
                       {creatingSprintGoal ? (
                         <div className="space-y-3">
-                          <textarea
-                            value={newSprintText}
-                            onChange={(e) => setNewSprintText(e.target.value)}
+                          <SimpleRichTextEditor
+                            content={newSprintText}
+                            onChange={setNewSprintText}
                             placeholder="What are your sprint goals?"
-                            className="w-full px-4 py-3 border rounded-lg resize-vertical focus:outline-none focus:ring-2"
-                            style={{
-                              backgroundColor: 'var(--color-bg-secondary)',
-                              color: 'var(--color-text-primary)',
-                              borderColor: 'var(--color-accent)',
-                              minHeight: '80px'
-                            }}
-                            autoFocus
                           />
                           <div className="flex gap-2 items-center">
                             <span className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>Start:</span>
@@ -712,30 +689,24 @@ const DailyView = () => {
                     // Existing goal - always editable
                     <>
                       {editingQuarterlyGoal ? (
-                        <textarea
-                          value={quarterlyGoal.text}
-                          onChange={(e) => {
-                            setQuarterlyGoal({ ...quarterlyGoal, text: e.target.value });
-                          }}
-                          onBlur={(e) => {
+                        <div
+                          onBlur={() => {
                             setEditingQuarterlyGoal(false);
-                            handleQuarterlyGoalUpdate(e.target.value);
+                            handleQuarterlyGoalUpdate(quarterlyGoal.text);
                           }}
-                          placeholder="What are your quarterly goals?"
-                          className="w-full px-4 py-3 border rounded-lg resize-vertical focus:outline-none focus:ring-2 transition-all"
-                          style={{
-                            backgroundColor: 'var(--color-bg-secondary)',
-                            color: 'var(--color-text-primary)',
-                            borderColor: 'var(--color-accent)',
-                            boxShadow: `0 0 0 3px ${getComputedStyle(document.documentElement).getPropertyValue('--color-accent')}20`,
-                            minHeight: '80px'
-                          }}
-                          autoFocus
-                        />
+                        >
+                          <SimpleRichTextEditor
+                            content={quarterlyGoal.text}
+                            onChange={(newText) => {
+                              setQuarterlyGoal({ ...quarterlyGoal, text: newText });
+                            }}
+                            placeholder="What are your quarterly goals?"
+                          />
+                        </div>
                       ) : (
                         <div
                           onClick={() => setEditingQuarterlyGoal(true)}
-                          className="w-full px-4 py-3 rounded-lg transition-colors min-h-[80px] whitespace-pre-wrap cursor-pointer"
+                          className="w-full px-4 py-3 rounded-lg transition-colors min-h-[80px] cursor-pointer"
                           style={{
                             color: quarterlyGoal.text ? 'var(--color-text-primary)' : 'var(--color-text-tertiary)',
                             backgroundColor: 'transparent'
@@ -746,9 +717,8 @@ const DailyView = () => {
                           onMouseLeave={(e) => {
                             e.currentTarget.style.backgroundColor = 'transparent';
                           }}
-                        >
-                          {quarterlyGoal.text || 'Click to edit quarterly goals...'}
-                        </div>
+                          dangerouslySetInnerHTML={{ __html: quarterlyGoal.text || 'Click to edit quarterly goals...' }}
+                        />
                       )}
                     </>
                   ) : (
@@ -756,18 +726,10 @@ const DailyView = () => {
                     <>
                       {creatingQuarterlyGoal ? (
                         <div className="space-y-3">
-                          <textarea
-                            value={newQuarterlyText}
-                            onChange={(e) => setNewQuarterlyText(e.target.value)}
+                          <SimpleRichTextEditor
+                            content={newQuarterlyText}
+                            onChange={setNewQuarterlyText}
                             placeholder="What are your quarterly goals?"
-                            className="w-full px-4 py-3 border rounded-lg resize-vertical focus:outline-none focus:ring-2"
-                            style={{
-                              backgroundColor: 'var(--color-bg-secondary)',
-                              color: 'var(--color-text-primary)',
-                              borderColor: 'var(--color-accent)',
-                              minHeight: '80px'
-                            }}
-                            autoFocus
                           />
                           <div className="flex gap-2 items-center">
                             <span className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>Start:</span>
