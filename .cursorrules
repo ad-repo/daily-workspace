@@ -1,3 +1,5 @@
+_schema_version: "1.0.0"
+last_updated: "2025-11-09"
 meta_guidelines:
   purpose: "Defines all coding, testing, documentation, and cleanup standards for the AI code editor."
   enforcement:
@@ -10,11 +12,42 @@ meta_guidelines:
     - Optionally summarize rule compliance when outputting results.
 
 rules:
+  plan_logging:
+    purpose: "Automatically show and save all plans generated in plan mode with descriptive titles for traceability and review."
+    applies_to:
+      - Plan mode sessions that involve code analysis, design, or refactoring
+      - Any time a planning step is generated before agent execution
+    behavior:
+      - Always display the plan output in chat before execution begins
+      - Save each plan as a Markdown file under `.cursor/plans/`
+      - Use descriptive file naming with variables for readability and traceability
+    filename_template: ".cursor/plans/${timestamp}-${task}.md"
+    file_header: |
+      # Plan Summary
+      **Task:** ${task}
+      **Branch:** ${branch}
+      **Timestamp:** ${timestamp}
+
+      ---
+    organization:
+      - Automatically create subfolders by branch or date if configured
+      - Ignore `.cursor/plans/` in version control to prevent clutter
+      - Retain recent plans for debugging or process audits
+    variables:
+      - ${timestamp}: ISO timestamp when the plan was created
+      - ${task}: Sanitized short version of the user request or goal
+      - ${branch}: Current Git branch name (if applicable)
+      - ${file}: Active file when plan was generated
+    enforcement:
+      - Always produce a visible plan summary before edits occur
+      - If a plan cannot be saved, output a warning in chat
+      - Never execute a plan silently without displaying it to the user first
+
   safety:
     critical: true
     purpose: "Prevent loss or corruption of working code, data, or functionality during edits, refactors, or cleanup."
     principles:
-      - You are never allowed to modify the .cursorrules file without permission 
+      - You are never allowed to modify the .cursorrules file without permission
       - Never change program code to fix tests
       - Never modify or delete working code unless the change is fully understood and justified.
       - Never attempt optimizations or refactors without confirming tests pass before and after.
@@ -68,7 +101,7 @@ rules:
     purpose: "Maintain consistent and accessible user interfaces."
     standards:
       - Use consistent toggle and button styles
-      - Use theme variables (var(--color-*)); never hardcoded colors
+      - "Use theme variables (var(--color-*)); never hardcoded colors"
       - Ensure responsive design in both wide and compact layouts
       - Store user preferences in localStorage where appropriate
 
@@ -100,7 +133,6 @@ rules:
       - Remove hardcoded credentials or API keys
       - Follow established patterns and styles
       - Verify all tests pass locally
-      - Remove unused or outdated files
 
   file_organization:
     purpose: "Maintain consistent file structure across frontend and backend."
@@ -153,7 +185,11 @@ rules:
     search_behavior:
       - Determine documentation relevance based on context (file path, module name, API, data model, or test subject).
       - Search known locations first:
-        - `/docs/`, `/api/`, `/spec/`, `/design/`, `/architecture/`
+        - "/docs/"
+        - "/api/"
+        - "/spec/"
+        - "/design/"
+        - "/architecture/"
         - Linked internal wikis or Confluence pages
         - External SDK or API portals
       - Use semantic cues from test names, API routes, and code identifiers to locate relevant docs.
@@ -205,7 +241,7 @@ rules:
     critical: true
     purpose: "Ensure correctness, reliability, and meaningful coverage without altering valid logic."
     when_to_run:
-      - Do not change program code to fix tests 
+      - Do not change program code to fix tests
       - Run all tests for the current section when major changes are made
       - Run all shared library tests after any modification
       - Run the full suite before pushing any code
