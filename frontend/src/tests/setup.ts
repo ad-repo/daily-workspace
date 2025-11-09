@@ -55,10 +55,10 @@ Object.defineProperty(window, 'localStorage', {
 });
 
 // Mock fetch
-global.fetch = vi.fn();
+(globalThis as any).fetch = vi.fn();
 
 // Mock IntersectionObserver
-global.IntersectionObserver = vi.fn().mockImplementation(() => ({
+(globalThis as any).IntersectionObserver = vi.fn().mockImplementation(() => ({
   observe: vi.fn(),
   unobserve: vi.fn(),
   disconnect: vi.fn(),
@@ -69,7 +69,7 @@ global.IntersectionObserver = vi.fn().mockImplementation(() => ({
 }));
 
 // Mock ResizeObserver
-global.ResizeObserver = vi.fn().mockImplementation(() => ({
+(globalThis as any).ResizeObserver = vi.fn().mockImplementation(() => ({
   observe: vi.fn(),
   unobserve: vi.fn(),
   disconnect: vi.fn(),
@@ -118,7 +118,7 @@ Object.defineProperty(navigator, 'mediaDevices', {
 });
 
 // Mock MediaRecorder
-global.MediaRecorder = vi.fn().mockImplementation(() => ({
+(globalThis as any).MediaRecorder = vi.fn().mockImplementation(() => ({
   start: vi.fn(),
   stop: vi.fn(),
   pause: vi.fn(),
@@ -135,8 +135,8 @@ global.MediaRecorder = vi.fn().mockImplementation(() => ({
 })) as any;
 
 // Mock URL.createObjectURL
-global.URL.createObjectURL = vi.fn(() => 'blob:mock-url');
-global.URL.revokeObjectURL = vi.fn();
+(globalThis as any).URL.createObjectURL = vi.fn(() => 'blob:mock-url');
+(globalThis as any).URL.revokeObjectURL = vi.fn();
 
 // Mock HTMLCanvasElement.toBlob
 HTMLCanvasElement.prototype.toBlob = vi.fn((callback) => {
