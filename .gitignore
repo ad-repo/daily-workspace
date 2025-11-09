@@ -46,3 +46,14 @@ backend/data/
 
 # Docker
 .dockerignore
+
+# CI/CD
+.cache/
+htmlcov/
+.coverage
+
+# Test artifacts
+frontend/coverage/
+e2e/playwright-report/
+e2e/test-results/
+*.pid
