@@ -114,13 +114,24 @@ rules:
       - Clean up effects, intervals, and listeners
 
   git_workflow:
-    purpose: "Maintain clean and traceable version control practices."
+    critical: true
+    purpose: "Maintain clean, traceable version control practices and ensure new branches start from the latest remote main."
     steps:
-      - Create branches from main: feature/descriptive-name
-      - Use Conventional Commits for commit messages
-      - Never force push to main/master without approval
-      - Check git status before committing
-      - Verify pull requests can merge cleanly
+      - Always fetch and rebase from the remote main before creating a new branch.
+      - Confirm your local main matches the remote with "git fetch origin && git status main".
+      - Create all new branches from the up-to-date remote main using:
+        - "git checkout main"
+        - "git pull origin main"
+        - "git checkout -b feature/<descriptive-name>"
+      - Use Conventional Commits for commit messages.
+      - Never force push to main/master without explicit approval.
+      - Check git status and git diff before committing.
+      - Verify pull requests can merge cleanly with no conflicts.
+      - Delete stale branches once merged to keep the repo clean.
+    enforcement:
+      - Branches not created from the latest remote main are invalid and must be rebased or recreated.
+      - Reject commits or PRs showing outdated base commits.
+      - Treat failure to rebase before branching as a critical workflow violation.
 
   before_pushing:
     purpose: "Final verification checklist before pushing or merging changes."
