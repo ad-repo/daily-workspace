@@ -266,7 +266,7 @@ track-the-thing/
 
 ## 🧪 Testing & CI
 
-Track the Thing has comprehensive test coverage with **558 tests** across all layers, organized in a top-level `tests/` directory:
+Track the Thing has comprehensive test coverage with **558 tests** across all layers:
 
 ### Test Suite Structure
 ```
@@ -276,13 +276,14 @@ tests/
 │   ├── integration/  # API endpoint tests
 │   ├── migrations/   # Database schema tests
 │   └── fixtures/     # Test data and helpers
-├── frontend/         # Frontend tests (vitest)
-│   ├── components/   # React component tests
-│   ├── contexts/     # Context and hook tests
-│   └── setup.ts      # Test configuration
 └── e2e/              # End-to-end tests (Playwright)
     ├── tests/        # E2E test suites
     └── fixtures/     # Test helpers and baseline data
+
+frontend/tests/       # Frontend tests (vitest)
+├── components/       # React component tests
+├── contexts/         # Context and hook tests
+└── integration/      # Integration tests
 ```
 
 - **Backend Tests**: 211 tests (pytest)
@@ -315,7 +316,7 @@ python -m pytest --cov=../../backend/app --cov-report=html
 
 **Frontend only**:
 ```bash
-cd tests/frontend
+cd frontend
 npx vitest
 # or with coverage:
 npx vitest --coverage
