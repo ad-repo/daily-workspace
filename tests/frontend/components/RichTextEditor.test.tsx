@@ -10,7 +10,7 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { act } from 'react-dom/test-utils';
 import React from 'react';
-import RichTextEditor from '../../components/RichTextEditor';
+import RichTextEditor from '@/components/RichTextEditor';
 
 // Mock @tiptap/react
 vi.mock('@tiptap/react', () => ({

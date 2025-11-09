@@ -8,8 +8,8 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { act } from 'react-dom/test-utils';
 import React from 'react';
-import LabelSelector from '../../components/LabelSelector';
-import { TransparentLabelsProvider } from '../../contexts/TransparentLabelsContext';
+import LabelSelector from '@/components/LabelSelector';
+import { TransparentLabelsProvider } from '@/contexts/TransparentLabelsContext';
 import axios from 'axios';
 
 // Mock axios - defined inline to avoid hoisting issues

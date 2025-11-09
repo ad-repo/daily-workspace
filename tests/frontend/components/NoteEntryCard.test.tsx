@@ -9,8 +9,8 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { act } from 'react-dom/test-utils';
 import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
-import NoteEntryCard from '../../components/NoteEntryCard';
-import { TimezoneProvider } from '../../contexts/TimezoneContext';
+import NoteEntryCard from '@/components/NoteEntryCard';
+import { TimezoneProvider } from '@/contexts/TimezoneContext';
 import axios from 'axios';
 
 // Mock axios - defined inline to avoid hoisting issues

@@ -8,8 +8,8 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { act } from 'react-dom/test-utils';
 import React from 'react';
-import CustomBackgroundSettings from '../../components/CustomBackgroundSettings';
-import { CustomBackgroundProvider } from '../../contexts/CustomBackgroundContext';
+import CustomBackgroundSettings from '@/components/CustomBackgroundSettings';
+import { CustomBackgroundProvider } from '@/contexts/CustomBackgroundContext';
 
 // Mock lucide-react icons
 vi.mock('lucide-react', () => ({

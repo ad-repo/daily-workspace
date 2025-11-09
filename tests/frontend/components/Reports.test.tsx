@@ -9,9 +9,9 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { act } from 'react-dom/test-utils';
 import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
-import Reports from '../../components/Reports';
-import { TimezoneProvider } from '../../contexts/TimezoneContext';
-import { TransparentLabelsProvider } from '../../contexts/TransparentLabelsContext';
+import Reports from '@/components/Reports';
+import { TimezoneProvider } from '@/contexts/TimezoneContext';
+import { TransparentLabelsProvider } from '@/contexts/TransparentLabelsContext';
 import axios from 'axios';
 
 // Mock axios - defined inline to avoid hoisting issues

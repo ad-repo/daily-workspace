@@ -8,15 +8,15 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { act } from 'react-dom/test-utils';
 import React from 'react';
-import Settings from '../../components/Settings';
-import { TimezoneProvider } from '../../contexts/TimezoneContext';
-import { ThemeProvider } from '../../contexts/ThemeContext';
-import { CustomBackgroundProvider } from '../../contexts/CustomBackgroundContext';
-import { TransparentLabelsProvider } from '../../contexts/TransparentLabelsContext';
-import { DailyGoalsProvider } from '../../contexts/DailyGoalsContext';
-import { SprintGoalsProvider } from '../../contexts/SprintGoalsContext';
-import { QuarterlyGoalsProvider } from '../../contexts/QuarterlyGoalsContext';
-import { DayLabelsProvider } from '../../contexts/DayLabelsContext';
+import Settings from '@/components/Settings';
+import { TimezoneProvider } from '@/contexts/TimezoneContext';
+import { ThemeProvider } from '@/contexts/ThemeContext';
+import { CustomBackgroundProvider } from '@/contexts/CustomBackgroundContext';
+import { TransparentLabelsProvider } from '@/contexts/TransparentLabelsContext';
+import { DailyGoalsProvider } from '@/contexts/DailyGoalsContext';
+import { SprintGoalsProvider } from '@/contexts/SprintGoalsContext';
+import { QuarterlyGoalsProvider } from '@/contexts/QuarterlyGoalsContext';
+import { DayLabelsProvider } from '@/contexts/DayLabelsContext';
 import axios from 'axios';
 
 // Mock axios - defined inline to avoid hoisting issues

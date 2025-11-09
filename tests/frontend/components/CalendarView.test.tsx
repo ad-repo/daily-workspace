@@ -9,8 +9,8 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { act } from 'react-dom/test-utils';
 import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
-import CalendarView from '../../components/CalendarView';
-import { notesApi, goalsApi } from '../../api';
+import CalendarView from '@/components/CalendarView';
+import { notesApi, goalsApi } from '@/api';
 
 // Mock API - defined inline to avoid hoisting issues
 vi.mock('../../api', () => ({

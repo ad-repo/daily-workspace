@@ -10,11 +10,11 @@ import { act } from 'react-dom/test-utils';
 import React from 'react';
 
 // Import contexts
-import { ThemeProvider, useTheme } from '../../contexts/ThemeContext';
-import { TimezoneProvider, useTimezone } from '../../contexts/TimezoneContext';
-import { FullScreenProvider, useFullScreen } from '../../contexts/FullScreenContext';
-import { DailyGoalsProvider, useDailyGoals } from '../../contexts/DailyGoalsContext';
-import { TransparentLabelsProvider, useTransparentLabels } from '../../contexts/TransparentLabelsContext';
+import { ThemeProvider, useTheme } from '@/contexts/ThemeContext';
+import { TimezoneProvider, useTimezone } from '@/contexts/TimezoneContext';
+import { FullScreenProvider, useFullScreen } from '@/contexts/FullScreenContext';
+import { DailyGoalsProvider, useDailyGoals } from '@/contexts/DailyGoalsContext';
+import { TransparentLabelsProvider, useTransparentLabels } from '@/contexts/TransparentLabelsContext';
 
 describe('ThemeContext', () => {
   beforeEach(() => {

@@ -8,8 +8,8 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { act } from 'react-dom/test-utils';
 import React from 'react';
-import CustomThemeCreator from '../../components/CustomThemeCreator';
-import { ThemeProvider } from '../../contexts/ThemeContext';
+import CustomThemeCreator from '@/components/CustomThemeCreator';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 
 // Mock lucide-react icons
 vi.mock('lucide-react', () => ({

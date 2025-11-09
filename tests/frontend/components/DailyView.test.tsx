@@ -9,13 +9,13 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { act } from 'react-dom/test-utils';
 import React from 'react';
 import { BrowserRouter, MemoryRouter } from 'react-router-dom';
-import DailyView from '../../components/DailyView';
-import { FullScreenProvider } from '../../contexts/FullScreenContext';
-import { DailyGoalsProvider } from '../../contexts/DailyGoalsContext';
-import { SprintGoalsProvider } from '../../contexts/SprintGoalsContext';
-import { QuarterlyGoalsProvider } from '../../contexts/QuarterlyGoalsContext';
-import { DayLabelsProvider } from '../../contexts/DayLabelsContext';
-import { notesApi, entriesApi, goalsApi } from '../../api';
+import DailyView from '@/components/DailyView';
+import { FullScreenProvider } from '@/contexts/FullScreenContext';
+import { DailyGoalsProvider } from '@/contexts/DailyGoalsContext';
+import { SprintGoalsProvider } from '@/contexts/SprintGoalsContext';
+import { QuarterlyGoalsProvider } from '@/contexts/QuarterlyGoalsContext';
+import { DayLabelsProvider } from '@/contexts/DayLabelsContext';
+import { notesApi, entriesApi, goalsApi } from '@/api';
 
 // Mock API - defined inline to avoid hoisting issues
 vi.mock('../../api', () => ({
