@@ -49,7 +49,7 @@ const DailyView = () => {
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedEntries, setSelectedEntries] = useState<Set<number>>(new Set());
   const [isMerging, setIsMerging] = useState(false);
-  const dailyGoalTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const dailyGoalTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dailyGoalRef = useRef<string>(dailyGoal);
 
   // Keep ref in sync with state
