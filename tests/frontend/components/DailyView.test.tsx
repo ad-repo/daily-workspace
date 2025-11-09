@@ -18,7 +18,7 @@ import { DayLabelsProvider } from '@/contexts/DayLabelsContext';
 import { notesApi, entriesApi, goalsApi } from '@/api';
 
 // Mock API - defined inline to avoid hoisting issues
-vi.mock('../../api', () => ({
+vi.mock('@/api', () => ({
   notesApi: {
     getByDate: vi.fn(),
     update: vi.fn(),
@@ -64,15 +64,15 @@ const mockEntriesApi = vi.mocked(entriesApi);
 const mockGoalsApi = vi.mocked(goalsApi);
 
 // Mock child components
-vi.mock('../../components/NoteEntryCard', () => ({
+vi.mock('@/components/NoteEntryCard', () => ({
   default: ({ entry }: any) => <div data-testid={`entry-${entry.id}`}>{entry.title}</div>,
 }));
 
-vi.mock('../../components/LabelSelector', () => ({
+vi.mock('@/components/LabelSelector', () => ({
   default: () => <div data-testid="label-selector">Labels</div>,
 }));
 
-vi.mock('../../components/EntryDropdown', () => ({
+vi.mock('@/components/EntryDropdown', () => ({
   default: () => <div data-testid="entry-dropdown">Dropdown</div>,
 }));
 
@@ -94,7 +94,7 @@ vi.mock('date-fns', () => ({
 }));
 
 // Mock child components
-vi.mock('../../components/NoteEntryCard', () => ({
+vi.mock('@/components/NoteEntryCard', () => ({
   default: ({ entry, onUpdate, onDelete }: any) => (
     <div data-testid={`entry-${entry.id}`}>
       <div>{entry.title}</div>
@@ -104,11 +104,11 @@ vi.mock('../../components/NoteEntryCard', () => ({
   ),
 }));
 
-vi.mock('../../components/LabelSelector', () => ({
+vi.mock('@/components/LabelSelector', () => ({
   default: () => <div data-testid="label-selector">Label Selector</div>,
 }));
 
-vi.mock('../../components/EntryDropdown', () => ({
+vi.mock('@/components/EntryDropdown', () => ({
   default: () => <div data-testid="entry-dropdown">Entry Dropdown</div>,
 }));
 

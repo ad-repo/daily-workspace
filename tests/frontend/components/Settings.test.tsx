@@ -47,12 +47,12 @@ vi.mock('lucide-react', () => ({
 }));
 
 // Mock CustomThemeCreator
-vi.mock('../../components/CustomThemeCreator', () => ({
+vi.mock('@/components/CustomThemeCreator', () => ({
   default: () => <div>Custom Theme Creator</div>,
 }));
 
 // Mock CustomBackgroundSettings
-vi.mock('../../components/CustomBackgroundSettings', () => ({
+vi.mock('@/components/CustomBackgroundSettings', () => ({
   default: () => <div>Custom Background Settings</div>,
 }));
 

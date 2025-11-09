@@ -100,7 +100,7 @@ vi.mock('../../hooks/useSpeechRecognition', () => ({
 }));
 
 // Mock link preview extension
-vi.mock('../../extensions/LinkPreview', () => ({
+vi.mock('@/extensions/LinkPreview', () => ({
   LinkPreviewExtension: {},
   fetchLinkPreview: vi.fn().mockResolvedValue({
     title: 'Test Title',

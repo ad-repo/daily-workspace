@@ -13,7 +13,7 @@ import CalendarView from '@/components/CalendarView';
 import { notesApi, goalsApi } from '@/api';
 
 // Mock API - defined inline to avoid hoisting issues
-vi.mock('../../api', () => ({
+vi.mock('@/api', () => ({
   notesApi: {
     getByMonth: vi.fn(),
   },

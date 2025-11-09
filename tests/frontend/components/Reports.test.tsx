@@ -39,7 +39,7 @@ vi.mock('date-fns', () => ({
 }));
 
 // Mock timezone utils
-vi.mock('../../utils/timezone', () => ({
+vi.mock('@/utils/timezone', () => ({
   formatTimestamp: (timestamp: string) => timestamp,
 }));
 

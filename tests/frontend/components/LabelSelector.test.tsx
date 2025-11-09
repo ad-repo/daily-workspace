@@ -32,7 +32,7 @@ vi.mock('lucide-react', () => ({
 }));
 
 // Mock EmojiPicker
-vi.mock('../../components/EmojiPicker', () => ({
+vi.mock('@/components/EmojiPicker', () => ({
   default: ({ onSelect }: { onSelect?: (emoji: string) => void }) => (
     <button onClick={() => onSelect?.('🔥')}>Emoji Picker</button>
   ),

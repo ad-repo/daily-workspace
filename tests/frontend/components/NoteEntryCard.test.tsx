@@ -45,7 +45,7 @@ vi.mock('date-fns', () => ({
 }));
 
 // Mock RichTextEditor
-vi.mock('../../components/RichTextEditor', () => ({
+vi.mock('@/components/RichTextEditor', () => ({
   default: ({ content, onChange }: any) => (
     <textarea
       data-testid="rich-text-editor"
@@ -56,7 +56,7 @@ vi.mock('../../components/RichTextEditor', () => ({
 }));
 
 // Mock CodeEditor
-vi.mock('../../components/CodeEditor', () => ({
+vi.mock('@/components/CodeEditor', () => ({
   default: ({ content, onChange }: any) => (
     <textarea
       data-testid="code-editor"
@@ -67,7 +67,7 @@ vi.mock('../../components/CodeEditor', () => ({
 }));
 
 // Mock LabelSelector
-vi.mock('../../components/LabelSelector', () => ({
+vi.mock('@/components/LabelSelector', () => ({
   default: ({ selectedLabels, onLabelsChange }: any) => (
     <div data-testid="label-selector">
       {selectedLabels.map((label: any) => (
@@ -93,7 +93,7 @@ vi.mock('turndown', () => ({
 }));
 
 // Mock timezone utils
-vi.mock('../../utils/timezone', () => ({
+vi.mock('@/utils/timezone', () => ({
   formatTimestamp: (timestamp: string) => timestamp,
 }));
 
