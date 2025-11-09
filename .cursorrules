@@ -14,6 +14,7 @@ rules:
     critical: true
     purpose: "Prevent loss or corruption of working code, data, or functionality during edits, refactors, or cleanup."
     principles:
+      - You are never allowed to modify the .cursorrules file without permission 
       - Never change program code to fix tests
       - Never modify or delete working code unless the change is fully understood and justified.
       - Never attempt optimizations or refactors without confirming tests pass before and after.
@@ -174,6 +175,7 @@ rules:
     critical: true
     purpose: "Ensure all new or modified functionality includes automated test coverage without being prompted."
     triggers:
+      - All tests should be contained under a top level tests folder
       - Adding new features, routes, or components
       - Modifying existing logic or algorithms
       - Refactoring code that affects behavior
