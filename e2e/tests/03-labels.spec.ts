@@ -272,18 +272,21 @@ test.describe('Label Management', () => {
     await page.locator('button:has-text("Add")').first().click();
     await page.waitForResponse(
       resp => resp.url().includes('/api/labels') && resp.status() >= 200 && resp.status() < 300,
-      { timeout: 5000 }
+      { timeout: 10000 }
     );
     
     // Trigger auto-save by clicking outside
     await page.locator('body').click({ position: { x: 0, y: 0 } });
     await page.waitForResponse(
       resp => resp.url().includes('/api/entries') && resp.status() >= 200 && resp.status() < 300,
-      { timeout: 5000 }
+      { timeout: 10000 }
     );
     
+    // Buffer for UI update (CI needs longer)
+    await page.waitForTimeout(2000);
+    
     // Verify first entry label appears
-    await expect(page.getByRole('button', { name: entryLabel1 })).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('button', { name: entryLabel1 })).toBeVisible({ timeout: 10000 });
     
     // Create second entry with different label  
     await page.click('button:has-text("New Entry")');
@@ -294,7 +297,7 @@ test.describe('Label Management', () => {
     await page.locator('body').click({ position: { x: 0, y: 0 } });
     await page.waitForResponse(
       resp => resp.url().includes('/api/entries') && resp.status() >= 200 && resp.status() < 300,
-      { timeout: 5000 }
+      { timeout: 10000 }
     );
     
     // Now add label to the saved entry
