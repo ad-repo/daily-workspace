@@ -260,25 +260,24 @@ test.describe('Label Management', () => {
     const entryLabel1 = `Entry1-${Date.now()}`;
     const entryLabel2 = `Entry2-${Date.now()}`;
     
-    // Create first entry with its own label
+    // Create first entry and SAVE IT FIRST before adding labels
     await page.click('button:has-text("New Entry")');
     await expect(page.locator('.ProseMirror').first()).toBeVisible();
     
-    // Add content to trigger save
+    // Add content and save entry FIRST
     await page.locator('.ProseMirror').first().fill('Test entry 1');
+    await page.locator('body').click({ position: { x: 0, y: 0 } });
+    await page.waitForResponse(
+      resp => resp.url().includes('/api/entries') && resp.status() >= 200 && resp.status() < 300,
+      { timeout: 10000 }
+    );
     
+    // NOW add label to the saved entry
     let labelInput = page.locator('input[placeholder*="label" i]').first();
     await labelInput.fill(entryLabel1);
     await page.locator('button:has-text("Add")').first().click();
     await page.waitForResponse(
       resp => resp.url().includes('/api/labels') && resp.status() >= 200 && resp.status() < 300,
-      { timeout: 10000 }
-    );
-    
-    // Trigger auto-save by clicking outside
-    await page.locator('body').click({ position: { x: 0, y: 0 } });
-    await page.waitForResponse(
-      resp => resp.url().includes('/api/entries') && resp.status() >= 200 && resp.status() < 300,
       { timeout: 10000 }
     );
     
