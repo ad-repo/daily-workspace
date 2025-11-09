@@ -162,7 +162,7 @@ jobs:
       - name: Install E2E dependencies
         working-directory: e2e
         run: |
-          npm ci --legacy-peer-deps
+          npm install --legacy-peer-deps
           npx playwright install chromium --with-deps
 
       - name: Start backend server
