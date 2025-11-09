@@ -36,9 +36,13 @@ A modern, powerful daily workspace application for capturing and organizing your
 - **Emoji Labels**: Special rendering for emoji-only labels
 - **Transparent Mode**: Toggle between solid or transparent label backgrounds
 - **Daily Goals**: Set goals for each day (visible as tooltips in calendar)
+  - **Rich Text Editor**: Format goals with bold, italic, lists, and links
+  - **Resizable**: Drag corners to expand editor for more space
   - Toggle visibility in Settings → General
   - Click-to-edit with automatic save
 - **Sprint Goals**: Date-aware goal tracking with historical support
+  - **Rich Text Editor**: Format goals with bold, italic, lists, and links
+  - **Resizable**: Drag corners to expand editor for more space
   - Automatically shows the correct goal for the date being viewed
   - Shows upcoming goals with "X days until start" countdown
   - Create goals with specific start/end dates
@@ -47,6 +51,8 @@ A modern, powerful daily workspace application for capturing and organizing your
   - Full history - see different goals when browsing different dates
   - Toggle visibility in Settings → General
 - **Quarterly Goals**: Date-aware quarterly objectives with historical tracking
+  - **Rich Text Editor**: Format goals with bold, italic, lists, and links
+  - **Resizable**: Drag corners to expand editor for more space
   - Same powerful features as Sprint Goals
   - Shows upcoming goals before they start
   - Separate goal history for quarterly planning
