@@ -7,14 +7,15 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
-    setupFiles: ['./setup.ts'],
-    include: ['**/*.{test,spec}.{ts,tsx}'],
+    setupFiles: [path.resolve(__dirname, './setup.ts')],
+    include: [path.resolve(__dirname, '**/*.{test,spec}.{ts,tsx}')],
     exclude: ['**/node_modules/**', '**/dist/**', '**/android/**'],
     testTimeout: 5000, // 5 second timeout per test
     hookTimeout: 5000, // 5 second timeout for hooks (beforeEach, afterEach, etc.)
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html', 'json'],
+      reportsDirectory: path.resolve(__dirname, './coverage'),
       exclude: [
         'node_modules/',
         '**/*.test.{ts,tsx}',

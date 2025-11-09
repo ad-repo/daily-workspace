@@ -41,8 +41,7 @@ services:
       - ./tests/frontend:/app/tests
       - ./tests/frontend/coverage:/app/coverage
       - /app/node_modules
-    working_dir: /app/tests
-    command: npx vitest --run --coverage --config ./vitest.config.ts
+    command: npx vitest --run --coverage --config /app/tests/vitest.config.ts
     profiles:
       - test
 
