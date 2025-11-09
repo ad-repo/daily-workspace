@@ -36,17 +36,30 @@ A modern, powerful daily workspace application for capturing and organizing your
 - **Emoji Labels**: Special rendering for emoji-only labels
 - **Transparent Mode**: Toggle between solid or transparent label backgrounds
 - **Daily Goals**: Set goals for each day (visible as tooltips in calendar)
+  - **Rich Text Editor**: Full formatting support (bold, italic, underline, strikethrough, headings, lists, links, code, blockquotes)
+  - **Scrollable**: Goals scroll when content exceeds 300px height
+  - **Save Button**: Explicit save button for confident editing
+  - **HTML Display**: Goals render with proper formatting in display mode
   - Toggle visibility in Settings → General
   - Click-to-edit with automatic save
 - **Sprint Goals**: Date-aware goal tracking with historical support
+  - **Rich Text Editor**: Full formatting support (bold, italic, underline, strikethrough, headings, lists, links, code, blockquotes)
+  - **Scrollable**: Goals scroll when content exceeds 300px height
+  - **Save Button**: Explicit save button for confident editing
+  - **All fields always editable**: Edit goal text, start date, and end date at any time
+  - **HTML Display**: Goals render with proper formatting in display mode
   - Automatically shows the correct goal for the date being viewed
   - Shows upcoming goals with "X days until start" countdown
   - Create goals with specific start/end dates
   - Days remaining calculated from viewed date, not today
-  - End dates always editable (for error correction)
   - Full history - see different goals when browsing different dates
   - Toggle visibility in Settings → General
 - **Quarterly Goals**: Date-aware quarterly objectives with historical tracking
+  - **Rich Text Editor**: Full formatting support (bold, italic, underline, strikethrough, headings, lists, links, code, blockquotes)
+  - **Scrollable**: Goals scroll when content exceeds 300px height
+  - **Save Button**: Explicit save button for confident editing
+  - **All fields always editable**: Edit goal text, start date, and end date at any time
+  - **HTML Display**: Goals render with proper formatting in display mode
   - Same powerful features as Sprint Goals
   - Shows upcoming goals before they start
   - Separate goal history for quarterly planning

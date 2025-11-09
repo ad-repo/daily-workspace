@@ -76,6 +76,18 @@ vi.mock('@/components/EntryDropdown', () => ({
   default: () => <div data-testid="entry-dropdown">Dropdown</div>,
 }));
 
+vi.mock('@/components/SimpleRichTextEditor', () => ({
+  default: ({ content, onChange, placeholder }: any) => (
+    <div data-testid="simple-rich-text-editor">
+      <textarea
+        value={content}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+      />
+    </div>
+  ),
+}));
+
 // Mock lucide-react icons
 vi.mock('lucide-react', () => ({
   ChevronLeft: () => <div>ChevronLeft</div>,
