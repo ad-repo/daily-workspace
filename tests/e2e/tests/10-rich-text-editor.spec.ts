@@ -24,9 +24,21 @@ test.describe('Rich Text Editor', () => {
     await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
     
     // Delete any existing entries for this date (cleanup from previous runs)
-    while (await page.locator('button[title*="Delete" i]').count() > 0) {
-      await page.locator('button[title*="Delete" i]').first().click({ timeout: 3000 });
-      await page.waitForTimeout(800); // Increased buffer for DOM updates
+    let deleteCount = await page.locator('button[title*="Delete" i]').count();
+    while (deleteCount > 0) {
+      try {
+        const deleteButton = page.locator('button[title*="Delete" i]').first();
+        await deleteButton.click({ timeout: 5000 });
+        // Wait for delete API call to complete
+        await page.waitForResponse(
+          resp => resp.url().includes('/api/entries') && resp.request().method() === 'DELETE',
+          { timeout: 5000 }
+        );
+        await page.waitForTimeout(500); // Buffer for DOM updates
+      } catch (e) {
+        // If element was detached or timeout, continue - entry was likely deleted
+      }
+      deleteCount = await page.locator('button[title*="Delete" i]').count();
     }
   });
 
