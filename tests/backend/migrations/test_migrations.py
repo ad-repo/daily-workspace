@@ -4,6 +4,7 @@ Migration Tests - Critical Path Testing
 Per .cursorrules: Tests verify migrations work without modifying production code.
 Tests critical upgrade paths: v14→v15, idempotency, data preservation.
 """
+import os
 import sqlite3
 import sys
 from pathlib import Path
@@ -11,7 +12,10 @@ from pathlib import Path
 import pytest
 
 # Add migrations directory to path
-migrations_dir = Path(__file__).parent.parent.parent / 'migrations'
+# In Docker: BACKEND_PATH=/app, migrations at /app/migrations
+# Locally: from tests/backend/migrations -> ../../../backend/migrations
+backend_path = os.getenv('BACKEND_PATH', str(Path(__file__).parent.parent.parent.parent / 'backend'))
+migrations_dir = Path(backend_path) / 'migrations'
 sys.path.insert(0, str(migrations_dir))
 
 
