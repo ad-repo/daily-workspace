@@ -41,6 +41,14 @@ Thumbs.db
 frontend/dist/
 frontend/build/
 
+# Android
+frontend/android/.gradle/
+frontend/android/app/build/
+frontend/android/app/src/main/assets/public/
+*.apk
+*.aab
+backend/static/*.apk
+
 # Data
 backend/data/
 
