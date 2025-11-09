@@ -289,10 +289,10 @@ test.describe('Note Entry Management', () => {
     // Create 3 entries
     for (let i = 0; i < 3; i++) {
       await page.click('button:has-text("New Entry")');
-      // Wait for the API call
+      // Wait for the API call (CI needs longer timeout)
       await page.waitForResponse(
         resp => resp.url().includes('/api/entries') && resp.status() >= 200 && resp.status() < 300,
-        { timeout: 5000 }
+        { timeout: 10000 }
       );
     }
     

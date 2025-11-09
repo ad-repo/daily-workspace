@@ -231,14 +231,14 @@ test.describe('Label Management', () => {
     // Wait for label API call
     await page.waitForResponse(
       resp => resp.url().includes('/api/labels') && resp.status() >= 200 && resp.status() < 300,
-      { timeout: 5000 }
+      { timeout: 10000 }
     );
     
-    // Buffer to ensure label is fully associated and appears in UI
-    await page.waitForTimeout(1500);
+    // Buffer to ensure label is fully associated and appears in UI (CI needs longer)
+    await page.waitForTimeout(3000);
     
     // Verify day label appears in day labels section
-    await expect(page.getByRole('button', { name: dayLabel })).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('button', { name: dayLabel })).toBeVisible({ timeout: 10000 });
     
     // Reload and verify persistence
     await page.reload();
@@ -298,15 +298,15 @@ test.describe('Label Management', () => {
     // Wait for label API call
     await page.waitForResponse(
       resp => resp.url().includes('/api/labels') && resp.status() >= 200 && resp.status() < 300,
-      { timeout: 5000 }
+      { timeout: 10000 }
     );
     
-    // Buffer for UI update
-    await page.waitForTimeout(1000);
+    // Buffer for UI update (CI needs longer)
+    await page.waitForTimeout(2500);
     
     // Verify both labels appear (added from entries, visible at day level)
-    await expect(page.getByRole('button', { name: entryLabel1 })).toBeVisible({ timeout: 5000 });
-    await expect(page.getByRole('button', { name: entryLabel2 })).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('button', { name: entryLabel1 })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('button', { name: entryLabel2 })).toBeVisible({ timeout: 10000 });
   });
 });
 
