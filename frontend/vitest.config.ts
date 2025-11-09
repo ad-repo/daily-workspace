@@ -7,15 +7,15 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
-    setupFiles: [path.resolve(__dirname, './setup.ts')],
-    include: [path.resolve(__dirname, '**/*.{test,spec}.{ts,tsx}')],
+    setupFiles: [path.resolve(__dirname, '../tests/frontend/setup.ts')],
+    include: [path.resolve(__dirname, '../tests/frontend/**/*.{test,spec}.{ts,tsx}')],
     exclude: ['**/node_modules/**', '**/dist/**', '**/android/**'],
     testTimeout: 5000, // 5 second timeout per test
     hookTimeout: 5000, // 5 second timeout for hooks (beforeEach, afterEach, etc.)
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html', 'json'],
-      reportsDirectory: path.resolve(__dirname, './coverage'),
+      reportsDirectory: path.resolve(__dirname, '../tests/frontend/coverage'),
       exclude: [
         'node_modules/',
         '**/*.test.{ts,tsx}',
@@ -28,7 +28,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, '../../frontend/src'),
+      '@': path.resolve(__dirname, './src'),
     },
   },
 });
