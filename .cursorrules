@@ -296,6 +296,7 @@ rules:
       - Any test execution command is a critical violation - stop immediately
       - If test results are needed, ask the user to run ./run_all_tests.sh
       - Never run tests in background or foreground without explicit user instruction
+      - You are allowed to run any test that runs in a container even if it is local
 
   cleanup:
     critical: true

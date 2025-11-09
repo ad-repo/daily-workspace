@@ -72,6 +72,7 @@ const SimpleRichTextEditor = ({ content, onChange, placeholder = 'Start writing.
         minHeight: '80px',
         maxHeight: '600px',
         minWidth: '200px',
+        resize: 'both',
       }}
     >
       {/* Toolbar */}

@@ -192,10 +192,12 @@ test.describe('Goals System', () => {
     await page.locator('body').click({ position: { x: 10, y: 10 } });
     await page.waitForTimeout(1000);
     
-    // Verify HTML contains bold tag
-    const dailyGoalsDisplay = page.locator('text="🎯 Daily Goals"').locator('..').locator('div').nth(1);
-    const innerHTML = await dailyGoalsDisplay.innerHTML();
-    expect(innerHTML).toContain('<strong>');
+    // Reload to verify persistence and HTML rendering
+    await page.reload();
+    await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
+    
+    // Verify the bold text is visible in the rendered HTML
+    await expect(page.locator('strong:has-text("Important goal")')).toBeVisible();
   });
 
   test('should format sprint goals with bullet list', async ({ page }) => {
@@ -299,10 +301,12 @@ test.describe('Goals System', () => {
     await page.locator('body').click({ position: { x: 10, y: 10 } });
     await page.waitForTimeout(1000);
     
-    // Verify HTML rendering in display mode
-    const dailyGoalsDisplay = page.locator('text="🎯 Daily Goals"').locator('..').locator('div').nth(1);
-    const innerHTML = await dailyGoalsDisplay.innerHTML();
-    expect(innerHTML).toContain('<em>');
+    // Reload to verify persistence and HTML rendering
+    await page.reload();
+    await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
+    
+    // Verify the italic text is visible in the rendered HTML
+    await expect(page.locator('em:has-text("Test goal with formatting")')).toBeVisible();
   });
 
   test('should handle existing plain text goals', async ({ page }) => {
