@@ -7,17 +7,17 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
-    setupFiles: ['./src/tests/setup.ts'],
-    include: ['**/*.{test,spec}.{ts,tsx}'],
+    setupFiles: ['./vitest.setup.ts'],
+    include: ['./tests/**/*.{test,spec}.{ts,tsx}'],
     exclude: ['**/node_modules/**', '**/dist/**', '**/android/**'],
     testTimeout: 5000, // 5 second timeout per test
     hookTimeout: 5000, // 5 second timeout for hooks (beforeEach, afterEach, etc.)
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html', 'json'],
+      reportsDirectory: './tests/coverage',
       exclude: [
         'node_modules/',
-        'src/tests/',
         '**/*.test.{ts,tsx}',
         '**/*.spec.{ts,tsx}',
         'src/main.tsx',

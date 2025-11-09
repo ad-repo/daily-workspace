@@ -82,15 +82,15 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Run tests with coverage
-        working-directory: backend
-        run: python -m pytest --tb=short -v --cov=app --cov-report=term --cov-report=html
+        working-directory: tests/backend
+        run: python -m pytest --tb=short -v --cov=../../backend/app --cov-report=term --cov-report=html
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: backend-coverage
-          path: backend/htmlcov/
+          path: tests/backend/htmlcov/
           retention-days: 7
 
   frontend-test:
@@ -113,14 +113,14 @@ jobs:
 
       - name: Run tests with coverage
         working-directory: frontend
-        run: npm test -- --run --coverage
+        run: npx vitest --run --coverage
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: frontend-coverage
-          path: frontend/coverage/
+          path: frontend/tests/coverage/
           retention-days: 7
 
   # E2E tests (only on PRs)
@@ -151,8 +151,7 @@ jobs:
       - name: Clean install frontend dependencies
         working-directory: frontend
         run: |
-          npm cache clean --force
-          npm ci --legacy-peer-deps --no-optional
+          npm ci --legacy-peer-deps
           npm install --no-save --legacy-peer-deps @rollup/rollup-linux-x64-gnu
 
       - name: Build frontend
@@ -160,7 +159,7 @@ jobs:
         run: npm run build
 
       - name: Install E2E dependencies
-        working-directory: e2e
+        working-directory: tests/e2e
         run: |
           npm install --legacy-peer-deps
           npx playwright install chromium --with-deps
@@ -188,7 +187,7 @@ jobs:
           curl --retry 10 --retry-delay 1 --retry-connrefused http://localhost:3000 || exit 1
 
       - name: Run E2E tests
-        working-directory: e2e
+        working-directory: tests/e2e
         run: npx playwright test --grep-invert "media-features"
         env:
           BASE_URL: http://localhost:3000
@@ -200,8 +199,8 @@ jobs:
         with:
           name: e2e-results
           path: |
-            e2e/playwright-report/
-            e2e/test-results/
+            tests/e2e/playwright-report/
+            tests/e2e/test-results/
           retention-days: 7
 
       - name: Stop servers
