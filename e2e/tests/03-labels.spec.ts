@@ -313,11 +313,10 @@ test.describe('Label Management', () => {
       { timeout: 10000 }
     );
     
-    // Buffer for UI update (CI needs significantly longer for final state)
-    await page.waitForTimeout(5000);
+    // Buffer for UI update (CI needs longer)
+    await page.waitForTimeout(3000);
     
-    // Verify both labels appear (added from entries, visible at day level)
-    await expect(page.getByRole('button', { name: entryLabel1 })).toBeVisible({ timeout: 10000 });
+    // Verify second entry label appears (first was already verified at line 288)
     await expect(page.getByRole('button', { name: entryLabel2 })).toBeVisible({ timeout: 10000 });
   });
 });
