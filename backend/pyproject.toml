@@ -22,3 +22,12 @@ build-backend = "hatchling.build"
 [tool.uv]
 dev-dependencies = []
 
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+select = ["E", "F", "W", "I", "N", "UP"]
+ignore = ["E501"]  # Line too long (handled by formatter)
+
+[tool.ruff.format]
+quote-style = "single"
+

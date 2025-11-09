@@ -1,0 +1,36 @@
+{
+	"appId": "com.trackthething.app",
+	"appName": "Track the Thing",
+	"webDir": "dist",
+	"server": {
+		"androidScheme": "http",
+		"cleartext": true,
+		"allowNavigation": [
+			"192.168.0.186",
+			"localhost",
+			"127.0.0.1"
+		]
+	},
+	"android": {
+		"allowMixedContent": true,
+		"captureInput": true,
+		"webContentsDebuggingEnabled": true,
+		"layoutFillScreen": true,
+		"overrideUserAgent": "Mozilla/5.0 (Linux; Android 13; Pixel 7a) AppleWebKit/537.36"
+	},
+	"plugins": {
+		"SplashScreen": {
+			"launchShowDuration": 1500,
+			"backgroundColor": "#000000",
+			"showSpinner": false,
+			"androidScaleType": "CENTER_CROP",
+			"splashFullScreen": true,
+			"splashImmersive": true
+		},
+		"StatusBar": {
+			"style": "dark",
+			"backgroundColor": "#000000",
+			"overlaysWebView": false
+		}
+	}
+}
