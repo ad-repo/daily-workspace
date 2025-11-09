@@ -38,11 +38,11 @@ services:
       dockerfile: Dockerfile.test
     volumes:
       - ./frontend:/app
-      - ./tests/frontend:/tests
-      - ./tests/frontend/coverage:/tests/coverage
+      - ./tests/frontend:/app/tests
+      - ./tests/frontend/coverage:/app/coverage
       - /app/node_modules
-    working_dir: /tests
-    command: npx vitest --run --coverage
+    working_dir: /app/tests
+    command: npx vitest --run --coverage --config ./vitest.config.ts
     profiles:
       - test
 
