@@ -26,6 +26,12 @@ export default defineConfig({
       ],
     },
   },
+  server: {
+    fs: {
+      // Allow serving files from the tests directory (outside project root)
+      allow: ['..'],
+    },
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
