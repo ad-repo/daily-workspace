@@ -219,6 +219,16 @@ test.describe('Label Management', () => {
   test('should show day-level labels', async ({ page }) => {
     const dayLabel = `DayLabel${Date.now()}`;
     
+    // Create an entry first to ensure daily note exists
+    await page.click('button:has-text("New Entry")');
+    await expect(page.locator('.ProseMirror').first()).toBeVisible();
+    await page.locator('.ProseMirror').first().fill('.');
+    await page.locator('body').click({ position: { x: 0, y: 0 } });
+    await page.waitForResponse(
+      resp => resp.url().includes('/api/entries') && resp.status() >= 200 && resp.status() < 300,
+      { timeout: 10000 }
+    );
+    
     // Find day-level label input (in the "🏷️ Day Labels:" section)
     const dayLabelSection = page.locator('text="🏷️ Day Labels:"').locator('..');
     const dayLabelInput = dayLabelSection.locator('input[placeholder*="label" i]');
