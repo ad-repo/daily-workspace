@@ -6,6 +6,7 @@ export default defineConfig({
   server: {
     port: 3000,
     host: true,
+    allowedHosts: ['frontend', 'frontend-e2e', 'localhost', '192.168.0.186'],
   },
 })
 

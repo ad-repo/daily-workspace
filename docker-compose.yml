@@ -32,6 +32,86 @@ services:
       - backend
     restart: unless-stopped
 
+  frontend-test:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.test
+    volumes:
+      - ./frontend:/app
+      - ./frontend/coverage:/app/coverage
+      - /app/node_modules
+    profiles:
+      - test
+
+  backend-test:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      - DATABASE_URL=sqlite:///./data/test_daily_notes.db
+    volumes:
+      - ./backend:/app
+      - ./backend/htmlcov:/app/htmlcov
+    command: python -m pytest --tb=short -v --cov=app --cov-report=html --cov-report=term
+    profiles:
+      - test
+
+  backend-e2e:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: track-the-thing-backend-e2e
+    ports:
+      - "8001:8000"
+    environment:
+      - DATABASE_URL=sqlite:///./data/e2e_daily_notes.db
+    volumes:
+      - ./backend:/app
+      - ./backend/data:/app/data
+    command: ./start.sh
+    profiles:
+      - test
+      - e2e
+
+  frontend-e2e:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: track-the-thing-frontend-e2e
+    ports:
+      - "3001:3000"
+    environment:
+      - VITE_API_URL=http://backend-e2e:8000
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend-e2e
+    profiles:
+      - test
+      - e2e
+
+  e2e:
+    build:
+      context: ./e2e
+      dockerfile: Dockerfile
+    environment:
+      - BASE_URL=http://frontend-e2e:3000
+      - API_URL=http://backend-e2e:8000
+    volumes:
+      - ./e2e:/app
+      - ./e2e/playwright-report:/app/playwright-report
+      - ./e2e/test-results:/app/test-results
+      - /app/node_modules
+    depends_on:
+      - backend-e2e
+      - frontend-e2e
+    networks:
+      - default
+    profiles:
+      - test
+      - e2e
+
 volumes:
   backend_data:
 

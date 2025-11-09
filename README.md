@@ -264,6 +264,68 @@ track-the-thing/
 └── README.md
 ```
 
+## 🧪 Testing & CI
+
+Track the Thing has comprehensive test coverage with **558 tests** across all layers:
+
+### Test Suite
+- **Backend Tests**: 211 tests (pytest)
+  - Unit tests for models and utilities
+  - Integration tests for all API endpoints
+  - Migration tests for database schema changes
+- **Frontend Tests**: 241 tests (vitest)
+  - Component tests with React Testing Library
+  - Context and hook tests
+  - Utility function tests
+- **E2E Tests**: 106 tests (Playwright)
+  - Full user workflow tests
+  - Cross-browser compatibility
+  - Auto-save and persistence verification
+
+### Running Tests
+
+**All tests** (requires Docker):
+```bash
+./run_all_tests.sh
+```
+
+**Backend only**:
+```bash
+cd backend
+./run_tests.sh
+# or with coverage:
+python -m pytest --cov=app --cov-report=html
+```
+
+**Frontend only**:
+```bash
+cd frontend
+npm test
+# or with coverage:
+npm run test:coverage
+```
+
+**E2E only**:
+```bash
+cd e2e
+npx playwright test
+# or with UI:
+npx playwright test --ui
+```
+
+### Continuous Integration
+
+GitHub Actions automatically runs:
+- **On push**: Linters + Backend tests + Frontend tests
+- **On PR**: All of the above + E2E tests
+
+All tests must pass before merging.
+
+### Code Quality
+- **Backend**: ruff linter and formatter (configured in `pyproject.toml`)
+- **Frontend**: ESLint + TypeScript strict mode
+- **Pre-push**: Run `./backend/run_lint.sh` to verify code quality
+
 ## 🎨 Usage
 
 ### Creating Entries

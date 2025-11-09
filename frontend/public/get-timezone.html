@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Get Timezone</title>
+</head>
+<body>
+    <h1>Your Timezone Setting</h1>
+    <p>Timezone: <strong id="tz">Loading...</strong></p>
+    <script>
+        const tz = localStorage.getItem('timezone') || 'America/New_York';
+        document.getElementById('tz').textContent = tz;
+        console.log('Timezone:', tz);
+    </script>
+</body>
+</html>
+

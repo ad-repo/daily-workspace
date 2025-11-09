@@ -1,27 +1,33 @@
+from datetime import datetime
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List
-from app.database import get_db
+
 from app import models, schemas
-from datetime import datetime
+from app.database import get_db
 
 router = APIRouter()
 
-@router.get("/note/{date}", response_model=List[schemas.NoteEntry])
+
+@router.get('/note/{date}', response_model=list[schemas.NoteEntry])
 def get_entries_for_date(date: str, db: Session = Depends(get_db)):
     """Get all entries for a specific date"""
     note = db.query(models.DailyNote).filter(models.DailyNote.date == date).first()
     if not note:
-        raise HTTPException(status_code=404, detail="Note not found for this date")
-    
+        raise HTTPException(status_code=404, detail='Note not found for this date')
+
     # Order by order_index descending (higher values first), then by created_at descending (newest first)
-    entries = db.query(models.NoteEntry).filter(
-        models.NoteEntry.daily_note_id == note.id
-    ).order_by(models.NoteEntry.order_index.desc(), models.NoteEntry.created_at.desc()).all()
-    
+    entries = (
+        db.query(models.NoteEntry)
+        .filter(models.NoteEntry.daily_note_id == note.id)
+        .order_by(models.NoteEntry.order_index.desc(), models.NoteEntry.created_at.desc())
+        .all()
+    )
+
     return entries
 
-@router.post("/note/{date}", response_model=schemas.NoteEntry, status_code=201)
+
+@router.post('/note/{date}', response_model=schemas.NoteEntry, status_code=201)
 def create_entry(date: str, entry: schemas.NoteEntryCreate, db: Session = Depends(get_db)):
     """Create a new entry for a specific date"""
     # Get or create daily note for this date
@@ -31,21 +37,22 @@ def create_entry(date: str, entry: schemas.NoteEntryCreate, db: Session = Depend
         db.add(note)
         db.commit()
         db.refresh(note)
-    
+
     db_entry = models.NoteEntry(**entry.model_dump(), daily_note_id=note.id)
     db.add(db_entry)
     db.commit()
     db.refresh(db_entry)
     return db_entry
 
-@router.put("/{entry_id}", response_model=schemas.NoteEntry)
-@router.patch("/{entry_id}", response_model=schemas.NoteEntry)
+
+@router.put('/{entry_id}', response_model=schemas.NoteEntry)
+@router.patch('/{entry_id}', response_model=schemas.NoteEntry)
 def update_entry(entry_id: int, entry_update: schemas.NoteEntryUpdate, db: Session = Depends(get_db)):
     """Update a specific entry"""
     db_entry = db.query(models.NoteEntry).filter(models.NoteEntry.id == entry_id).first()
     if not db_entry:
-        raise HTTPException(status_code=404, detail="Entry not found")
-    
+        raise HTTPException(status_code=404, detail='Entry not found')
+
     update_data = entry_update.model_dump(exclude_unset=True)
     for key, value in update_data.items():
         # Handle boolean to integer conversion for SQLite
@@ -53,92 +60,102 @@ def update_entry(entry_id: int, entry_update: schemas.NoteEntryUpdate, db: Sessi
             setattr(db_entry, key, 1 if value else 0)
         else:
             setattr(db_entry, key, value)
-    
+
     db_entry.updated_at = datetime.utcnow()
     db.commit()
     db.refresh(db_entry)
     return db_entry
 
-@router.delete("/{entry_id}", status_code=204)
+
+@router.delete('/{entry_id}', status_code=204)
 def delete_entry(entry_id: int, db: Session = Depends(get_db)):
     """Delete a specific entry"""
     db_entry = db.query(models.NoteEntry).filter(models.NoteEntry.id == entry_id).first()
     if not db_entry:
-        raise HTTPException(status_code=404, detail="Entry not found")
-    
+        raise HTTPException(status_code=404, detail='Entry not found')
+
     db.delete(db_entry)
     db.commit()
     return None
 
-@router.post("/{entry_id}/move-to-top", response_model=schemas.NoteEntry)
+
+@router.post('/{entry_id}/move-to-top', response_model=schemas.NoteEntry)
 def move_entry_to_top(entry_id: int, db: Session = Depends(get_db)):
     """Move an entry to the top of the list for its day"""
     db_entry = db.query(models.NoteEntry).filter(models.NoteEntry.id == entry_id).first()
     if not db_entry:
-        raise HTTPException(status_code=404, detail="Entry not found")
-    
+        raise HTTPException(status_code=404, detail='Entry not found')
+
     # Find the highest order_index for entries in the same day
-    max_order = db.query(models.NoteEntry.order_index).filter(
-        models.NoteEntry.daily_note_id == db_entry.daily_note_id
-    ).order_by(models.NoteEntry.order_index.desc()).first()
-    
+    max_order = (
+        db.query(models.NoteEntry.order_index)
+        .filter(models.NoteEntry.daily_note_id == db_entry.daily_note_id)
+        .order_by(models.NoteEntry.order_index.desc())
+        .first()
+    )
+
     # Set this entry's order_index to be higher than the current max
     new_order_index = (max_order[0] if max_order and max_order[0] is not None else 0) + 1
     db_entry.order_index = new_order_index
     db_entry.updated_at = datetime.utcnow()
-    
+
     db.commit()
     db.refresh(db_entry)
     return db_entry
 
-@router.get("/{entry_id}", response_model=schemas.NoteEntry)
+
+@router.get('/{entry_id}', response_model=schemas.NoteEntry)
 def get_entry(entry_id: int, db: Session = Depends(get_db)):
     """Get a specific entry by ID"""
     entry = db.query(models.NoteEntry).filter(models.NoteEntry.id == entry_id).first()
     if not entry:
-        raise HTTPException(status_code=404, detail="Entry not found")
+        raise HTTPException(status_code=404, detail='Entry not found')
     return entry
 
-@router.post("/merge", response_model=schemas.NoteEntry, status_code=201)
+
+@router.post('/merge', response_model=schemas.NoteEntry, status_code=201)
 def merge_entries(merge_request: schemas.MergeEntriesRequest, db: Session = Depends(get_db)):
     """Merge multiple entries into a single entry"""
     if len(merge_request.entry_ids) < 2:
-        raise HTTPException(status_code=400, detail="At least 2 entries are required to merge")
-    
+        raise HTTPException(status_code=400, detail='At least 2 entries are required to merge')
+
     # Fetch all entries to merge
-    entries = db.query(models.NoteEntry).filter(
-        models.NoteEntry.id.in_(merge_request.entry_ids)
-    ).order_by(models.NoteEntry.created_at.asc()).all()
-    
+    entries = (
+        db.query(models.NoteEntry)
+        .filter(models.NoteEntry.id.in_(merge_request.entry_ids))
+        .order_by(models.NoteEntry.created_at.asc())
+        .all()
+    )
+
     if len(entries) != len(merge_request.entry_ids):
-        raise HTTPException(status_code=404, detail="One or more entries not found")
-    
+        raise HTTPException(status_code=404, detail='One or more entries not found')
+
     # Verify all entries belong to the same day
     daily_note_ids = set(entry.daily_note_id for entry in entries)
     if len(daily_note_ids) > 1:
-        raise HTTPException(status_code=400, detail="Cannot merge entries from different days")
-    
+        raise HTTPException(status_code=400, detail='Cannot merge entries from different days')
+
     # Collect all unique labels from all entries
     all_labels = set()
     for entry in entries:
         all_labels.update(entry.labels)
-    
+
     # Determine content type (use first entry's type, or 'rich_text' if mixed)
     content_types = set(entry.content_type for entry in entries)
     if len(content_types) == 1:
         merged_content_type = entries[0].content_type
     else:
-        merged_content_type = "rich_text"  # Default to rich text if mixed types
-    
+        merged_content_type = 'rich_text'  # Default to rich text if mixed types
+
     # Merge content (oldest to newest)
     merged_content = merge_request.separator.join(entry.content for entry in entries)
-    
+
     # Determine merged metadata (OR logic for booleans)
     is_important = any(entry.is_important for entry in entries)
     is_completed = all(entry.is_completed for entry in entries)  # All must be completed
     include_in_report = any(entry.include_in_report for entry in entries)
     is_dev_null = any(entry.is_dev_null for entry in entries)  # If any is dev_null, merged is dev_null
-    
+
     # Create the merged entry
     merged_entry = models.NoteEntry(
         daily_note_id=entries[0].daily_note_id,
@@ -149,24 +166,23 @@ def merge_entries(merge_request: schemas.MergeEntriesRequest, db: Session = Depe
         is_important=1 if is_important else 0,
         is_completed=1 if is_completed else 0,
         is_dev_null=1 if is_dev_null else 0,
-        created_at=entries[0].created_at  # Use earliest created_at
+        created_at=entries[0].created_at,  # Use earliest created_at
     )
-    
+
     db.add(merged_entry)
     db.flush()
-    
+
     # Add all unique labels to merged entry
     for label in all_labels:
         if label not in merged_entry.labels:
             merged_entry.labels.append(label)
-    
+
     # Delete original entries if requested
     if merge_request.delete_originals:
         for entry in entries:
             db.delete(entry)
-    
+
     db.commit()
     db.refresh(merged_entry)
-    
-    return merged_entry
 
+    return merged_entry
