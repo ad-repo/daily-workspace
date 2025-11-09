@@ -120,7 +120,7 @@ jobs:
         if: always()
         with:
           name: frontend-coverage
-          path: tests/frontend/coverage/
+          path: frontend/tests/coverage/
           retention-days: 7
 
   # E2E tests (only on PRs)

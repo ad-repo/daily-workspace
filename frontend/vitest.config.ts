@@ -8,14 +8,14 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./vitest.setup.ts'],
-    include: ['../tests/frontend/**/*.{test,spec}.{ts,tsx}'],
+    include: ['./tests/**/*.{test,spec}.{ts,tsx}'],
     exclude: ['**/node_modules/**', '**/dist/**', '**/android/**'],
     testTimeout: 5000, // 5 second timeout per test
     hookTimeout: 5000, // 5 second timeout for hooks (beforeEach, afterEach, etc.)
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html', 'json'],
-      reportsDirectory: '../tests/frontend/coverage',
+      reportsDirectory: './tests/coverage',
       exclude: [
         'node_modules/',
         '**/*.test.{ts,tsx}',
@@ -24,12 +24,6 @@ export default defineConfig({
         'vite.config.ts',
         'vitest.config.ts',
       ],
-    },
-  },
-  server: {
-    fs: {
-      // Allow serving files from the tests directory (outside project root)
-      allow: ['..'],
     },
   },
   resolve: {

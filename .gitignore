@@ -52,8 +52,8 @@ backend/data/
 *.pid
 
 # Test artifacts
-tests/*/htmlcov/
-tests/*/coverage/
+tests/backend/htmlcov/
+frontend/tests/coverage/
 tests/e2e/playwright-report/
 tests/e2e/test-results/
 .coverage
