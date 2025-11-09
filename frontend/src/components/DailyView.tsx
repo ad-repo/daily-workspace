@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { format, parse, addDays, subDays } from 'date-fns';
 import { ChevronLeft, ChevronRight, Plus, CheckSquare, Combine } from 'lucide-react';
@@ -42,9 +42,20 @@ const DailyView = () => {
   const [newQuarterlyText, setNewQuarterlyText] = useState('');
   const [newQuarterlyStartDate, setNewQuarterlyStartDate] = useState('');
   const [newQuarterlyEndDate, setNewQuarterlyEndDate] = useState('');
+  const [editingSprintStartDate, setEditingSprintStartDate] = useState('');
+  const [editingSprintEndDate, setEditingSprintEndDate] = useState('');
+  const [editingQuarterlyStartDate, setEditingQuarterlyStartDate] = useState('');
+  const [editingQuarterlyEndDate, setEditingQuarterlyEndDate] = useState('');
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedEntries, setSelectedEntries] = useState<Set<number>>(new Set());
   const [isMerging, setIsMerging] = useState(false);
+  const dailyGoalTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const dailyGoalRef = useRef<string>(dailyGoal);
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    dailyGoalRef.current = dailyGoal;
+  }, [dailyGoal]);
 
   // Load goals for the specific date being viewed
   useEffect(() => {
@@ -230,9 +241,15 @@ const DailyView = () => {
   const handleDailyGoalChange = async (newGoal: string) => {
     if (!date) return;
     setDailyGoal(newGoal);
+    dailyGoalRef.current = newGoal; // Update ref immediately for onBlur
+    
+    // Clear any existing timeout
+    if (dailyGoalTimeoutRef.current) {
+      clearTimeout(dailyGoalTimeoutRef.current);
+    }
     
     // Debounce the save
-    const timeoutId = setTimeout(async () => {
+    dailyGoalTimeoutRef.current = setTimeout(async () => {
       try {
         if (note) {
           await notesApi.update(date, { daily_goal: newGoal });
@@ -244,15 +261,13 @@ const DailyView = () => {
         console.error('Failed to update daily goal:', error);
       }
     }, 1000);
-
-    return () => clearTimeout(timeoutId);
   };
 
-  const handleSprintGoalUpdate = async (newText: string) => {
+  const handleSprintGoalUpdate = async (updates: { text?: string; start_date?: string; end_date?: string }) => {
     if (!sprintGoal || !date) return;
     
     try {
-      const updated = await goalsApi.updateSprint(sprintGoal.id, { text: newText });
+      const updated = await goalsApi.updateSprint(sprintGoal.id, updates);
       setSprintGoal(updated);
     } catch (error) {
       console.error('Failed to update sprint goal:', error);
@@ -260,11 +275,11 @@ const DailyView = () => {
     }
   };
 
-  const handleQuarterlyGoalUpdate = async (newText: string) => {
+  const handleQuarterlyGoalUpdate = async (updates: { text?: string; start_date?: string; end_date?: string }) => {
     if (!quarterlyGoal || !date) return;
     
     try {
-      const updated = await goalsApi.updateQuarterly(quarterlyGoal.id, { text: newText });
+      const updated = await goalsApi.updateQuarterly(quarterlyGoal.id, updates);
       setQuarterlyGoal(updated);
     } catch (error) {
       console.error('Failed to update quarterly goal:', error);
@@ -476,21 +491,62 @@ const DailyView = () => {
               {showDailyGoals && (
                 <div className="w-full">
                   <label className="block text-lg font-semibold mb-2" style={{ color: 'var(--color-text-primary)' }}>🎯 Daily Goals</label>
-                  {editingDailyGoal ? (
-                    <div onBlur={() => setEditingDailyGoal(false)}>
-                      <SimpleRichTextEditor
-                        content={dailyGoal}
-                        onChange={handleDailyGoalChange}
-                        placeholder="What are your main goals for today?"
-                      />
-                    </div>
-                  ) : (
+              {editingDailyGoal ? (
+                <div 
+                  onBlur={(e) => {
+                    // Only exit edit mode if clicking completely outside the editor
+                    // Check if the new focus target is within this container
+                    const relatedTarget = e.relatedTarget as Node | null;
+                    
+                    // If relatedTarget is null or not within the editor container, exit edit mode
+                    if (!relatedTarget || !e.currentTarget.contains(relatedTarget)) {
+                      setEditingDailyGoal(false);
+                    }
+                  }}
+                  className="space-y-3"
+                  style={{ maxHeight: '300px', overflowY: 'auto' }}
+                >
+                  <SimpleRichTextEditor
+                    content={dailyGoal}
+                    onChange={handleDailyGoalChange}
+                    placeholder="What are your main goals for today?"
+                  />
+                  <button
+                    onClick={() => {
+                      setEditingDailyGoal(false);
+                      // Flush any pending debounced save
+                      if (dailyGoalTimeoutRef.current) {
+                        clearTimeout(dailyGoalTimeoutRef.current);
+                        dailyGoalTimeoutRef.current = null;
+                      }
+                      // Immediately save
+                      if (date && dailyGoalRef.current) {
+                        if (note) {
+                          notesApi.update(date, { daily_goal: dailyGoalRef.current });
+                        } else {
+                          notesApi.create({ date, daily_goal: dailyGoalRef.current, fire_rating: 0 });
+                          loadDailyNote();
+                        }
+                      }
+                    }}
+                    className="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                    style={{
+                      backgroundColor: 'var(--color-accent)',
+                      color: 'white',
+                    }}
+                  >
+                    Save
+                  </button>
+                </div>
+              ) : (
                     <div
                       onClick={() => setEditingDailyGoal(true)}
                       className="w-full px-4 py-3 rounded-lg cursor-pointer transition-colors min-h-[80px]"
                       style={{
                         color: dailyGoal ? 'var(--color-text-primary)' : 'var(--color-text-tertiary)',
-                        backgroundColor: 'transparent'
+                        backgroundColor: 'transparent',
+                        maxHeight: '300px',
+                        overflowY: 'auto'
                       }}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.backgroundColor = 'var(--color-bg-hover)';
@@ -498,8 +554,46 @@ const DailyView = () => {
                       onMouseLeave={(e) => {
                         e.currentTarget.style.backgroundColor = 'transparent';
                       }}
-                      dangerouslySetInnerHTML={{ __html: dailyGoal || 'Click to add daily goals...' }}
-                    />
+                    >
+                      <style>{`
+                        .goal-content h2 {
+                          font-size: 1.5em;
+                          font-weight: bold;
+                          margin-top: 0.75em;
+                          margin-bottom: 0.5em;
+                        }
+                        .goal-content h3 {
+                          font-size: 1.25em;
+                          font-weight: bold;
+                          margin-top: 0.75em;
+                          margin-bottom: 0.5em;
+                        }
+                        .goal-content strong, .goal-content b {
+                          font-weight: bold;
+                        }
+                        .goal-content em, .goal-content i {
+                          font-style: italic;
+                        }
+                        .goal-content ul {
+                          list-style-type: disc;
+                          padding-left: 1.5em;
+                          margin: 0.5em 0;
+                        }
+                        .goal-content ol {
+                          list-style-type: decimal;
+                          padding-left: 1.5em;
+                          margin: 0.5em 0;
+                        }
+                        .goal-content a {
+                          color: #3b82f6;
+                          text-decoration: underline;
+                        }
+                      `}</style>
+                      <div 
+                        className="goal-content"
+                        dangerouslySetInnerHTML={{ __html: dailyGoal || 'Click to add daily goals...' }}
+                      />
+                    </div>
                   )}
                 </div>
               )}
@@ -544,10 +638,26 @@ const DailyView = () => {
                     <>
                       {editingSprintGoal ? (
                         <div
-                          onBlur={() => {
-                            setEditingSprintGoal(false);
-                            handleSprintGoalUpdate(sprintGoal.text);
+                          onBlur={(e) => {
+                            // Only save if we're leaving the entire edit container
+                            const relatedTarget = e.relatedTarget as Node | null;
+                            
+                            if (!relatedTarget || !e.currentTarget.contains(relatedTarget)) {
+                              setEditingSprintGoal(false);
+                              const updates: { text?: string; start_date?: string; end_date?: string } = {};
+                              // Always include text as it may have been updated via onChange
+                              updates.text = sprintGoal.text;
+                              if (editingSprintStartDate && editingSprintStartDate !== sprintGoal.start_date) {
+                                updates.start_date = editingSprintStartDate;
+                              }
+                              if (editingSprintEndDate && editingSprintEndDate !== sprintGoal.end_date) {
+                                updates.end_date = editingSprintEndDate;
+                              }
+                              handleSprintGoalUpdate(updates);
+                            }
                           }}
+                          className="space-y-3"
+                          style={{ maxHeight: '300px', overflowY: 'auto' }}
                         >
                           <SimpleRichTextEditor
                             content={sprintGoal.text}
@@ -556,14 +666,69 @@ const DailyView = () => {
                             }}
                             placeholder="What are your sprint goals?"
                           />
+                          <div className="flex gap-2 items-center">
+                            <span className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>Start:</span>
+                            <input
+                              type="date"
+                              value={editingSprintStartDate}
+                              onChange={(e) => setEditingSprintStartDate(e.target.value)}
+                              className="px-3 py-1.5 rounded-lg text-sm flex-1"
+                              style={{
+                                backgroundColor: 'var(--color-bg-secondary)',
+                                color: 'var(--color-text-primary)',
+                                borderColor: 'var(--color-border-primary)',
+                                border: '1px solid'
+                              }}
+                            />
+                            <span className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>End:</span>
+                            <input
+                              type="date"
+                              value={editingSprintEndDate}
+                              onChange={(e) => setEditingSprintEndDate(e.target.value)}
+                              className="px-3 py-1.5 rounded-lg text-sm flex-1"
+                              style={{
+                                backgroundColor: 'var(--color-bg-secondary)',
+                                color: 'var(--color-text-primary)',
+                                borderColor: 'var(--color-border-primary)',
+                                border: '1px solid'
+                              }}
+                            />
+                          </div>
+                          <button
+                            onClick={() => {
+                              setEditingSprintGoal(false);
+                              const updates: { text?: string; start_date?: string; end_date?: string } = {};
+                              updates.text = sprintGoal.text;
+                              if (editingSprintStartDate && editingSprintStartDate !== sprintGoal.start_date) {
+                                updates.start_date = editingSprintStartDate;
+                              }
+                              if (editingSprintEndDate && editingSprintEndDate !== sprintGoal.end_date) {
+                                updates.end_date = editingSprintEndDate;
+                              }
+                              handleSprintGoalUpdate(updates);
+                            }}
+                            className="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                            style={{
+                              backgroundColor: 'var(--color-accent)',
+                              color: 'white',
+                            }}
+                          >
+                            Save
+                          </button>
                         </div>
                       ) : (
                         <div
-                          onClick={() => setEditingSprintGoal(true)}
+                          onClick={() => {
+                            setEditingSprintGoal(true);
+                            setEditingSprintStartDate(sprintGoal.start_date);
+                            setEditingSprintEndDate(sprintGoal.end_date);
+                          }}
                           className="w-full px-4 py-3 rounded-lg transition-colors min-h-[80px] cursor-pointer"
                           style={{
                             color: sprintGoal.text ? 'var(--color-text-primary)' : 'var(--color-text-tertiary)',
-                            backgroundColor: 'transparent'
+                            backgroundColor: 'transparent',
+                            maxHeight: '400px',
+                            overflowY: 'auto'
                           }}
                           onMouseEnter={(e) => {
                             e.currentTarget.style.backgroundColor = 'var(--color-bg-hover)';
@@ -571,15 +736,19 @@ const DailyView = () => {
                           onMouseLeave={(e) => {
                             e.currentTarget.style.backgroundColor = 'transparent';
                           }}
-                          dangerouslySetInnerHTML={{ __html: sprintGoal.text || 'Click to edit sprint goals...' }}
-                        />
+                        >
+                          <div 
+                            className="goal-content"
+                            dangerouslySetInnerHTML={{ __html: sprintGoal.text || 'Click to edit sprint goals...' }}
+                          />
+                        </div>
                       )}
                     </>
                   ) : (
                     // No goal exists - show creation interface
                     <>
                       {creatingSprintGoal ? (
-                        <div className="space-y-3">
+                        <div className="space-y-3" style={{ maxHeight: '300px', overflowY: 'auto' }}>
                           <SimpleRichTextEditor
                             content={newSprintText}
                             onChange={setNewSprintText}
@@ -690,10 +859,26 @@ const DailyView = () => {
                     <>
                       {editingQuarterlyGoal ? (
                         <div
-                          onBlur={() => {
-                            setEditingQuarterlyGoal(false);
-                            handleQuarterlyGoalUpdate(quarterlyGoal.text);
+                          onBlur={(e) => {
+                            // Only save if we're leaving the entire edit container
+                            const relatedTarget = e.relatedTarget as Node | null;
+                            
+                            if (!relatedTarget || !e.currentTarget.contains(relatedTarget)) {
+                              setEditingQuarterlyGoal(false);
+                              const updates: { text?: string; start_date?: string; end_date?: string } = {};
+                              // Always include text as it may have been updated via onChange
+                              updates.text = quarterlyGoal.text;
+                              if (editingQuarterlyStartDate && editingQuarterlyStartDate !== quarterlyGoal.start_date) {
+                                updates.start_date = editingQuarterlyStartDate;
+                              }
+                              if (editingQuarterlyEndDate && editingQuarterlyEndDate !== quarterlyGoal.end_date) {
+                                updates.end_date = editingQuarterlyEndDate;
+                              }
+                              handleQuarterlyGoalUpdate(updates);
+                            }
                           }}
+                          className="space-y-3"
+                          style={{ maxHeight: '300px', overflowY: 'auto' }}
                         >
                           <SimpleRichTextEditor
                             content={quarterlyGoal.text}
@@ -702,14 +887,69 @@ const DailyView = () => {
                             }}
                             placeholder="What are your quarterly goals?"
                           />
+                          <div className="flex gap-2 items-center">
+                            <span className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>Start:</span>
+                            <input
+                              type="date"
+                              value={editingQuarterlyStartDate}
+                              onChange={(e) => setEditingQuarterlyStartDate(e.target.value)}
+                              className="px-3 py-1.5 rounded-lg text-sm flex-1"
+                              style={{
+                                backgroundColor: 'var(--color-bg-secondary)',
+                                color: 'var(--color-text-primary)',
+                                borderColor: 'var(--color-border-primary)',
+                                border: '1px solid'
+                              }}
+                            />
+                            <span className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>End:</span>
+                            <input
+                              type="date"
+                              value={editingQuarterlyEndDate}
+                              onChange={(e) => setEditingQuarterlyEndDate(e.target.value)}
+                              className="px-3 py-1.5 rounded-lg text-sm flex-1"
+                              style={{
+                                backgroundColor: 'var(--color-bg-secondary)',
+                                color: 'var(--color-text-primary)',
+                                borderColor: 'var(--color-border-primary)',
+                                border: '1px solid'
+                              }}
+                            />
+                          </div>
+                          <button
+                            onClick={() => {
+                              setEditingQuarterlyGoal(false);
+                              const updates: { text?: string; start_date?: string; end_date?: string } = {};
+                              updates.text = quarterlyGoal.text;
+                              if (editingQuarterlyStartDate && editingQuarterlyStartDate !== quarterlyGoal.start_date) {
+                                updates.start_date = editingQuarterlyStartDate;
+                              }
+                              if (editingQuarterlyEndDate && editingQuarterlyEndDate !== quarterlyGoal.end_date) {
+                                updates.end_date = editingQuarterlyEndDate;
+                              }
+                              handleQuarterlyGoalUpdate(updates);
+                            }}
+                            className="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                            style={{
+                              backgroundColor: 'var(--color-accent)',
+                              color: 'white',
+                            }}
+                          >
+                            Save
+                          </button>
                         </div>
                       ) : (
                         <div
-                          onClick={() => setEditingQuarterlyGoal(true)}
+                          onClick={() => {
+                            setEditingQuarterlyGoal(true);
+                            setEditingQuarterlyStartDate(quarterlyGoal.start_date);
+                            setEditingQuarterlyEndDate(quarterlyGoal.end_date);
+                          }}
                           className="w-full px-4 py-3 rounded-lg transition-colors min-h-[80px] cursor-pointer"
                           style={{
                             color: quarterlyGoal.text ? 'var(--color-text-primary)' : 'var(--color-text-tertiary)',
-                            backgroundColor: 'transparent'
+                            backgroundColor: 'transparent',
+                            maxHeight: '400px',
+                            overflowY: 'auto'
                           }}
                           onMouseEnter={(e) => {
                             e.currentTarget.style.backgroundColor = 'var(--color-bg-hover)';
@@ -717,15 +957,19 @@ const DailyView = () => {
                           onMouseLeave={(e) => {
                             e.currentTarget.style.backgroundColor = 'transparent';
                           }}
-                          dangerouslySetInnerHTML={{ __html: quarterlyGoal.text || 'Click to edit quarterly goals...' }}
-                        />
+                        >
+                          <div 
+                            className="goal-content"
+                            dangerouslySetInnerHTML={{ __html: quarterlyGoal.text || 'Click to edit quarterly goals...' }}
+                          />
+                        </div>
                       )}
                     </>
                   ) : (
                     // No goal exists - show creation interface
                     <>
                       {creatingQuarterlyGoal ? (
-                        <div className="space-y-3">
+                        <div className="space-y-3" style={{ maxHeight: '300px', overflowY: 'auto' }}>
                           <SimpleRichTextEditor
                             content={newQuarterlyText}
                             onChange={setNewQuarterlyText}

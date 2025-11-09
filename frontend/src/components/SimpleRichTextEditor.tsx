@@ -2,13 +2,22 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import { useEffect } from 'react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
+import Underline from '@tiptap/extension-underline';
 import Placeholder from '@tiptap/extension-placeholder';
 import {
   Bold,
   Italic,
+  Strikethrough,
+  Underline as UnderlineIcon,
   List,
   ListOrdered,
   Link2,
+  Heading2,
+  Heading3,
+  Quote,
+  Code,
+  Code2,
+  Minus,
 } from 'lucide-react';
 
 interface SimpleRichTextEditorProps {
@@ -20,7 +29,11 @@ interface SimpleRichTextEditorProps {
 const SimpleRichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }: SimpleRichTextEditorProps) => {
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      StarterKit.configure({
+        heading: {
+          levels: [2, 3],
+        },
+      }),
       Link.configure({
         openOnClick: false,
         HTMLAttributes: {
@@ -29,6 +42,7 @@ const SimpleRichTextEditor = ({ content, onChange, placeholder = 'Start writing.
           rel: 'noopener noreferrer',
         },
       }),
+      Underline,
       Placeholder.configure({
         placeholder,
       }),
@@ -83,6 +97,7 @@ const SimpleRichTextEditor = ({ content, onChange, placeholder = 'Start writing.
           backgroundColor: 'var(--color-bg-primary)',
         }}
       >
+        {/* Text Formatting */}
         <button
           onClick={() => editor.chain().focus().toggleBold().run()}
           className={`p-2 rounded hover:bg-opacity-80 transition-colors ${
@@ -96,7 +111,7 @@ const SimpleRichTextEditor = ({ content, onChange, placeholder = 'Start writing.
               ? 'white'
               : 'var(--color-text-secondary)',
           }}
-          title="Bold"
+          title="Bold (Ctrl+B)"
           type="button"
         >
           <Bold size={16} />
@@ -115,12 +130,108 @@ const SimpleRichTextEditor = ({ content, onChange, placeholder = 'Start writing.
               ? 'white'
               : 'var(--color-text-secondary)',
           }}
-          title="Italic"
+          title="Italic (Ctrl+I)"
           type="button"
         >
           <Italic size={16} />
         </button>
 
+        <button
+          onClick={() => editor.chain().focus().toggleUnderline().run()}
+          className={`p-2 rounded hover:bg-opacity-80 transition-colors ${
+            editor.isActive('underline') ? 'bg-opacity-100' : 'bg-opacity-0'
+          }`}
+          style={{
+            backgroundColor: editor.isActive('underline')
+              ? 'var(--color-accent)'
+              : 'transparent',
+            color: editor.isActive('underline')
+              ? 'white'
+              : 'var(--color-text-secondary)',
+          }}
+          title="Underline (Ctrl+U)"
+          type="button"
+        >
+          <UnderlineIcon size={16} />
+        </button>
+
+        <button
+          onClick={() => editor.chain().focus().toggleStrike().run()}
+          className={`p-2 rounded hover:bg-opacity-80 transition-colors ${
+            editor.isActive('strike') ? 'bg-opacity-100' : 'bg-opacity-0'
+          }`}
+          style={{
+            backgroundColor: editor.isActive('strike')
+              ? 'var(--color-accent)'
+              : 'transparent',
+            color: editor.isActive('strike')
+              ? 'white'
+              : 'var(--color-text-secondary)',
+          }}
+          title="Strikethrough"
+          type="button"
+        >
+          <Strikethrough size={16} />
+        </button>
+
+        {/* Separator */}
+        <div
+          style={{
+            width: '1px',
+            backgroundColor: 'var(--color-border-primary)',
+            margin: '0 4px',
+          }}
+        />
+
+        {/* Headings */}
+        <button
+          onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+          className={`p-2 rounded hover:bg-opacity-80 transition-colors ${
+            editor.isActive('heading', { level: 2 }) ? 'bg-opacity-100' : 'bg-opacity-0'
+          }`}
+          style={{
+            backgroundColor: editor.isActive('heading', { level: 2 })
+              ? 'var(--color-accent)'
+              : 'transparent',
+            color: editor.isActive('heading', { level: 2 })
+              ? 'white'
+              : 'var(--color-text-secondary)',
+          }}
+          title="Heading 2"
+          type="button"
+        >
+          <Heading2 size={16} />
+        </button>
+
+        <button
+          onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+          className={`p-2 rounded hover:bg-opacity-80 transition-colors ${
+            editor.isActive('heading', { level: 3 }) ? 'bg-opacity-100' : 'bg-opacity-0'
+          }`}
+          style={{
+            backgroundColor: editor.isActive('heading', { level: 3 })
+              ? 'var(--color-accent)'
+              : 'transparent',
+            color: editor.isActive('heading', { level: 3 })
+              ? 'white'
+              : 'var(--color-text-secondary)',
+          }}
+          title="Heading 3"
+          type="button"
+        >
+          <Heading3 size={16} />
+        </button>
+
+        {/* Separator */}
+        <div
+          style={{
+            width: '1px',
+            backgroundColor: 'var(--color-border-primary)',
+            margin: '0 4px',
+          }}
+        />
+
+        {/* Lists */}
         <button
           onClick={() => editor.chain().focus().toggleBulletList().run()}
           className={`p-2 rounded hover:bg-opacity-80 transition-colors ${
@@ -159,6 +270,95 @@ const SimpleRichTextEditor = ({ content, onChange, placeholder = 'Start writing.
           <ListOrdered size={16} />
         </button>
 
+        {/* Separator */}
+        <div
+          style={{
+            width: '1px',
+            backgroundColor: 'var(--color-border-primary)',
+            margin: '0 4px',
+          }}
+        />
+
+        {/* Block Elements */}
+        <button
+          onClick={() => editor.chain().focus().toggleBlockquote().run()}
+          className={`p-2 rounded hover:bg-opacity-80 transition-colors ${
+            editor.isActive('blockquote') ? 'bg-opacity-100' : 'bg-opacity-0'
+          }`}
+          style={{
+            backgroundColor: editor.isActive('blockquote')
+              ? 'var(--color-accent)'
+              : 'transparent',
+            color: editor.isActive('blockquote')
+              ? 'white'
+              : 'var(--color-text-secondary)',
+          }}
+          title="Blockquote"
+          type="button"
+        >
+          <Quote size={16} />
+        </button>
+
+        <button
+          onClick={() => editor.chain().focus().toggleCode().run()}
+          className={`p-2 rounded hover:bg-opacity-80 transition-colors ${
+            editor.isActive('code') ? 'bg-opacity-100' : 'bg-opacity-0'
+          }`}
+          style={{
+            backgroundColor: editor.isActive('code')
+              ? 'var(--color-accent)'
+              : 'transparent',
+            color: editor.isActive('code')
+              ? 'white'
+              : 'var(--color-text-secondary)',
+          }}
+          title="Inline Code"
+          type="button"
+        >
+          <Code size={16} />
+        </button>
+
+        <button
+          onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+          className={`p-2 rounded hover:bg-opacity-80 transition-colors ${
+            editor.isActive('codeBlock') ? 'bg-opacity-100' : 'bg-opacity-0'
+          }`}
+          style={{
+            backgroundColor: editor.isActive('codeBlock')
+              ? 'var(--color-accent)'
+              : 'transparent',
+            color: editor.isActive('codeBlock')
+              ? 'white'
+              : 'var(--color-text-secondary)',
+          }}
+          title="Code Block"
+          type="button"
+        >
+          <Code2 size={16} />
+        </button>
+
+        <button
+          onClick={() => editor.chain().focus().setHorizontalRule().run()}
+          className="p-2 rounded hover:bg-opacity-80 transition-colors"
+          style={{
+            color: 'var(--color-text-secondary)',
+          }}
+          title="Horizontal Rule"
+          type="button"
+        >
+          <Minus size={16} />
+        </button>
+
+        {/* Separator */}
+        <div
+          style={{
+            width: '1px',
+            backgroundColor: 'var(--color-border-primary)',
+            margin: '0 4px',
+          }}
+        />
+
+        {/* Link */}
         <button
           onClick={addLink}
           className={`p-2 rounded hover:bg-opacity-80 transition-colors ${
