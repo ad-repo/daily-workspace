@@ -7,7 +7,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
-    setupFiles: ['../tests/frontend/setup.ts'],
+    setupFiles: ['./vitest.setup.ts'],
     include: ['../tests/frontend/**/*.{test,spec}.{ts,tsx}'],
     exclude: ['**/node_modules/**', '**/dist/**', '**/android/**'],
     testTimeout: 5000, // 5 second timeout per test
