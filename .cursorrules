@@ -133,6 +133,7 @@ rules:
       - Remove hardcoded credentials or API keys
       - Follow established patterns and styles
       - Verify all tests pass locally
+      - Remove unused or outdated files
 
   file_organization:
     purpose: "Maintain consistent file structure across frontend and backend."
@@ -164,7 +165,7 @@ rules:
       - Ensure test examples in docs (if any) run and pass.
     enforcement:
       - Treat missing or outdated docs after test updates as blockers for merge.
-      - Never dismiss documentation updates as “not needed” for test changes; documentation reflects reality, not intent.
+      - Never dismiss documentation updates as "not needed" for test changes; documentation reflects reality, not intent.
       - Re-verify documentation alignment after all test-related code merges.
 
   external_docs_discovery:
