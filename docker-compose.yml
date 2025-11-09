@@ -34,14 +34,15 @@ services:
 
   frontend-test:
     build:
-      context: .
-      dockerfile: ./frontend/Dockerfile.test
+      context: ./frontend
+      dockerfile: Dockerfile.test
     volumes:
-      - ./tests/frontend:/app/tests
-      - ./frontend:/app/frontend
-      - ./tests/frontend/coverage:/app/coverage
+      - ./frontend:/app
+      - ./tests/frontend:/tests
+      - ./tests/frontend/coverage:/tests/coverage
       - /app/node_modules
-    working_dir: /app/tests
+    working_dir: /tests
+    command: npx vitest --run --coverage
     profiles:
       - test
 
@@ -51,12 +52,13 @@ services:
       dockerfile: Dockerfile
     environment:
       - DATABASE_URL=sqlite:///./data/test_daily_notes.db
+      - BACKEND_PATH=/app
     volumes:
-      - ./tests/backend:/app/tests
-      - ./backend:/app/backend
-      - ./tests/backend/htmlcov:/app/htmlcov
-    working_dir: /app/tests
-    command: python -m pytest --tb=short -v --cov=backend/app --cov-report=html --cov-report=term
+      - ./backend:/app
+      - ./tests/backend:/tests
+      - ./tests/backend/htmlcov:/tests/htmlcov
+    working_dir: /tests
+    command: python -m pytest --tb=short -v --cov=/app/app --cov-report=html --cov-report=term
     profiles:
       - test
 
