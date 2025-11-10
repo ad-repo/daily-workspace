@@ -269,9 +269,10 @@ const DailyView = () => {
     try {
       const updated = await goalsApi.updateSprint(sprintGoal.id, updates);
       setSprintGoal(updated);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to update sprint goal:', error);
-      alert('Failed to update sprint goal.');
+      const message = error?.response?.data?.detail || 'Failed to update sprint goal';
+      alert(message);
     }
   };
 
@@ -281,9 +282,10 @@ const DailyView = () => {
     try {
       const updated = await goalsApi.updateQuarterly(quarterlyGoal.id, updates);
       setQuarterlyGoal(updated);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to update quarterly goal:', error);
-      alert('Failed to update quarterly goal.');
+      const message = error?.response?.data?.detail || 'Failed to update quarterly goal';
+      alert(message);
     }
   };
 

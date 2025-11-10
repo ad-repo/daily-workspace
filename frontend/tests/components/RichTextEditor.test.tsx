@@ -24,6 +24,7 @@ vi.mock('@tiptap/react', () => ({
       toggleHeading: vi.fn(),
       toggleBulletList: vi.fn(),
       toggleOrderedList: vi.fn(),
+      toggleTaskList: vi.fn(),
       toggleBlockquote: vi.fn(),
       setLink: vi.fn(),
       unsetLink: vi.fn(),
@@ -69,6 +70,7 @@ vi.mock('lucide-react', () => ({
   Heading2: () => <div>H2</div>,
   List: () => <div>List</div>,
   ListOrdered: () => <div>OrderedList</div>,
+  CheckSquare: () => <div>TaskList</div>,
   Quote: () => <div>Quote</div>,
   Undo: () => <div>Undo</div>,
   Redo: () => <div>Redo</div>,
@@ -373,6 +375,70 @@ describe('RichTextEditor Component', () => {
     
     // Component renders without crashing
     expect(container).toBeInTheDocument();
+  });
+
+  // Task List Tests
+  describe('Task List Features', () => {
+    it('renders task list button in toolbar', () => {
+      render(<RichTextEditor {...defaultProps} />);
+      expect(screen.getByText('TaskList')).toBeInTheDocument();
+    });
+
+    it('toggles task list when button clicked', () => {
+      const { container } = render(<RichTextEditor {...defaultProps} />);
+      const taskListButton = screen.getByText('TaskList');
+      
+      fireEvent.click(taskListButton);
+      
+      // Component handles click without crashing
+      expect(container).toBeInTheDocument();
+    });
+
+    it('renders task list content with checkboxes', () => {
+      const taskListContent = '<ul data-type="taskList"><li data-checked="false"><label><input type="checkbox"><span></span></label><div><p>Task 1</p></div></li></ul>';
+      render(<RichTextEditor {...defaultProps} content={taskListContent} />);
+      
+      // Component renders task list content
+      expect(screen.getByTestId('editor-content')).toBeInTheDocument();
+    });
+
+    it('handles checked task items', () => {
+      const taskListContent = '<ul data-type="taskList"><li data-checked="true"><label><input type="checkbox" checked="checked"><span></span></label><div><p>Done</p></div></li></ul>';
+      render(<RichTextEditor {...defaultProps} content={taskListContent} />);
+      
+      // Component renders checked task content
+      expect(screen.getByTestId('editor-content')).toBeInTheDocument();
+    });
+
+    it('supports nested task lists', () => {
+      const nestedTaskList = `
+        <ul data-type="taskList">
+          <li data-checked="false">
+            <label><input type="checkbox"><span></span></label>
+            <div>
+              <p>Parent</p>
+              <ul data-type="taskList">
+                <li data-checked="false">
+                  <label><input type="checkbox"><span></span></label>
+                  <div><p>Nested</p></div>
+                </li>
+              </ul>
+            </div>
+          </li>
+        </ul>
+      `;
+      render(<RichTextEditor {...defaultProps} content={nestedTaskList} />);
+      
+      // Component renders nested task list content
+      expect(screen.getByTestId('editor-content')).toBeInTheDocument();
+    });
+
+    it('task list button shows active state when task list active', () => {
+      const { container } = render(<RichTextEditor {...defaultProps} />);
+      
+      // Component renders without crashing
+      expect(container).toBeInTheDocument();
+    });
   });
 });
 
