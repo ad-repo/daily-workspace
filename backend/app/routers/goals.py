@@ -140,27 +140,28 @@ def update_sprint_goal(goal_id: int, goal_update: schemas.GoalUpdate, db: Sessio
     if not db_goal:
         raise HTTPException(status_code=404, detail='Sprint goal not found')
 
-    # Update fields
+    # Update text if provided
     if goal_update.text is not None:
         db_goal.text = goal_update.text
 
-    # If dates are being updated, validate them
-    new_start = goal_update.start_date if goal_update.start_date is not None else db_goal.start_date
-    new_end = goal_update.end_date if goal_update.end_date is not None else db_goal.end_date
+    # Only validate and update dates if they are being changed
+    if goal_update.start_date is not None or goal_update.end_date is not None:
+        new_start = goal_update.start_date if goal_update.start_date is not None else db_goal.start_date
+        new_end = goal_update.end_date if goal_update.end_date is not None else db_goal.end_date
 
-    if not validate_date_range(new_start, new_end):
-        raise HTTPException(status_code=400, detail='end_date must be after start_date')
+        if not validate_date_range(new_start, new_end):
+            raise HTTPException(status_code=400, detail='end_date must be after start_date')
 
-    # Check for overlaps (excluding this goal)
-    if check_overlap(db, models.SprintGoal, new_start, new_end, exclude_id=goal_id):
-        raise HTTPException(
-            status_code=400, detail=f'A sprint goal already exists that overlaps with {new_start} to {new_end}'
-        )
+        # Check for overlaps (excluding this goal)
+        if check_overlap(db, models.SprintGoal, new_start, new_end, exclude_id=goal_id):
+            raise HTTPException(
+                status_code=400, detail=f'A sprint goal already exists that overlaps with {new_start} to {new_end}'
+            )
 
-    if goal_update.start_date is not None:
-        db_goal.start_date = goal_update.start_date
-    if goal_update.end_date is not None:
-        db_goal.end_date = goal_update.end_date
+        if goal_update.start_date is not None:
+            db_goal.start_date = goal_update.start_date
+        if goal_update.end_date is not None:
+            db_goal.end_date = goal_update.end_date
 
     db_goal.updated_at = datetime.utcnow()
     db.commit()
@@ -293,27 +294,28 @@ def update_quarterly_goal(goal_id: int, goal_update: schemas.GoalUpdate, db: Ses
     if not db_goal:
         raise HTTPException(status_code=404, detail='Quarterly goal not found')
 
-    # Update fields
+    # Update text if provided
     if goal_update.text is not None:
         db_goal.text = goal_update.text
 
-    # If dates are being updated, validate them
-    new_start = goal_update.start_date if goal_update.start_date is not None else db_goal.start_date
-    new_end = goal_update.end_date if goal_update.end_date is not None else db_goal.end_date
+    # Only validate and update dates if they are being changed
+    if goal_update.start_date is not None or goal_update.end_date is not None:
+        new_start = goal_update.start_date if goal_update.start_date is not None else db_goal.start_date
+        new_end = goal_update.end_date if goal_update.end_date is not None else db_goal.end_date
 
-    if not validate_date_range(new_start, new_end):
-        raise HTTPException(status_code=400, detail='end_date must be after start_date')
+        if not validate_date_range(new_start, new_end):
+            raise HTTPException(status_code=400, detail='end_date must be after start_date')
 
-    # Check for overlaps (excluding this goal)
-    if check_overlap(db, models.QuarterlyGoal, new_start, new_end, exclude_id=goal_id):
-        raise HTTPException(
-            status_code=400, detail=f'A quarterly goal already exists that overlaps with {new_start} to {new_end}'
-        )
+        # Check for overlaps (excluding this goal)
+        if check_overlap(db, models.QuarterlyGoal, new_start, new_end, exclude_id=goal_id):
+            raise HTTPException(
+                status_code=400, detail=f'A quarterly goal already exists that overlaps with {new_start} to {new_end}'
+            )
 
-    if goal_update.start_date is not None:
-        db_goal.start_date = goal_update.start_date
-    if goal_update.end_date is not None:
-        db_goal.end_date = goal_update.end_date
+        if goal_update.start_date is not None:
+            db_goal.start_date = goal_update.start_date
+        if goal_update.end_date is not None:
+            db_goal.end_date = goal_update.end_date
 
     db_goal.updated_at = datetime.utcnow()
     db.commit()

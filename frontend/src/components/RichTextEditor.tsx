@@ -4,6 +4,8 @@ import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import Image from '@tiptap/extension-image';
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
+import TaskList from '@tiptap/extension-task-list';
+import TaskItem from '@tiptap/extension-task-item';
 import Placeholder from '@tiptap/extension-placeholder';
 import TextStyle from '@tiptap/extension-text-style';
 import { Color } from '@tiptap/extension-color';
@@ -35,6 +37,7 @@ import {
   Minimize2,
   Type,
   CaseSensitive,
+  CheckSquare,
 } from 'lucide-react';
 import { LinkPreviewExtension, fetchLinkPreview } from '../extensions/LinkPreview';
 import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
@@ -136,6 +139,10 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
           target: '_blank',
           rel: 'noopener noreferrer',
         },
+      }),
+      TaskList,
+      TaskItem.configure({
+        nested: true,
       }),
       Image.extend({
         addAttributes() {
@@ -1092,6 +1099,14 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
           title="Numbered List"
         >
           <ListOrdered className="h-4 w-4" />
+        </ToolbarButton>
+
+        <ToolbarButton
+          onClick={() => editor.chain().focus().toggleTaskList().run()}
+          active={editor.isActive('taskList')}
+          title="Task List"
+        >
+          <CheckSquare className="h-4 w-4" />
         </ToolbarButton>
 
         <ToolbarButton

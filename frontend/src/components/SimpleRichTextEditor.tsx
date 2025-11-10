@@ -3,6 +3,8 @@ import { useEffect } from 'react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import Underline from '@tiptap/extension-underline';
+import TaskList from '@tiptap/extension-task-list';
+import TaskItem from '@tiptap/extension-task-item';
 import Placeholder from '@tiptap/extension-placeholder';
 import {
   Bold,
@@ -18,6 +20,7 @@ import {
   Code,
   Code2,
   Minus,
+  CheckSquare,
 } from 'lucide-react';
 
 interface SimpleRichTextEditorProps {
@@ -43,6 +46,10 @@ const SimpleRichTextEditor = ({ content, onChange, placeholder = 'Start writing.
         },
       }),
       Underline,
+      TaskList,
+      TaskItem.configure({
+        nested: true,
+      }),
       Placeholder.configure({
         placeholder,
       }),
@@ -268,6 +275,25 @@ const SimpleRichTextEditor = ({ content, onChange, placeholder = 'Start writing.
           type="button"
         >
           <ListOrdered size={16} />
+        </button>
+
+        <button
+          onClick={() => editor.chain().focus().toggleTaskList().run()}
+          className={`p-2 rounded hover:bg-opacity-80 transition-colors ${
+            editor.isActive('taskList') ? 'bg-opacity-100' : 'bg-opacity-0'
+          }`}
+          style={{
+            backgroundColor: editor.isActive('taskList')
+              ? 'var(--color-accent)'
+              : 'transparent',
+            color: editor.isActive('taskList')
+              ? 'white'
+              : 'var(--color-text-secondary)',
+          }}
+          title="Task List"
+          type="button"
+        >
+          <CheckSquare size={16} />
         </button>
 
         {/* Separator */}

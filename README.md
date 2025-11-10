@@ -9,6 +9,7 @@ A modern, powerful daily workspace application for capturing and organizing your
 - **Daily View**: Focus on a single day with multiple content entries
 - **Rich Text Editor**: Modern WYSIWYG editor powered by TipTap with support for:
   - Text formatting (bold, italic, strikethrough, inline code, headings, lists)
+  - **Task Lists**: Interactive checklists with checkboxes (supports nesting)
   - **Text Color**: Pick any color for your text with color picker
   - **Font Family**: Choose from 8 font options (Arial, Times, Courier, Georgia, Verdana, Comic Sans, Impact)
   - **Font Size**: Select from multiple sizes (12px-48px)
@@ -36,14 +37,14 @@ A modern, powerful daily workspace application for capturing and organizing your
 - **Emoji Labels**: Special rendering for emoji-only labels
 - **Transparent Mode**: Toggle between solid or transparent label backgrounds
 - **Daily Goals**: Set goals for each day (visible as tooltips in calendar)
-  - **Rich Text Editor**: Full formatting support (bold, italic, underline, strikethrough, headings, lists, links, code, blockquotes)
+  - **Rich Text Editor**: Full formatting support (bold, italic, underline, strikethrough, headings, lists, task lists with checkboxes, links, code, blockquotes)
   - **Scrollable**: Goals scroll when content exceeds 300px height
   - **Save Button**: Explicit save button for confident editing
   - **HTML Display**: Goals render with proper formatting in display mode
   - Toggle visibility in Settings → General
   - Click-to-edit with automatic save
 - **Sprint Goals**: Date-aware goal tracking with historical support
-  - **Rich Text Editor**: Full formatting support (bold, italic, underline, strikethrough, headings, lists, links, code, blockquotes)
+  - **Rich Text Editor**: Full formatting support (bold, italic, underline, strikethrough, headings, lists, task lists with checkboxes, links, code, blockquotes)
   - **Scrollable**: Goals scroll when content exceeds 300px height
   - **Save Button**: Explicit save button for confident editing
   - **All fields always editable**: Edit goal text, start date, and end date at any time
@@ -55,7 +56,7 @@ A modern, powerful daily workspace application for capturing and organizing your
   - Full history - see different goals when browsing different dates
   - Toggle visibility in Settings → General
 - **Quarterly Goals**: Date-aware quarterly objectives with historical tracking
-  - **Rich Text Editor**: Full formatting support (bold, italic, underline, strikethrough, headings, lists, links, code, blockquotes)
+  - **Rich Text Editor**: Full formatting support (bold, italic, underline, strikethrough, headings, lists, task lists with checkboxes, links, code, blockquotes)
   - **Scrollable**: Goals scroll when content exceeds 300px height
   - **Save Button**: Explicit save button for confident editing
   - **All fields always editable**: Edit goal text, start date, and end date at any time

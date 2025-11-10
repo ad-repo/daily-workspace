@@ -297,4 +297,89 @@ test.describe('Rich Text Editor', () => {
     await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
     await expect(page.locator('.ProseMirror').first()).toContainText('Auto-save test');
   });
+
+  // ============================================
+  // Task List Tests
+  // ============================================
+
+  test('should create task list in note entry', async ({ page }) => {
+    // Create new entry
+    await page.locator('button:has-text("New Entry")').click();
+    await page.waitForTimeout(1000);
+
+    const editor = page.locator('.ProseMirror').last();
+    await expect(editor).toBeVisible({ timeout: 5000 });
+
+    // Click task list button
+    const taskListButton = page.locator('button[title="Task List"]').first();
+    await taskListButton.click();
+    await page.waitForTimeout(500);
+
+    // Type task
+    await editor.type('Task item 1');
+    await page.waitForTimeout(500);
+
+    // Click outside to save
+    await page.locator('body').click({ position: { x: 0, y: 0 } });
+    await page.waitForTimeout(1000);
+
+    // Should have checkbox
+    const checkbox = page.locator('input[type="checkbox"]').first();
+    await expect(checkbox).toBeVisible({ timeout: 5000 });
+  });
+
+  test('should persist checked task in note entry', async ({ page }) => {
+    // Create task list entry
+    await page.locator('button:has-text("New Entry")').click();
+    await page.waitForTimeout(1000);
+
+    const editor = page.locator('.ProseMirror').last();
+    await expect(editor).toBeVisible({ timeout: 5000 });
+
+    const taskListButton = page.locator('button[title="Task List"]').first();
+    await taskListButton.click();
+    await page.waitForTimeout(500);
+
+    await editor.type('Persistent task');
+    await page.locator('body').click({ position: { x: 0, y: 0 } });
+    await page.waitForTimeout(2000);
+
+    // Check the checkbox
+    const checkbox = page.locator('input[type="checkbox"]').first();
+    await checkbox.check();
+    await page.waitForTimeout(1000);
+
+    // Reload and verify
+    await page.reload();
+    await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
+
+    const checkboxAfterReload = page.locator('input[type="checkbox"]').first();
+    await expect(checkboxAfterReload).toBeChecked();
+  });
+
+  test('should support nested task lists', async ({ page }) => {
+    // Create task list
+    await page.locator('button:has-text("New Entry")').click();
+    await page.waitForTimeout(1000);
+
+    const editor = page.locator('.ProseMirror').last();
+    await expect(editor).toBeVisible({ timeout: 5000 });
+
+    const taskListButton = page.locator('button[title="Task List"]').first();
+    await taskListButton.click();
+    await page.waitForTimeout(500);
+
+    await editor.type('Parent task');
+    await page.keyboard.press('Enter');
+    await page.keyboard.press('Tab'); // Indent to create nested task
+    await editor.type('Nested task');
+    await page.waitForTimeout(500);
+
+    await page.locator('body').click({ position: { x: 0, y: 0 } });
+    await page.waitForTimeout(2000);
+
+    // Should have 2 checkboxes
+    const checkboxes = page.locator('input[type="checkbox"]');
+    await expect(checkboxes).toHaveCount(2, { timeout: 5000 });
+  });
 });

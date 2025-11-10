@@ -75,6 +75,26 @@ Object.defineProperty(window, 'localStorage', {
   disconnect: vi.fn(),
 }));
 
+// Mock getClientRects for ProseMirror (TipTap)
+if (typeof Element !== 'undefined') {
+  Element.prototype.getClientRects = vi.fn().mockReturnValue({
+    length: 0,
+    item: () => null,
+    [Symbol.iterator]: function* () {},
+  });
+  Element.prototype.getBoundingClientRect = vi.fn().mockReturnValue({
+    width: 0,
+    height: 0,
+    top: 0,
+    left: 0,
+    bottom: 0,
+    right: 0,
+    x: 0,
+    y: 0,
+    toJSON: () => {},
+  });
+}
+
 // Mock Web Speech API
 const mockSpeechRecognition = vi.fn().mockImplementation(() => ({
   start: vi.fn(),
