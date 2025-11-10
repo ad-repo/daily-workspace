@@ -560,4 +560,72 @@ test.describe('Goals System', () => {
     await expect(endDateAfterReload).toBeVisible({ timeout: 5000 });
     await expect(endDateAfterReload).toHaveValue('2024-03-31');
   });
+
+  // ============================================
+  // Task List Tests
+  // ============================================
+
+  test('should create task list in daily goal', async ({ page }) => {
+    // Wait for daily goals section
+    await expect(page.locator('text="🎯 Daily Goals"')).toBeVisible();
+
+    // Click to edit daily goal
+    await page.locator('text="Click to add daily goals..."').click();
+    await page.waitForTimeout(500);
+
+    // Click task list button
+    const taskListButton = page.locator('button[title="Task List"]').first();
+    await taskListButton.click();
+    await page.waitForTimeout(500);
+
+    // Type task text
+    const editor = page.locator('.ProseMirror').first();
+    await editor.type('Task 1');
+    await page.waitForTimeout(500);
+
+    // Click Save
+    await page.locator('button:has-text("Save")').first().click();
+    await page.waitForTimeout(1000);
+
+    // Reload and verify
+    await page.reload();
+    await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
+    
+    // Should have checkbox
+    const checkbox = page.locator('input[type="checkbox"]').first();
+    await expect(checkbox).toBeVisible({ timeout: 5000 });
+  });
+
+  test('should check off task in daily goal', async ({ page }) => {
+    // Create a task first
+    await page.locator('text="🎯 Daily Goals"').isVisible();
+    await page.locator('text="Click to add daily goals..."').click();
+    await page.waitForTimeout(500);
+    
+    const taskListButton = page.locator('button[title="Task List"]').first();
+    await taskListButton.click();
+    await page.waitForTimeout(500);
+    
+    const editor = page.locator('.ProseMirror').first();
+    await editor.type('Task to check');
+    
+    await page.locator('button:has-text("Save")').first().click();
+    await page.waitForTimeout(1000);
+
+    // Reload
+    await page.reload();
+    await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
+
+    // Check the checkbox
+    const checkbox = page.locator('input[type="checkbox"]').first();
+    await checkbox.check();
+    await page.waitForTimeout(1000);
+
+    // Reload and verify it's still checked
+    await page.reload();
+    await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
+    
+    const checkboxAfterReload = page.locator('input[type="checkbox"]').first();
+    await expect(checkboxAfterReload).toBeChecked();
+  });
 });
