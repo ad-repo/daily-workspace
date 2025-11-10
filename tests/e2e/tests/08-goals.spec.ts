@@ -569,18 +569,25 @@ test.describe('Goals System', () => {
     // Wait for daily goals section
     await expect(page.locator('text="🎯 Daily Goals"')).toBeVisible();
 
-    // Check if goal already exists, if so clear it first
-    const existingGoal = page.locator('.ProseMirror').first();
-    if (await existingGoal.isVisible()) {
-      await existingGoal.click();
-      await page.waitForTimeout(300);
+    // Check if placeholder exists (no goal) or if goal exists (click to edit)
+    const placeholder = page.locator('text="Click to add daily goals..."');
+    const goalContainer = page.locator('text="🎯 Daily Goals"').locator('..').locator('div[class*="cursor-pointer"]').first();
+    
+    if (await placeholder.isVisible()) {
+      // No goal, click placeholder
+      await placeholder.click();
+      await page.waitForTimeout(500);
+    } else {
+      // Goal exists, click container to edit
+      await goalContainer.click();
+      await page.waitForTimeout(500);
+      
+      // Clear existing content
+      const editor = page.locator('.ProseMirror').first();
+      await editor.click();
       await page.keyboard.press('Control+A');
       await page.keyboard.press('Backspace');
       await page.waitForTimeout(300);
-    } else {
-      // No goal, click to add
-      await page.locator('text="Click to add daily goals..."').click();
-      await page.waitForTimeout(500);
     }
 
     // Click task list button
@@ -610,18 +617,25 @@ test.describe('Goals System', () => {
     // Wait for daily goals section
     await expect(page.locator('text="🎯 Daily Goals"')).toBeVisible();
 
-    // Check if goal already exists, if so clear it first
-    const existingGoal = page.locator('.ProseMirror').first();
-    if (await existingGoal.isVisible()) {
-      await existingGoal.click();
-      await page.waitForTimeout(300);
+    // Check if placeholder exists (no goal) or if goal exists (click to edit)
+    const placeholder = page.locator('text="Click to add daily goals..."');
+    const goalContainer = page.locator('text="🎯 Daily Goals"').locator('..').locator('div[class*="cursor-pointer"]').first();
+    
+    if (await placeholder.isVisible()) {
+      // No goal, click placeholder
+      await placeholder.click();
+      await page.waitForTimeout(500);
+    } else {
+      // Goal exists, click container to edit
+      await goalContainer.click();
+      await page.waitForTimeout(500);
+      
+      // Clear existing content
+      const editor = page.locator('.ProseMirror').first();
+      await editor.click();
       await page.keyboard.press('Control+A');
       await page.keyboard.press('Backspace');
       await page.waitForTimeout(300);
-    } else {
-      // No goal, click to add
-      await page.locator('text="Click to add daily goals..."').click();
-      await page.waitForTimeout(500);
     }
     
     const taskListButton = page.locator('button[title="Task List"]').first();
