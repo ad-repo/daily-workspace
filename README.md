@@ -36,6 +36,14 @@ A modern, powerful daily workspace application for capturing and organizing your
 - **Autocomplete**: Smart label suggestions with predictive text
 - **Emoji Labels**: Special rendering for emoji-only labels
 - **Transparent Mode**: Toggle between solid or transparent label backgrounds
+- **Lists**: Trello-style boards for organizing note entries
+  - Create custom lists with names, descriptions, and colors
+  - Drag note entries between lists for organization
+  - Entries can belong to multiple lists simultaneously
+  - Archive/restore lists as needed
+  - Horizontal scrolling column layout (Trello-style)
+  - Each list tracks entry count
+  - Lists are independent of dates (persistent organization)
 - **Daily Goals**: Set goals for each day (visible as tooltips in calendar)
   - **Rich Text Editor**: Full formatting support (bold, italic, underline, strikethrough, headings, lists, task lists with checkboxes, links, code, blockquotes)
   - **Scrollable**: Goals scroll when content exceeds 300px height
