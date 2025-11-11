@@ -43,13 +43,16 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
   };
 
   const handleDragOver = (e: React.DragEvent) => {
-    // If dragging a list (has 'text/x-listid' type), let it bubble for list reordering
+    // MUST call preventDefault to allow drop, regardless of type
+    e.preventDefault();
+    
     const types = Array.from(e.dataTransfer.types);
     console.log('ListColumn dragOver types:', types);
     
+    // If dragging a list, allow drop but don't handle it here - let it bubble
     if (types.includes('text/x-listid')) {
-      console.log('List drag detected, letting bubble');
-      return;
+      console.log('List drag detected, allowing drop but letting bubble');
+      return; // Let parent handle list reordering
     }
     
     // Only handle entry card drags
@@ -59,8 +62,7 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
     }
     
     console.log('Entry drag, handling in ListColumn');
-    e.preventDefault();
-    e.stopPropagation();
+    e.stopPropagation(); // Stop propagation only for entry drags
     e.dataTransfer.dropEffect = 'move';
     setIsDragOver(true);
   };
@@ -78,10 +80,13 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
   };
 
   const handleDrop = async (e: React.DragEvent) => {
-    // If dragging a list, let it bubble for list reordering
+    e.preventDefault(); // Always prevent default for drop events
+    
+    // If dragging a list, let it bubble for list reordering (parent will handle)
     if (e.dataTransfer.types.includes('text/x-listid')) {
       setIsDragOver(false);
-      return;
+      console.log('List drop detected, letting bubble');
+      return; // Don't stopPropagation - let parent handle it
     }
     
     const entryId = parseInt(e.dataTransfer.getData('text/x-entryid'));
@@ -92,9 +97,10 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
       return;
     }
     
-    e.preventDefault();
+    // Entry drop - handle here and stop propagation
     e.stopPropagation();
     setIsDragOver(false);
+    console.log('Entry drop, handling in ListColumn');
 
     const sourceListId = parseInt(e.dataTransfer.getData('text/x-sourcelistid'));
 
