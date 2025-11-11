@@ -10,6 +10,7 @@ from app.routers import (
     goals,
     labels,
     link_preview,
+    lists,
     notes,
     reports,
     search,
@@ -37,6 +38,7 @@ app.include_router(notes.router, prefix='/api/notes', tags=['notes'])
 app.include_router(entries.router, prefix='/api/entries', tags=['entries'])
 app.include_router(uploads.router, prefix='/api/uploads', tags=['uploads'])
 app.include_router(labels.router, prefix='/api/labels', tags=['labels'])
+app.include_router(lists.router)
 app.include_router(backup.router, prefix='/api/backup', tags=['backup'])
 app.include_router(reports.router, prefix='/api/reports', tags=['reports'])
 app.include_router(search.router, prefix='/api/search', tags=['search'])
