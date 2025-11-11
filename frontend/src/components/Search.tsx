@@ -465,6 +465,19 @@ const Search = () => {
                             {label.name}
                           </span>
                         ))}
+                        {(entry as any).list_names && (entry as any).list_names.map((listName: string, idx: number) => (
+                          <span
+                            key={idx}
+                            className="inline-block px-2.5 py-0.5 rounded text-xs font-medium"
+                            style={{ 
+                              backgroundColor: 'var(--color-background)',
+                              color: 'var(--color-text-primary)',
+                              border: '1px solid var(--color-border)'
+                            }}
+                          >
+                            📋 {listName}
+                          </span>
+                        ))}
                       </div>
                     </div>
                   </div>
