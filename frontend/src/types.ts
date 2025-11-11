@@ -15,6 +15,7 @@ export interface NoteEntry {
   created_at: string;
   updated_at: string;
   labels: Label[];
+  lists?: List[];
   include_in_report: boolean;
   is_important: boolean;
   is_completed: boolean;
@@ -98,5 +99,43 @@ export interface GoalUpdate {
   text?: string;
   start_date?: string;
   end_date?: string;
+}
+
+export interface List {
+  id: number;
+  name: string;
+  description: string;
+  color: string;
+  order_index: number;
+  is_archived: boolean;
+  created_at: string;
+  updated_at: string;
+  entry_count?: number;
+}
+
+export interface ListWithEntries extends List {
+  entries: NoteEntry[];
+}
+
+export interface ListCreate {
+  name: string;
+  description?: string;
+  color?: string;
+  order_index?: number;
+  is_archived?: boolean;
+}
+
+export interface ListUpdate {
+  name?: string;
+  description?: string;
+  color?: string;
+  order_index?: number;
+  is_archived?: boolean;
+}
+
+export interface EntryListAssociation {
+  entry_id: number;
+  list_id: number;
+  order_index: number;
 }
 

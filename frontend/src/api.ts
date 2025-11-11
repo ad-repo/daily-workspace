@@ -9,6 +9,11 @@ import type {
   Goal,
   GoalCreate,
   GoalUpdate,
+  List,
+  ListWithEntries,
+  ListCreate,
+  ListUpdate,
+  EntryListAssociation,
 } from './types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -129,6 +134,49 @@ export const goalsApi = {
 
   deleteQuarterly: async (goalId: number): Promise<void> => {
     await api.delete(`/api/goals/quarterly/${goalId}`);
+  },
+};
+
+// Lists API
+export const listsApi = {
+  getAll: async (includeArchived: boolean = false): Promise<List[]> => {
+    const response = await api.get<List[]>('/api/lists', { params: { include_archived: includeArchived } });
+    return response.data;
+  },
+
+  getById: async (listId: number): Promise<ListWithEntries> => {
+    const response = await api.get<ListWithEntries>(`/api/lists/${listId}`);
+    return response.data;
+  },
+
+  create: async (list: ListCreate): Promise<List> => {
+    const response = await api.post<List>('/api/lists', list);
+    return response.data;
+  },
+
+  update: async (listId: number, update: ListUpdate): Promise<List> => {
+    const response = await api.put<List>(`/api/lists/${listId}`, update);
+    return response.data;
+  },
+
+  delete: async (listId: number): Promise<void> => {
+    await api.delete(`/api/lists/${listId}`);
+  },
+
+  addEntry: async (listId: number, entryId: number, orderIndex: number = 0): Promise<void> => {
+    await api.post(`/api/lists/${listId}/entries/${entryId}`, { order_index: orderIndex });
+  },
+
+  removeEntry: async (listId: number, entryId: number): Promise<void> => {
+    await api.delete(`/api/lists/${listId}/entries/${entryId}`);
+  },
+
+  reorderEntries: async (listId: number, entries: EntryListAssociation[]): Promise<void> => {
+    await api.put(`/api/lists/${listId}/reorder`, { entries });
+  },
+
+  reorderLists: async (lists: { id: number; order_index: number }[]): Promise<void> => {
+    await api.put('/api/lists/reorder', { lists });
   },
 };
 
