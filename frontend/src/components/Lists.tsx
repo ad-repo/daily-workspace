@@ -103,7 +103,7 @@ export default function Lists() {
         </h1>
         <button
           onClick={() => setShowCreateModal(true)}
-          className="px-4 py-2 rounded transition-colors"
+          className="px-4 py-2 rounded transition-all hover:scale-105 hover:shadow-lg font-medium"
           style={{
             backgroundColor: 'var(--color-accent)',
             color: 'white',
@@ -215,10 +215,10 @@ export default function Lists() {
               </div>
             </div>
 
-            <div className="flex gap-2 mt-6">
+            <div className="flex gap-3 mt-6">
               <button
                 onClick={handleCreateList}
-                className="flex-1 px-4 py-2 rounded transition-colors"
+                className="flex-1 px-4 py-2 rounded font-medium transition-all hover:scale-105 hover:shadow-lg"
                 style={{
                   backgroundColor: 'var(--color-accent)',
                   color: 'white',
@@ -233,11 +233,10 @@ export default function Lists() {
                   setNewListDescription('');
                   setNewListColor('#3b82f6');
                 }}
-                className="flex-1 px-4 py-2 rounded transition-colors"
+                className="flex-1 px-4 py-2 rounded font-medium transition-all hover:bg-opacity-80 border"
                 style={{
                   backgroundColor: 'var(--color-background)',
                   borderColor: 'var(--color-border)',
-                  borderWidth: '1px',
                   color: 'var(--color-text-primary)',
                 }}
               >

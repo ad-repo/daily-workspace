@@ -2,17 +2,19 @@ import { useState } from 'react';
 import { Trash2, Edit2, Archive } from 'lucide-react';
 import type { List, NoteEntry } from '../types';
 import ListCard from './ListCard';
+import EntryModal from './EntryModal';
 import { listsApi } from '../api';
 
 interface ListColumnProps {
   list: List;
   entries: NoteEntry[];
   onUpdate: () => void;
-  onDelete: (listId: number) => void;
+  onDelete: (listId: number, listName: string) => void;
 }
 
 const ListColumn = ({ list, entries, onUpdate, onDelete }: ListColumnProps) => {
   const [showActions, setShowActions] = useState(false);
+  const [selectedEntryId, setSelectedEntryId] = useState<number | null>(null);
 
   const handleRemoveEntry = async (entryId: number) => {
     try {
@@ -35,93 +37,109 @@ const ListColumn = ({ list, entries, onUpdate, onDelete }: ListColumnProps) => {
   };
 
   return (
-    <div
-      className="flex-shrink-0 w-80 rounded-lg shadow-lg flex flex-col"
-      style={{
-        backgroundColor: 'var(--color-surface)',
-        borderColor: list.color,
-        borderWidth: '2px',
-        borderStyle: 'solid',
-        maxHeight: 'calc(100vh - 12rem)',
-      }}
-    >
-      {/* List Header */}
+    <>
       <div
-        className="p-4 border-b"
-        style={{ borderColor: 'var(--color-border)' }}
-        onMouseEnter={() => setShowActions(true)}
-        onMouseLeave={() => setShowActions(false)}
+        className="flex-shrink-0 w-80 rounded-lg shadow-md flex flex-col transition-all hover:shadow-lg"
+        style={{
+          backgroundColor: 'var(--color-card-bg)',
+          border: `3px solid ${list.color}`,
+          maxHeight: 'calc(100vh - 12rem)',
+        }}
       >
-        <div className="flex justify-between items-start mb-2">
-          <h2
-            className="text-lg font-bold flex-1"
-            style={{ color: 'var(--color-text-primary)' }}
-          >
-            {list.name}
-          </h2>
-          {showActions && (
-            <div className="flex gap-1 ml-2">
-              <button
-                onClick={handleArchive}
-                className="p-1 rounded hover:bg-opacity-80"
-                style={{ color: 'var(--color-text-secondary)' }}
-                title={list.is_archived ? 'Unarchive list' : 'Archive list'}
-              >
-                <Archive className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => onDelete(list.id)}
-                className="p-1 rounded hover:bg-opacity-80"
-                style={{ color: 'var(--color-text-secondary)' }}
-                title="Delete list"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
+        {/* List Header */}
+        <div
+          className="p-4 rounded-t-lg"
+          style={{
+            backgroundColor: `${list.color}15`,
+            borderBottom: `1px solid ${list.color}30`,
+          }}
+          onMouseEnter={() => setShowActions(true)}
+          onMouseLeave={() => setShowActions(false)}
+        >
+          <div className="flex justify-between items-start mb-2">
+            <h2
+              className="text-lg font-bold flex-1"
+              style={{ color: 'var(--color-text-primary)' }}
+            >
+              {list.name}
+            </h2>
+            {showActions && (
+              <div className="flex gap-1 ml-2">
+                <button
+                  onClick={handleArchive}
+                  className="p-1.5 rounded transition-all hover:scale-110"
+                  style={{
+                    backgroundColor: 'var(--color-background)',
+                    color: 'var(--color-text-secondary)',
+                  }}
+                  title={list.is_archived ? 'Unarchive list' : 'Archive list'}
+                >
+                  <Archive className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => onDelete(list.id, list.name)}
+                  className="p-1.5 rounded transition-all hover:scale-110"
+                  style={{
+                    backgroundColor: 'var(--color-background)',
+                    color: '#ef4444',
+                  }}
+                  title="Delete list"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+          </div>
+          {list.description && (
+            <p className="text-sm mb-2" style={{ color: 'var(--color-text-secondary)' }}>
+              {list.description}
+            </p>
+          )}
+          <div className="flex items-center gap-2">
+            <span
+              className="px-2 py-0.5 rounded-full text-xs font-medium"
+              style={{
+                backgroundColor: list.color,
+                color: 'white',
+              }}
+            >
+              {entries.length} {entries.length === 1 ? 'entry' : 'entries'}
+            </span>
+          </div>
+        </div>
+
+        {/* List Content - Scrollable entries */}
+        <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+          {entries.length === 0 ? (
+            <div className="text-center py-8" style={{ color: 'var(--color-text-secondary)' }}>
+              <p>No entries yet</p>
+              <p className="text-xs mt-2">Add entries from daily notes</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {entries.map((entry) => (
+                <ListCard
+                  key={entry.id}
+                  entry={entry}
+                  listId={list.id}
+                  onRemoveFromList={handleRemoveEntry}
+                  onCardClick={setSelectedEntryId}
+                />
+              ))}
             </div>
           )}
         </div>
-        {list.description && (
-          <p className="text-sm mb-2" style={{ color: 'var(--color-text-secondary)' }}>
-            {list.description}
-          </p>
-        )}
-        <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-          {entries.length} {entries.length === 1 ? 'entry' : 'entries'}
-        </p>
       </div>
 
-      {/* List Content - Scrollable entries */}
-      <div className="flex-1 overflow-y-auto p-4">
-        {entries.length === 0 ? (
-          <div className="text-center py-8" style={{ color: 'var(--color-text-secondary)' }}>
-            <p>No entries yet</p>
-            <p className="text-xs mt-2">Add entries from daily notes</p>
-          </div>
-        ) : (
-          <div>
-            {entries.map((entry) => (
-              <ListCard
-                key={entry.id}
-                entry={entry}
-                listId={list.id}
-                onRemoveFromList={handleRemoveEntry}
-              />
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Drop zone indicator (for future drag-and-drop) */}
-      <div
-        className="p-2 text-center text-xs border-t"
-        style={{
-          borderColor: 'var(--color-border)',
-          color: 'var(--color-text-secondary)',
-        }}
-      >
-        Drop entries here
-      </div>
-    </div>
+      {/* Entry Modal */}
+      {selectedEntryId !== null && (
+        <EntryModal
+          entryId={selectedEntryId}
+          onClose={() => setSelectedEntryId(null)}
+          onUpdate={onUpdate}
+        />
+      )}
+    </>
   );
 };
 

@@ -1,17 +1,15 @@
 import { Star, Check, Skull, X } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import type { NoteEntry } from '../types';
 
 interface ListCardProps {
   entry: NoteEntry;
   onRemoveFromList?: (entryId: number) => void;
+  onCardClick?: (entryId: number) => void;
   listId?: number;
 }
 
-const ListCard = ({ entry, onRemoveFromList, listId }: ListCardProps) => {
-  const navigate = useNavigate();
-
+const ListCard = ({ entry, onRemoveFromList, onCardClick, listId }: ListCardProps) => {
   // Extract plain text from HTML for preview
   const getTextPreview = (html: string, maxLength: number = 150) => {
     const temp = document.createElement('div');
@@ -21,9 +19,9 @@ const ListCard = ({ entry, onRemoveFromList, listId }: ListCardProps) => {
   };
 
   const handleCardClick = () => {
-    // Navigate to the day this entry belongs to
-    const dateStr = format(new Date(entry.created_at), 'yyyy-MM-dd');
-    navigate(`/day/${dateStr}`);
+    if (onCardClick) {
+      onCardClick(entry.id);
+    }
   };
 
   const handleRemove = (e: React.MouseEvent) => {
