@@ -23,6 +23,62 @@ class Label(LabelBase):
         from_attributes = True
 
 
+# ===========================
+# List Schemas (Trello-style boards) - Must be before NoteEntry
+# ===========================
+
+
+class ListBase(BaseModel):
+    name: str
+    description: str = ''
+    color: str = '#3b82f6'
+    order_index: int = 0
+    is_archived: bool = False
+
+
+class ListCreate(ListBase):
+    pass
+
+
+class ListUpdate(BaseModel):
+    name: str | None = None
+    description: str | None = None
+    color: str | None = None
+    order_index: int | None = None
+    is_archived: bool | None = None
+
+
+class ListResponse(ListBase):
+    id: int
+    created_at: datetime
+    updated_at: datetime
+    entry_count: int = 0  # Calculated field
+
+    class Config:
+        from_attributes = True
+
+
+class ListWithEntries(ListResponse):
+    entries: list['NoteEntry'] = []
+
+    class Config:
+        from_attributes = True
+
+
+class EntryListAssociation(BaseModel):
+    entry_id: int
+    list_id: int
+    order_index: int = 0
+
+
+class ReorderEntriesRequest(BaseModel):
+    entries: list[EntryListAssociation]
+
+
+class ReorderListsRequest(BaseModel):
+    lists: list[dict]  # list of {id: int, order_index: int}
+
+
 # Entry Schemas
 class NoteEntryBase(BaseModel):
     title: str = ''
@@ -196,59 +252,3 @@ class GoalResponse(GoalBase):
 
     class Config:
         from_attributes = True
-
-
-# ===========================
-# List Schemas (Trello-style boards)
-# ===========================
-
-
-class ListBase(BaseModel):
-    name: str
-    description: str = ''
-    color: str = '#3b82f6'
-    order_index: int = 0
-    is_archived: bool = False
-
-
-class ListCreate(ListBase):
-    pass
-
-
-class ListUpdate(BaseModel):
-    name: str | None = None
-    description: str | None = None
-    color: str | None = None
-    order_index: int | None = None
-    is_archived: bool | None = None
-
-
-class ListResponse(ListBase):
-    id: int
-    created_at: datetime
-    updated_at: datetime
-    entry_count: int = 0  # Calculated field
-
-    class Config:
-        from_attributes = True
-
-
-class ListWithEntries(ListResponse):
-    entries: list['NoteEntryResponse'] = []
-
-    class Config:
-        from_attributes = True
-
-
-class EntryListAssociation(BaseModel):
-    entry_id: int
-    list_id: int
-    order_index: int = 0
-
-
-class ReorderEntriesRequest(BaseModel):
-    entries: list[EntryListAssociation]
-
-
-class ReorderListsRequest(BaseModel):
-    lists: list[dict]  # list of {id: int, order_index: int}
