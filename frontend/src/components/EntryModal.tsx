@@ -1,6 +1,6 @@
 import { X } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { notesApi } from '../api';
+import { notesApi, entriesApi } from '../api';
 import type { NoteEntry, Label } from '../types';
 import NoteEntryCard from './NoteEntryCard';
 
@@ -60,12 +60,17 @@ const EntryModal = ({ entryId, onClose, onUpdate }: EntryModalProps) => {
   };
 
   const handleEntryDelete = async (id: number) => {
+    if (!confirm('Are you sure you want to delete this entry? This action cannot be undone.')) {
+      return;
+    }
+    
     try {
-      await notesApi.deleteEntry(entry?.daily_note_id || 0, id);
+      await entriesApi.delete(id);
       onUpdate?.();
       onClose();
     } catch (err) {
       console.error('Error deleting entry:', err);
+      alert('Failed to delete entry. Please try again.');
     }
   };
 
