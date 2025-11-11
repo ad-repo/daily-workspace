@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Calendar, Laptop, Settings, FileText, Search, BookOpen, Maximize2, Minimize2 } from 'lucide-react';
+import { Calendar, Laptop, Settings, FileText, Search, BookOpen, Maximize2, Minimize2, Columns } from 'lucide-react';
 import { formatInTimeZone } from 'date-fns-tz';
 import { useTimezone } from '../contexts/TimezoneContext';
 import { useFullScreen } from '../contexts/FullScreenContext';
@@ -44,6 +44,7 @@ const Navigation = () => {
             {[
               { to: `/day/${today}`, icon: BookOpen, label: dayName, path: '/day/' },
               { to: '/calendar', icon: Calendar, label: 'Calendar', path: '/calendar' },
+              { to: '/lists', icon: Columns, label: 'Lists', path: '/lists' },
               { to: '/search', icon: Search, label: 'Search', path: '/search' },
               { to: '/reports', icon: FileText, label: 'Reports', path: '/reports' },
               { to: '/settings', icon: Settings, label: 'Settings', path: '/settings' },
