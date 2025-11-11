@@ -154,14 +154,14 @@ def test_add_entry_to_list(db_session: Session):
     # Setup
     date = unique_date()
     note_response = client.post('/api/notes/', json={'date': date})
-    assert note_response.status_code == 200, f"Failed: {note_response.text}"
+    assert note_response.status_code == 201, f"Failed: {note_response.text}"
     note_id = note_response.json()['id']
     
     entry_response = client.post(
         f'/api/entries/note/{note_id}',
         json={'content': 'Test entry', 'content_type': 'rich_text', 'order_index': 0},
     )
-    assert entry_response.status_code == 200, f"Failed: {entry_response.text}"
+    assert entry_response.status_code == 201, f"Failed: {entry_response.text}"
     entry_id = entry_response.json()['id']
     
     list_name = unique_name('Test List')
@@ -184,14 +184,14 @@ def test_remove_entry_from_list(db_session: Session):
     # Setup
     date = unique_date()
     note_response = client.post('/api/notes/', json={'date': date})
-    assert note_response.status_code == 200, f"Failed: {note_response.text}"
+    assert note_response.status_code == 201, f"Failed: {note_response.text}"
     note_id = note_response.json()['id']
     
     entry_response = client.post(
         f'/api/entries/note/{note_id}',
         json={'content': 'Test entry', 'content_type': 'rich_text', 'order_index': 0},
     )
-    assert entry_response.status_code == 200, f"Failed: {entry_response.text}"
+    assert entry_response.status_code == 201, f"Failed: {entry_response.text}"
     entry_id = entry_response.json()['id']
     
     list_name = unique_name('Test List')
@@ -215,14 +215,14 @@ def test_entry_in_multiple_lists(db_session: Session):
     # Setup
     date = unique_date()
     note_response = client.post('/api/notes/', json={'date': date})
-    assert note_response.status_code == 200, f"Failed: {note_response.text}"
+    assert note_response.status_code == 201, f"Failed: {note_response.text}"
     note_id = note_response.json()['id']
     
     entry_response = client.post(
         f'/api/entries/note/{note_id}',
         json={'content': 'Multi-list entry', 'content_type': 'rich_text', 'order_index': 0},
     )
-    assert entry_response.status_code == 200, f"Failed: {entry_response.text}"
+    assert entry_response.status_code == 201, f"Failed: {entry_response.text}"
     entry_id = entry_response.json()['id']
     
     # Create two lists with unique names
@@ -255,14 +255,14 @@ def test_delete_list_preserves_entries(db_session: Session):
     # Setup
     date = unique_date()
     note_response = client.post('/api/notes/', json={'date': date})
-    assert note_response.status_code == 200, f"Failed: {note_response.text}"
+    assert note_response.status_code == 201, f"Failed: {note_response.text}"
     note_id = note_response.json()['id']
     
     entry_response = client.post(
         f'/api/entries/note/{note_id}',
         json={'content': 'Test entry', 'content_type': 'rich_text', 'order_index': 0},
     )
-    assert entry_response.status_code == 200, f"Failed: {entry_response.text}"
+    assert entry_response.status_code == 201, f"Failed: {entry_response.text}"
     entry_id = entry_response.json()['id']
     
     list_name = unique_name('Test List')
