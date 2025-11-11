@@ -11,17 +11,20 @@ router = APIRouter()
 def search_entries(
     q: str | None = Query(None, description='Search query for content'),
     label_ids: str | None = Query(None, description='Comma-separated label IDs to filter by'),
+    list_ids: str | None = Query(None, description='Comma-separated list IDs to filter by'),
     is_important: bool | None = Query(None, description='Filter by starred/important entries'),
     is_completed: bool | None = Query(None, description='Filter by completed entries'),
     db: Session = Depends(get_db),
 ):
     """
     Global search across all entries.
-    Can search by text content and/or filter by labels, starred status, or completion status.
+    Can search by text content and/or filter by labels, lists, starred status, or completion status.
     """
     # Start with base query that loads relationships
     query = db.query(models.NoteEntry).options(
-        joinedload(models.NoteEntry.labels), joinedload(models.NoteEntry.daily_note)
+        joinedload(models.NoteEntry.labels), 
+        joinedload(models.NoteEntry.lists),
+        joinedload(models.NoteEntry.daily_note)
     )
 
     # Filter by text content if provided
@@ -39,6 +42,16 @@ def search_entries(
         except ValueError:
             pass  # Invalid label IDs, ignore
 
+    # Filter by lists if provided
+    if list_ids and list_ids.strip():
+        try:
+            list_id_list = [int(lid.strip()) for lid in list_ids.split(',') if lid.strip()]
+            if list_id_list:
+                # Join with entry_lists table to filter by lists
+                query = query.join(models.NoteEntry.lists).filter(models.List.id.in_(list_id_list)).distinct()
+        except ValueError:
+            pass  # Invalid list IDs, ignore
+
     # Filter by starred/important status if provided
     if is_important is not None:
         query = query.filter(models.NoteEntry.is_important == is_important)
@@ -53,18 +66,21 @@ def search_entries(
     # Limit results to prevent overwhelming response
     results = query.limit(100).all()
 
-    # Build search results with date from daily_note
+    # Build search results with date from daily_note and lists
     search_results = []
     for entry in results:
         result_dict = {
             'id': entry.id,
             'daily_note_id': entry.daily_note_id,
+            'title': entry.title,
             'content': entry.content,
             'content_type': entry.content_type,
             'order_index': entry.order_index,
             'created_at': entry.created_at,
             'updated_at': entry.updated_at,
             'labels': entry.labels,
+            'lists': entry.lists,
+            'list_names': [lst.name for lst in entry.lists],
             'include_in_report': bool(entry.include_in_report),
             'is_important': bool(entry.is_important),
             'is_completed': bool(entry.is_completed),

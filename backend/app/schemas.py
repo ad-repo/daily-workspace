@@ -133,6 +133,8 @@ class SearchResult(NoteEntryBase):
     created_at: datetime
     updated_at: datetime
     labels: list[Label] = []
+    lists: list['ListResponse'] = []
+    list_names: list[str] = []
     include_in_report: bool = False
     is_important: bool = False
     is_completed: bool = False
