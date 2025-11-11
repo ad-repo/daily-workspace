@@ -44,16 +44,32 @@ const AddEntryToListModal = ({ list, onClose, onUpdate }: AddEntryToListModalPro
   };
 
   const filterEntries = () => {
+    // Filter out entries already in this list
+    const availableEntries = allEntries.filter(
+      (entry) => !entry.lists?.some((l) => l.id === list.id)
+    );
+
     if (!searchQuery.trim()) {
-      setFilteredEntries(allEntries.slice(0, 20)); // Show first 20 if no search
+      setFilteredEntries(availableEntries.slice(0, 20)); // Show first 20 if no search
       return;
     }
 
     const query = searchQuery.toLowerCase();
-    const filtered = allEntries.filter((entry) => {
+    const filtered = availableEntries.filter((entry) => {
+      // Search in title
       const titleMatch = entry.title?.toLowerCase().includes(query);
-      const contentMatch = entry.content?.toLowerCase().includes(query);
-      const labelMatch = entry.labels?.some((label) => label.name.toLowerCase().includes(query));
+      
+      // Search in content (strip HTML for better matching)
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = entry.content;
+      const textContent = tempDiv.textContent || tempDiv.innerText || '';
+      const contentMatch = textContent.toLowerCase().includes(query);
+      
+      // Search in labels
+      const labelMatch = entry.labels?.some((label) => 
+        label.name.toLowerCase().includes(query)
+      );
+      
       return titleMatch || contentMatch || labelMatch;
     });
 

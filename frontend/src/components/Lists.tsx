@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { List, ListWithEntries } from '../types';
 import { listsApi } from '../api';
 import ListColumn from './ListColumn';
@@ -13,6 +13,8 @@ export default function Lists() {
   const [newListDescription, setNewListDescription] = useState('');
   const [newListColor, setNewListColor] = useState('#3b82f6');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     loadLists();
@@ -79,6 +81,16 @@ export default function Lists() {
     }
   };
 
+  const handleScroll = useCallback(() => {
+    const container = scrollContainerRef.current;
+    if (!container || lists.length === 0) return;
+
+    const scrollLeft = container.scrollLeft;
+    const scrollWidth = container.scrollWidth - container.clientWidth;
+    const progress = scrollWidth > 0 ? scrollLeft / scrollWidth : 0;
+    setScrollProgress(progress);
+  }, [lists.length]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen" style={{ backgroundColor: 'var(--color-background)' }}>
@@ -110,37 +122,13 @@ export default function Lists() {
 
   return (
     <div className="h-screen flex flex-col" style={{ backgroundColor: 'var(--color-background)' }}>
-      {/* Header */}
-      <div
-        className="px-8 py-6 border-b flex justify-between items-center shadow-sm"
-        style={{
-          borderColor: 'var(--color-border)',
-          backgroundColor: 'var(--color-card-bg)',
-        }}
-      >
-        <div>
-          <h1 className="text-3xl font-bold mb-1" style={{ color: 'var(--color-text-primary)' }}>
-            Lists
-          </h1>
-          <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-            Organize your entries in Trello-style boards
-          </p>
-        </div>
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="px-5 py-2.5 rounded-lg transition-all hover:scale-105 hover:shadow-lg font-semibold flex items-center gap-2"
-          style={{
-            backgroundColor: 'var(--color-accent)',
-            color: 'white',
-          }}
-        >
-          <Plus className="w-5 h-5" />
-          Create List
-        </button>
-      </div>
-
       {/* Lists Container */}
-      <div className="flex-1 overflow-x-auto overflow-y-hidden" style={{ position: 'relative' }}>
+      <div 
+        ref={scrollContainerRef}
+        onScroll={handleScroll}
+        className="flex-1 overflow-x-auto overflow-y-hidden" 
+        style={{ position: 'relative' }}
+      >
         {isRefreshing && (
           <div className="absolute top-2 right-2 z-10 px-3 py-1 rounded-full text-xs" style={{ backgroundColor: 'var(--color-accent)', color: 'white' }}>
             Updating...
@@ -160,19 +148,9 @@ export default function Lists() {
               <h2 className="text-2xl font-bold mb-3" style={{ color: 'var(--color-text-primary)' }}>
                 No lists yet
               </h2>
-              <p className="mb-6 text-lg" style={{ color: 'var(--color-text-secondary)' }}>
-                Create your first list to start organizing your note entries
-              </p>
-              <button
-                onClick={() => setShowCreateModal(true)}
-                className="px-6 py-3 rounded-lg font-semibold transition-all hover:scale-105 hover:shadow-lg"
-                style={{
-                  backgroundColor: 'var(--color-accent)',
-                  color: 'white',
-                }}
-              >
-                Create Your First List
-              </button>
+                      <p className="mb-6 text-lg" style={{ color: 'var(--color-text-secondary)' }}>
+                        Click the + button below to create your first list
+                      </p>
             </div>
           </div>
         ) : (
@@ -188,7 +166,67 @@ export default function Lists() {
             ))}
           </div>
         )}
+
+        {/* Scroll Indicator */}
+        {lists.length > 0 && (
+          <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 z-50 pointer-events-none">
+            <div 
+              className="flex items-center gap-3 px-5 py-3 rounded-full shadow-2xl backdrop-blur-sm"
+              style={{
+                backgroundColor: 'var(--color-card-bg)' + 'f0',
+                border: '2px solid var(--color-border)',
+              }}
+            >
+              <span 
+                className="text-sm font-semibold"
+                style={{ color: 'var(--color-text-primary)' }}
+              >
+                {lists.length} {lists.length === 1 ? 'list' : 'lists'}
+              </span>
+              {lists.length > 1 && (
+                <>
+                  <div 
+                    className="w-px h-4" 
+                    style={{ backgroundColor: 'var(--color-border)' }}
+                  />
+                  <div className="flex gap-2">
+                    {lists.map((list, index) => {
+                      const listProgress = index / Math.max(lists.length - 1, 1);
+                      const isActive = Math.abs(scrollProgress - listProgress) < 0.35;
+                      
+                      return (
+                        <div
+                          key={list.id}
+                          className="w-2.5 h-2.5 rounded-full transition-all duration-200"
+                          style={{
+                            backgroundColor: isActive ? 'var(--color-accent)' : 'var(--color-border)',
+                            transform: isActive ? 'scale(1.4)' : 'scale(1)',
+                            boxShadow: isActive ? `0 0 8px ${list.color}` : 'none',
+                          }}
+                          title={list.name}
+                        />
+                      );
+                    })}
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* Floating Action Button */}
+      <button
+        onClick={() => setShowCreateModal(true)}
+        className="fixed bottom-8 right-8 w-16 h-16 rounded-full shadow-2xl transition-all hover:scale-110 hover:shadow-3xl flex items-center justify-center z-40"
+        style={{
+          backgroundColor: 'var(--color-accent)',
+          color: 'white',
+        }}
+        title="Create New List"
+      >
+        <Plus className="w-8 h-8" />
+      </button>
 
       {/* Create List Modal */}
       {showCreateModal && (

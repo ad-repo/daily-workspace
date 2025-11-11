@@ -20,8 +20,8 @@ test.describe('Lists Feature', () => {
     await page.locator('text=Lists').click();
     await page.waitForTimeout(1000);
     
-    // Click Create List button
-    await page.locator('button:has-text("Create List")').click();
+    // Click floating Create List button
+    await page.locator('button[title="Create New List"]').click();
     await page.waitForTimeout(500);
     
     // Fill in list details
@@ -66,7 +66,7 @@ test.describe('Lists Feature', () => {
     await page.waitForTimeout(1000);
     
     // Create a list to delete
-    await page.locator('button:has-text("Create List")').click();
+    await page.locator('button[title="Create New List"]').click();
     await page.waitForTimeout(500);
     await page.fill('input[placeholder="Enter list name"]', 'List to Delete');
     await page.locator('button:has-text("Create")').click();
@@ -106,7 +106,7 @@ test.describe('Lists Feature', () => {
     // Create a list if needed
     const hasLists = await page.locator('.flex-shrink-0.w-96').count() > 0;
     if (!hasLists) {
-      await page.locator('button:has-text("Create List")').click();
+      await page.locator('button[title="Create New List"]').click();
       await page.waitForTimeout(500);
       await page.fill('input[placeholder*="list name"]', 'Test List');
       await page.locator('button:has-text("Create")').click();
@@ -173,7 +173,7 @@ test.describe('Lists Feature', () => {
     }
 
     if (!testListExists) {
-      await page.locator('button:has-text("Create List")').click();
+      await page.locator('button[title="Create New List"]').click();
       await page.waitForTimeout(500);
       await page.fill('input[placeholder*="list name"]', 'Search Test List');
       await page.locator('button:has-text("Create")').click();
@@ -216,7 +216,7 @@ test.describe('Lists Feature', () => {
     } catch (e) {}
 
     if (!addListExists) {
-      await page.locator('button:has-text("Create List")').click();
+      await page.locator('button[title="Create New List"]').click();
       await page.waitForTimeout(500);
       await page.fill('input[placeholder*="list name"]', 'Add Search List');
       await page.locator('button:has-text("Create")').click();
@@ -284,14 +284,14 @@ test.describe('Lists Feature', () => {
     await page.waitForTimeout(1000);
 
     // Create first list
-    await page.locator('button:has-text("Create List")').click();
+    await page.locator('button[title="Create New List"]').click();
     await page.waitForTimeout(500);
     await page.fill('input[placeholder*="list name"]', 'Multi List A');
     await page.locator('button:has-text("Create")').click();
     await page.waitForTimeout(1500);
 
     // Create second list
-    await page.locator('button:has-text("Create List")').click();
+    await page.locator('button[title="Create New List"]').click();
     await page.waitForTimeout(500);
     await page.fill('input[placeholder*="list name"]', 'Multi List B');
     await page.locator('button:has-text("Create")').click();

@@ -47,7 +47,7 @@ class TestBackupExportAPI:
 
         assert response.status_code == 200
         data = response.json()
-        assert data['version'] == '5.0'
+        assert data['version'] == '6.0'
 
     def test_export_includes_notes_and_entries(self, client: TestClient, db_session: Session):
         """Test that export includes all notes and their entries."""
