@@ -15,6 +15,8 @@ export default function Lists() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [draggedListId, setDraggedListId] = useState<number | null>(null);
+  const [dragOverListId, setDragOverListId] = useState<number | null>(null);
 
   useEffect(() => {
     loadLists();
@@ -91,6 +93,64 @@ export default function Lists() {
     setScrollProgress(progress);
   }, [lists.length]);
 
+  const handleListDragStart = (listId: number) => {
+    setDraggedListId(listId);
+  };
+
+  const handleListDragOver = (e: React.DragEvent, listId: number) => {
+    e.preventDefault();
+    if (draggedListId === null || draggedListId === listId) return;
+    setDragOverListId(listId);
+  };
+
+  const handleListDragLeave = () => {
+    setDragOverListId(null);
+  };
+
+  const handleListDrop = async (targetListId: number) => {
+    if (draggedListId === null || draggedListId === targetListId) {
+      setDraggedListId(null);
+      setDragOverListId(null);
+      return;
+    }
+
+    try {
+      // Find the indices
+      const draggedIndex = lists.findIndex((l) => l.id === draggedListId);
+      const targetIndex = lists.findIndex((l) => l.id === targetListId);
+
+      if (draggedIndex === -1 || targetIndex === -1) return;
+
+      // Reorder locally first for instant feedback
+      const newLists = [...lists];
+      const [removed] = newLists.splice(draggedIndex, 1);
+      newLists.splice(targetIndex, 0, removed);
+
+      // Update order_index for all affected lists
+      const reorderedLists = newLists.map((list, index) => ({
+        id: list.id,
+        order_index: index,
+      }));
+
+      setLists(newLists);
+
+      // Send to backend
+      await listsApi.reorderLists(reorderedLists);
+    } catch (err) {
+      console.error('Error reordering lists:', err);
+      // Reload to get correct state
+      loadLists(true);
+    } finally {
+      setDraggedListId(null);
+      setDragOverListId(null);
+    }
+  };
+
+  const handleListDragEnd = () => {
+    setDraggedListId(null);
+    setDragOverListId(null);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen" style={{ backgroundColor: 'var(--color-background)' }}>
@@ -148,21 +208,35 @@ export default function Lists() {
               <h2 className="text-2xl font-bold mb-3" style={{ color: 'var(--color-text-primary)' }}>
                 No lists yet
               </h2>
-                      <p className="mb-6 text-lg" style={{ color: 'var(--color-text-secondary)' }}>
-                        Click the + button below to create your first list
-                      </p>
+              <p className="mb-6 text-lg" style={{ color: 'var(--color-text-secondary)' }}>
+                Create lists to organize your note entries in Trello-style boards
+              </p>
             </div>
           </div>
         ) : (
           <div className="flex gap-6 p-8 h-full items-start">
             {lists.map((list) => (
-              <ListColumn
+              <div
                 key={list.id}
-                list={list}
-                entries={list.entries}
-                onUpdate={() => loadLists(true)}
-                onDelete={handleDeleteList}
-              />
+                draggable
+                onDragStart={() => handleListDragStart(list.id)}
+                onDragOver={(e) => handleListDragOver(e, list.id)}
+                onDragLeave={handleListDragLeave}
+                onDrop={() => handleListDrop(list.id)}
+                onDragEnd={handleListDragEnd}
+                style={{
+                  opacity: draggedListId === list.id ? 0.5 : 1,
+                  transform: dragOverListId === list.id && draggedListId !== list.id ? 'scale(1.02)' : 'scale(1)',
+                  transition: 'transform 0.2s ease, opacity 0.2s ease',
+                }}
+              >
+                <ListColumn
+                  list={list}
+                  entries={list.entries}
+                  onUpdate={() => loadLists(true)}
+                  onDelete={handleDeleteList}
+                />
+              </div>
             ))}
           </div>
         )}
