@@ -107,7 +107,10 @@ export default function Lists() {
     setDragOverListId(null);
   };
 
-  const handleListDrop = async (targetListId: number) => {
+  const handleListDrop = async (e: React.DragEvent, targetListId: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
     if (draggedListId === null || draggedListId === targetListId) {
       setDraggedListId(null);
       setDragOverListId(null);
@@ -119,30 +122,38 @@ export default function Lists() {
       const draggedIndex = lists.findIndex((l) => l.id === draggedListId);
       const targetIndex = lists.findIndex((l) => l.id === targetListId);
 
-      if (draggedIndex === -1 || targetIndex === -1) return;
+      if (draggedIndex === -1 || targetIndex === -1) {
+        console.error('Invalid indices', { draggedIndex, targetIndex });
+        return;
+      }
+
+      console.log('Reordering from', draggedIndex, 'to', targetIndex);
 
       // Reorder locally first for instant feedback
       const newLists = [...lists];
       const [removed] = newLists.splice(draggedIndex, 1);
       newLists.splice(targetIndex, 0, removed);
 
-      // Update order_index for all affected lists
+      // Update order_index for all lists
       const reorderedLists = newLists.map((list, index) => ({
         id: list.id,
         order_index: index,
       }));
 
-      setLists(newLists);
+      console.log('New order:', reorderedLists);
 
-      // Send to backend
+      // Update state immediately
+      setLists(newLists);
+      setDraggedListId(null);
+      setDragOverListId(null);
+
+      // Send to backend in background
       await listsApi.reorderLists(reorderedLists);
+      console.log('Backend updated successfully');
     } catch (err) {
       console.error('Error reordering lists:', err);
       // Reload to get correct state
-      loadLists(true);
-    } finally {
-      setDraggedListId(null);
-      setDragOverListId(null);
+      await loadLists(true);
     }
   };
 
@@ -222,12 +233,13 @@ export default function Lists() {
                 onDragStart={() => handleListDragStart(list.id)}
                 onDragOver={(e) => handleListDragOver(e, list.id)}
                 onDragLeave={handleListDragLeave}
-                onDrop={() => handleListDrop(list.id)}
+                onDrop={(e) => handleListDrop(e, list.id)}
                 onDragEnd={handleListDragEnd}
                 style={{
                   opacity: draggedListId === list.id ? 0.5 : 1,
                   transform: dragOverListId === list.id && draggedListId !== list.id ? 'scale(1.02)' : 'scale(1)',
                   transition: 'transform 0.2s ease, opacity 0.2s ease',
+                  cursor: 'grab',
                 }}
               >
                 <ListColumn
