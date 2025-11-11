@@ -35,6 +35,9 @@ export default function Lists() {
       const detailedLists = await Promise.all(
         allLists.map((list) => listsApi.getById(list.id))
       );
+      // CRITICAL: Sort by order_index to maintain correct order
+      // Promise.all doesn't guarantee order, so we must sort explicitly
+      detailedLists.sort((a, b) => a.order_index - b.order_index);
       setLists(detailedLists);
       setError(null);
     } catch (err) {
