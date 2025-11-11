@@ -58,13 +58,6 @@ class ListResponse(ListBase):
         from_attributes = True
 
 
-class ListWithEntries(ListResponse):
-    entries: list['NoteEntry'] = []
-
-    class Config:
-        from_attributes = True
-
-
 class EntryListAssociation(BaseModel):
     entry_id: int
     list_id: int
@@ -113,6 +106,14 @@ class NoteEntry(NoteEntryBase):
     is_important: bool = False
     is_completed: bool = False
     is_dev_null: bool = False
+
+    class Config:
+        from_attributes = True
+
+
+# ListWithEntries - defined after NoteEntry due to forward reference
+class ListWithEntries(ListResponse):
+    entries: list[NoteEntry] = []
 
     class Config:
         from_attributes = True
