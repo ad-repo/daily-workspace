@@ -112,39 +112,41 @@ describe('Lists Drag and Drop', () => {
     });
 
     // Get all list columns
-    const listColumns = screen.getAllByTestId(/list-column-/);
+    let listColumns = screen.getAllByTestId(/list-column-/);
     expect(listColumns).toHaveLength(3);
     
-    // Initial order should be A, B, C
+    // Initial order should be A, B, C (IDs 1, 2, 3)
     expect(listColumns[0]).toHaveAttribute('data-testid', 'list-column-1');
     expect(listColumns[1]).toHaveAttribute('data-testid', 'list-column-2');
     expect(listColumns[2]).toHaveAttribute('data-testid', 'list-column-3');
 
-    // Get the draggable headers (they are inside the list columns)
-    const listAContainer = listColumns[0].parentElement;
+    // Get the draggable header for List A and the container for List C
+    const draggableA = listColumns[0].querySelector('[draggable]');
     const listCContainer = listColumns[2].parentElement;
-    const headerA = listColumns[0].previousElementSibling || listColumns[0].querySelector('[draggable]');
-
-    // Find draggable element (should be the header)
-    const draggableA = listAContainer?.querySelector('[draggable]');
 
     expect(draggableA).not.toBeNull();
     expect(listCContainer).not.toBeNull();
 
-    // Simulate drag and drop: drag List A to List C position
+    // Simulate drag and drop: drag List A to List C position (A moves to end)
     fireEvent.dragStart(draggableA!);
     fireEvent.dragOver(listCContainer!);
     fireEvent.drop(listCContainer!);
     fireEvent.dragEnd(draggableA!);
 
-    // Verify reorderLists API was called with correct order
+    // Verify reorderLists API was called with correct order: B, C, A
     await waitFor(() => {
       expect(api.listsApi.reorderLists).toHaveBeenCalledWith([
-        { id: 2, order_index: 0 },
-        { id: 3, order_index: 1 },
-        { id: 1, order_index: 2 },
+        { id: 2, order_index: 0 }, // List B first
+        { id: 3, order_index: 1 }, // List C second
+        { id: 1, order_index: 2 }, // List A last
       ]);
     });
+
+    // Verify the DOM order changed immediately (optimistic update)
+    listColumns = screen.getAllByTestId(/list-column-/);
+    expect(listColumns[0]).toHaveAttribute('data-testid', 'list-column-2'); // B
+    expect(listColumns[1]).toHaveAttribute('data-testid', 'list-column-3'); // C
+    expect(listColumns[2]).toHaveAttribute('data-testid', 'list-column-1'); // A
   });
 
   it('should show visual feedback during drag', async () => {
@@ -158,15 +160,15 @@ describe('Lists Drag and Drop', () => {
       expect(screen.getByText('List A')).toBeInTheDocument();
     });
 
-    const dragHandles = screen.getAllByText('GripVertical');
-    const handleA = dragHandles[0].closest('[draggable]') as HTMLElement;
-    const listAContainer = screen.getByTestId('list-column-1').parentElement as HTMLElement;
+    const listAColumn = screen.getByTestId('list-column-1');
+    const draggableHeader = listAColumn.querySelector('[draggable]') as HTMLElement;
+    const listAContainer = listAColumn.parentElement as HTMLElement;
 
     // Check initial opacity
     expect(listAContainer.style.opacity).toBe('');
 
     // Start dragging
-    fireEvent.dragStart(handleA);
+    fireEvent.dragStart(draggableHeader);
 
     // Should have reduced opacity when dragging
     await waitFor(() => {
@@ -185,14 +187,14 @@ describe('Lists Drag and Drop', () => {
       expect(screen.getByText('List A')).toBeInTheDocument();
     });
 
-    const dragHandles = screen.getAllByText('GripVertical');
-    const handleA = dragHandles[0].closest('[draggable]');
-    const listAContainer = screen.getByTestId('list-column-1').parentElement;
+    const listAColumn = screen.getByTestId('list-column-1');
+    const draggableHeader = listAColumn.querySelector('[draggable]') as HTMLElement;
+    const listAContainer = listAColumn.parentElement;
 
     // Drag and drop on itself
-    fireEvent.dragStart(handleA!);
+    fireEvent.dragStart(draggableHeader);
     fireEvent.drop(listAContainer!);
-    fireEvent.dragEnd(handleA!);
+    fireEvent.dragEnd(draggableHeader);
 
     // Should not call API
     expect(api.listsApi.reorderLists).not.toHaveBeenCalled();
@@ -209,16 +211,17 @@ describe('Lists Drag and Drop', () => {
       expect(screen.getByText('List A')).toBeInTheDocument();
     });
 
-    const dragHandles = screen.getAllByText('GripVertical');
-    const handleA = dragHandles[0].closest('[draggable]') as HTMLElement;
-    const listAContainer = screen.getByTestId('list-column-1').parentElement as HTMLElement;
+    // Get the draggable header for List A
+    const listAColumn = screen.getByTestId('list-column-1');
+    const draggableHeader = listAColumn.querySelector('[draggable]') as HTMLElement;
+    const listAContainer = listAColumn.parentElement as HTMLElement;
 
     // Start dragging
-    fireEvent.dragStart(handleA);
+    fireEvent.dragStart(draggableHeader);
     expect(listAContainer.style.opacity).toBe('0.5');
 
     // Cancel drag
-    fireEvent.dragEnd(handleA);
+    fireEvent.dragEnd(draggableHeader);
 
     // Should reset opacity
     await waitFor(() => {
