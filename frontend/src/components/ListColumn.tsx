@@ -148,23 +148,32 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
             borderBottom: `3px solid ${list.color}`,
             background: `linear-gradient(135deg, ${list.color}08 0%, ${list.color}15 100%)`,
             cursor: isDragging ? 'grabbing' : 'grab',
+            userSelect: 'none',
+            WebkitUserDrag: 'element',
           }}
-          draggable
+          draggable="true"
           onDragStart={(e) => {
-            console.log('DRAG START on header');
+            console.log('DRAG START on header', list.id);
             e.dataTransfer.setData('text/x-listid', list.id.toString());
             e.dataTransfer.effectAllowed = 'move';
             onDragStart?.();
           }}
           onDragEnd={(e) => {
-            console.log('DRAG END on header');
+            console.log('DRAG END on header', list.id);
             onDragEnd?.();
           }}
           onMouseEnter={() => setShowActions(true)}
           onMouseLeave={() => setShowActions(false)}
+          onMouseDown={(e) => {
+            // If clicking a button, don't start drag
+            const target = e.target as HTMLElement;
+            if (target.closest('button')) {
+              e.stopPropagation();
+            }
+          }}
         >
-          <div className="flex justify-between items-start mb-3" style={{ pointerEvents: 'none' }}>
-            <div className="flex items-center gap-2 flex-1 min-w-0">
+          <div className="flex justify-between items-start mb-3">
+            <div className="flex items-center gap-2 flex-1 min-w-0" style={{ pointerEvents: 'none' }}>
               <div
                 className="w-1 h-8 rounded-full flex-shrink-0"
                 style={{ backgroundColor: list.color }}
@@ -178,7 +187,7 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
               </h2>
             </div>
             {showActions && (
-              <div className="flex gap-1.5 ml-2" style={{ pointerEvents: 'auto' }}>
+              <div className="flex gap-1.5 ml-2" style={{ pointerEvents: 'auto' }} onMouseDown={(e) => e.stopPropagation()}>
                 <button
                   onClick={() => setShowAddModal(true)}
                   className="p-2 rounded-lg transition-all hover:scale-110 hover:shadow-md"
