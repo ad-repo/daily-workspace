@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Trash2, Edit2, Archive } from 'lucide-react';
+import { Trash2, Edit2, Archive, Plus } from 'lucide-react';
 import type { List, NoteEntry } from '../types';
 import ListCard from './ListCard';
 import EntryModal from './EntryModal';
