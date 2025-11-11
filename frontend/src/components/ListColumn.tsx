@@ -3,6 +3,7 @@ import { Trash2, Edit2, Archive, Plus } from 'lucide-react';
 import type { List, NoteEntry } from '../types';
 import ListCard from './ListCard';
 import EntryModal from './EntryModal';
+import AddEntryToListModal from './AddEntryToListModal';
 import { listsApi } from '../api';
 
 interface ListColumnProps {
@@ -16,6 +17,7 @@ const ListColumn = ({ list, entries, onUpdate, onDelete }: ListColumnProps) => {
   const [showActions, setShowActions] = useState(false);
   const [selectedEntryId, setSelectedEntryId] = useState<number | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
 
   const handleRemoveEntry = async (entryId: number) => {
     try {
@@ -123,6 +125,17 @@ const ListColumn = ({ list, entries, onUpdate, onDelete }: ListColumnProps) => {
             {showActions && (
               <div className="flex gap-1.5 ml-2">
                 <button
+                  onClick={() => setShowAddModal(true)}
+                  className="p-2 rounded-lg transition-all hover:scale-110 hover:shadow-md"
+                  style={{
+                    backgroundColor: list.color,
+                    color: 'white',
+                  }}
+                  title="Add entries via search"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+                <button
                   onClick={handleArchive}
                   className="p-2 rounded-lg transition-all hover:scale-110 hover:shadow-md"
                   style={{
@@ -207,6 +220,15 @@ const ListColumn = ({ list, entries, onUpdate, onDelete }: ListColumnProps) => {
         <EntryModal
           entryId={selectedEntryId}
           onClose={() => setSelectedEntryId(null)}
+          onUpdate={onUpdate}
+        />
+      )}
+
+      {/* Add Entry Modal */}
+      {showAddModal && (
+        <AddEntryToListModal
+          list={list}
+          onClose={() => setShowAddModal(false)}
           onUpdate={onUpdate}
         />
       )}
