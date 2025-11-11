@@ -83,12 +83,14 @@ const ListColumn = ({ list, entries, onUpdate, onDelete }: ListColumnProps) => {
   return (
     <>
       <div
-        className="flex-shrink-0 w-80 rounded-lg shadow-md flex flex-col transition-all hover:shadow-lg"
+        className="flex-shrink-0 w-96 rounded-xl shadow-lg flex flex-col transition-all"
         style={{
-          backgroundColor: isDragOver ? `${list.color}10` : 'var(--color-card-bg)',
-          border: `3px solid ${list.color}`,
-          borderStyle: isDragOver ? 'dashed' : 'solid',
-          maxHeight: 'calc(100vh - 12rem)',
+          backgroundColor: isDragOver ? `${list.color}15` : 'var(--color-card-bg)',
+          border: isDragOver ? `3px dashed ${list.color}` : '1px solid var(--color-border)',
+          maxHeight: 'calc(100vh - 14rem)',
+          boxShadow: isDragOver 
+            ? `0 0 20px ${list.color}40` 
+            : '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
         }}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -96,26 +98,33 @@ const ListColumn = ({ list, entries, onUpdate, onDelete }: ListColumnProps) => {
       >
         {/* List Header */}
         <div
-          className="p-4 rounded-t-lg"
+          className="px-5 py-4"
           style={{
-            backgroundColor: `${list.color}15`,
-            borderBottom: `1px solid ${list.color}30`,
+            borderBottom: `3px solid ${list.color}`,
+            background: `linear-gradient(135deg, ${list.color}08 0%, ${list.color}15 100%)`,
           }}
           onMouseEnter={() => setShowActions(true)}
           onMouseLeave={() => setShowActions(false)}
         >
-          <div className="flex justify-between items-start mb-2">
-            <h2
-              className="text-lg font-bold flex-1"
-              style={{ color: 'var(--color-text-primary)' }}
-            >
-              {list.name}
-            </h2>
+          <div className="flex justify-between items-start mb-3">
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              <div
+                className="w-1 h-8 rounded-full flex-shrink-0"
+                style={{ backgroundColor: list.color }}
+              />
+              <h2
+                className="text-xl font-bold truncate"
+                style={{ color: 'var(--color-text-primary)' }}
+                title={list.name}
+              >
+                {list.name}
+              </h2>
+            </div>
             {showActions && (
-              <div className="flex gap-1 ml-2">
+              <div className="flex gap-1.5 ml-2">
                 <button
                   onClick={handleArchive}
-                  className="p-1.5 rounded transition-all hover:scale-110"
+                  className="p-2 rounded-lg transition-all hover:scale-110 hover:shadow-md"
                   style={{
                     backgroundColor: 'var(--color-background)',
                     color: 'var(--color-text-secondary)',
@@ -126,9 +135,9 @@ const ListColumn = ({ list, entries, onUpdate, onDelete }: ListColumnProps) => {
                 </button>
                 <button
                   onClick={() => onDelete(list.id, list.name)}
-                  className="p-1.5 rounded transition-all hover:scale-110"
+                  className="p-2 rounded-lg transition-all hover:scale-110 hover:shadow-md"
                   style={{
-                    backgroundColor: 'var(--color-background)',
+                    backgroundColor: '#fee',
                     color: '#ef4444',
                   }}
                   title="Delete list"
@@ -139,13 +148,17 @@ const ListColumn = ({ list, entries, onUpdate, onDelete }: ListColumnProps) => {
             )}
           </div>
           {list.description && (
-            <p className="text-sm mb-2" style={{ color: 'var(--color-text-secondary)' }}>
+            <p 
+              className="text-sm mb-3 ml-3 break-words line-clamp-2"
+              style={{ color: 'var(--color-text-secondary)' }}
+              title={list.description}
+            >
               {list.description}
             </p>
           )}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 ml-3">
             <span
-              className="px-2 py-0.5 rounded-full text-xs font-medium"
+              className="px-3 py-1 rounded-full text-xs font-semibold shadow-sm"
               style={{
                 backgroundColor: list.color,
                 color: 'white',
@@ -157,11 +170,21 @@ const ListColumn = ({ list, entries, onUpdate, onDelete }: ListColumnProps) => {
         </div>
 
         {/* List Content - Scrollable entries */}
-        <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto p-5 custom-scrollbar">
           {entries.length === 0 ? (
-            <div className="text-center py-8" style={{ color: 'var(--color-text-secondary)' }}>
-              <p>No entries yet</p>
-              <p className="text-xs mt-2">Add entries from daily notes</p>
+            <div className="text-center py-12">
+              <div
+                className="w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4"
+                style={{ backgroundColor: list.color + '20' }}
+              >
+                <Plus className="w-8 h-8" style={{ color: list.color }} />
+              </div>
+              <p className="font-medium" style={{ color: 'var(--color-text-secondary)' }}>
+                No entries yet
+              </p>
+              <p className="text-xs mt-1" style={{ color: 'var(--color-text-secondary)' }}>
+                Drag entries here or add from daily notes
+              </p>
             </div>
           ) : (
             <div className="space-y-3">

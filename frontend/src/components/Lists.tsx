@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { List, ListWithEntries } from '../types';
 import { listsApi } from '../api';
 import ListColumn from './ListColumn';
+import { Plus } from 'lucide-react';
 
 export default function Lists() {
   const [lists, setLists] = useState<ListWithEntries[]>([]);
@@ -11,14 +12,19 @@ export default function Lists() {
   const [newListName, setNewListName] = useState('');
   const [newListDescription, setNewListDescription] = useState('');
   const [newListColor, setNewListColor] = useState('#3b82f6');
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     loadLists();
   }, []);
 
-  const loadLists = async () => {
+  const loadLists = useCallback(async (silent = false) => {
     try {
-      setLoading(true);
+      if (!silent) {
+        setLoading(true);
+      } else {
+        setIsRefreshing(true);
+      }
       // Get all lists first
       const allLists = await listsApi.getAll(false);
       // Fetch detailed data (with entries) for each list
@@ -32,8 +38,9 @@ export default function Lists() {
       console.error('Error loading lists:', err);
     } finally {
       setLoading(false);
+      setIsRefreshing(false);
     }
-  };
+  }, []);
 
   const handleCreateList = async () => {
     if (!newListName.trim()) {
@@ -51,7 +58,7 @@ export default function Lists() {
       setNewListDescription('');
       setNewListColor('#3b82f6');
       setShowCreateModal(false);
-      loadLists();
+      loadLists(true); // Silent refresh
     } catch (err: any) {
       alert(err?.response?.data?.detail || 'Failed to create list');
       console.error('Error creating list:', err);
@@ -65,7 +72,7 @@ export default function Lists() {
 
     try {
       await listsApi.delete(listId);
-      loadLists();
+      loadLists(true); // Silent refresh
     } catch (err: any) {
       alert(err?.response?.data?.detail || 'Failed to delete list');
       console.error('Error deleting list:', err);
@@ -74,16 +81,29 @@ export default function Lists() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div>Loading lists...</div>
+      <div className="flex items-center justify-center h-screen" style={{ backgroundColor: 'var(--color-background)' }}>
+        <div className="text-center">
+          <div className="animate-pulse" style={{ color: 'var(--color-text-secondary)' }}>
+            Loading lists...
+          </div>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="text-red-500">{error}</div>
+      <div className="flex items-center justify-center h-screen" style={{ backgroundColor: 'var(--color-background)' }}>
+        <div className="text-center">
+          <div className="text-red-500 text-lg">{error}</div>
+          <button
+            onClick={() => loadLists()}
+            className="mt-4 px-4 py-2 rounded"
+            style={{ backgroundColor: 'var(--color-accent)', color: 'white' }}
+          >
+            Retry
+          </button>
+        </div>
       </div>
     );
   }
@@ -92,44 +112,77 @@ export default function Lists() {
     <div className="h-screen flex flex-col" style={{ backgroundColor: 'var(--color-background)' }}>
       {/* Header */}
       <div
-        className="p-4 border-b flex justify-between items-center"
+        className="px-8 py-6 border-b flex justify-between items-center shadow-sm"
         style={{
           borderColor: 'var(--color-border)',
-          backgroundColor: 'var(--color-surface)',
+          backgroundColor: 'var(--color-card-bg)',
         }}
       >
-        <h1 className="text-2xl font-bold" style={{ color: 'var(--color-text-primary)' }}>
-          Lists
-        </h1>
+        <div>
+          <h1 className="text-3xl font-bold mb-1" style={{ color: 'var(--color-text-primary)' }}>
+            Lists
+          </h1>
+          <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+            Organize your entries in Trello-style boards
+          </p>
+        </div>
         <button
           onClick={() => setShowCreateModal(true)}
-          className="px-4 py-2 rounded transition-all hover:scale-105 hover:shadow-lg font-medium"
+          className="px-5 py-2.5 rounded-lg transition-all hover:scale-105 hover:shadow-lg font-semibold flex items-center gap-2"
           style={{
             backgroundColor: 'var(--color-accent)',
             color: 'white',
           }}
         >
-          + Create List
+          <Plus className="w-5 h-5" />
+          Create List
         </button>
       </div>
 
       {/* Lists Container */}
-      <div className="flex-1 overflow-x-auto overflow-y-hidden">
+      <div className="flex-1 overflow-x-auto overflow-y-hidden" style={{ position: 'relative' }}>
+        {isRefreshing && (
+          <div className="absolute top-2 right-2 z-10 px-3 py-1 rounded-full text-xs" style={{ backgroundColor: 'var(--color-accent)', color: 'white' }}>
+            Updating...
+          </div>
+        )}
         {lists.length === 0 ? (
           <div className="flex items-center justify-center h-full">
-            <div className="text-center" style={{ color: 'var(--color-text-secondary)' }}>
-              <p className="text-xl mb-4">No lists yet</p>
-              <p>Create your first list to organize your note entries</p>
+            <div className="text-center max-w-md p-8">
+              <div className="mb-6">
+                <div
+                  className="w-24 h-24 mx-auto rounded-full flex items-center justify-center mb-4"
+                  style={{ backgroundColor: 'var(--color-accent)' + '20' }}
+                >
+                  <Plus className="w-12 h-12" style={{ color: 'var(--color-accent)' }} />
+                </div>
+              </div>
+              <h2 className="text-2xl font-bold mb-3" style={{ color: 'var(--color-text-primary)' }}>
+                No lists yet
+              </h2>
+              <p className="mb-6 text-lg" style={{ color: 'var(--color-text-secondary)' }}>
+                Create your first list to start organizing your note entries
+              </p>
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="px-6 py-3 rounded-lg font-semibold transition-all hover:scale-105 hover:shadow-lg"
+                style={{
+                  backgroundColor: 'var(--color-accent)',
+                  color: 'white',
+                }}
+              >
+                Create Your First List
+              </button>
             </div>
           </div>
         ) : (
-          <div className="flex gap-4 p-4 h-full">
+          <div className="flex gap-6 p-8 h-full items-start">
             {lists.map((list) => (
               <ListColumn
                 key={list.id}
                 list={list}
                 entries={list.entries}
-                onUpdate={loadLists}
+                onUpdate={() => loadLists(true)}
                 onDelete={handleDeleteList}
               />
             ))}
