@@ -15,6 +15,7 @@ interface ListColumnProps {
 const ListColumn = ({ list, entries, onUpdate, onDelete }: ListColumnProps) => {
   const [showActions, setShowActions] = useState(false);
   const [selectedEntryId, setSelectedEntryId] = useState<number | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
 
   const handleRemoveEntry = async (entryId: number) => {
     try {
@@ -36,15 +37,62 @@ const ListColumn = ({ list, entries, onUpdate, onDelete }: ListColumnProps) => {
     }
   };
 
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = 'move';
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+
+    const entryId = parseInt(e.dataTransfer.getData('entryId'));
+    const sourceListId = parseInt(e.dataTransfer.getData('sourceListId'));
+
+    if (!entryId) return;
+
+    // Don't do anything if dropped on the same list
+    if (sourceListId === list.id) return;
+
+    try {
+      // Remove from source list if it was in one
+      if (sourceListId) {
+        await listsApi.removeEntry(sourceListId, entryId);
+      }
+      
+      // Add to target list
+      await listsApi.addEntry(list.id, entryId);
+      
+      // Refresh the lists
+      onUpdate();
+    } catch (error: any) {
+      alert(error?.response?.data?.detail || 'Failed to move entry');
+      console.error('Error moving entry:', error);
+    }
+  };
+
   return (
     <>
       <div
         className="flex-shrink-0 w-80 rounded-lg shadow-md flex flex-col transition-all hover:shadow-lg"
         style={{
-          backgroundColor: 'var(--color-card-bg)',
+          backgroundColor: isDragOver ? `${list.color}10` : 'var(--color-card-bg)',
           border: `3px solid ${list.color}`,
+          borderStyle: isDragOver ? 'dashed' : 'solid',
           maxHeight: 'calc(100vh - 12rem)',
         }}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
       >
         {/* List Header */}
         <div

@@ -140,91 +140,110 @@ export default function Lists() {
       {/* Create List Modal */}
       {showCreateModal && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
           onClick={() => setShowCreateModal(false)}
         >
           <div
-            className="rounded-lg p-6 w-96 max-w-full m-4"
-            style={{ backgroundColor: 'var(--color-surface)' }}
+            className="rounded-xl shadow-2xl p-6 w-full max-w-md"
+            style={{
+              backgroundColor: 'var(--color-card-bg)',
+              border: '1px solid var(--color-border)',
+            }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="text-xl font-bold mb-4" style={{ color: 'var(--color-text-primary)' }}>
+            <h2
+              className="text-2xl font-bold mb-6"
+              style={{ color: 'var(--color-text-primary)' }}
+            >
               Create New List
             </h2>
 
-            <div className="space-y-4">
+            <div className="space-y-5">
               <div>
                 <label
-                  className="block text-sm font-medium mb-1"
-                  style={{ color: 'var(--color-text-secondary)' }}
+                  className="block text-sm font-semibold mb-2"
+                  style={{ color: 'var(--color-text-primary)' }}
                 >
-                  Name *
+                  List Name <span style={{ color: '#ef4444' }}>*</span>
                 </label>
                 <input
                   type="text"
                   value={newListName}
                   onChange={(e) => setNewListName(e.target.value)}
-                  className="w-full px-3 py-2 rounded border"
+                  onKeyPress={(e) => e.key === 'Enter' && handleCreateList()}
+                  className="w-full px-4 py-2.5 rounded-lg border-2 focus:outline-none focus:ring-2 transition-all"
                   style={{
                     backgroundColor: 'var(--color-background)',
                     borderColor: 'var(--color-border)',
                     color: 'var(--color-text-primary)',
                   }}
-                  placeholder="Enter list name"
+                  placeholder="e.g., In Progress, To Do, Done"
                   autoFocus
                 />
               </div>
 
               <div>
                 <label
-                  className="block text-sm font-medium mb-1"
-                  style={{ color: 'var(--color-text-secondary)' }}
+                  className="block text-sm font-semibold mb-2"
+                  style={{ color: 'var(--color-text-primary)' }}
                 >
                   Description
                 </label>
                 <textarea
                   value={newListDescription}
                   onChange={(e) => setNewListDescription(e.target.value)}
-                  className="w-full px-3 py-2 rounded border"
+                  className="w-full px-4 py-2.5 rounded-lg border-2 focus:outline-none focus:ring-2 transition-all resize-none"
                   style={{
                     backgroundColor: 'var(--color-background)',
                     borderColor: 'var(--color-border)',
                     color: 'var(--color-text-primary)',
                   }}
-                  placeholder="Enter description (optional)"
+                  placeholder="Add a description (optional)"
                   rows={3}
                 />
               </div>
 
               <div>
                 <label
-                  className="block text-sm font-medium mb-1"
-                  style={{ color: 'var(--color-text-secondary)' }}
+                  className="block text-sm font-semibold mb-2"
+                  style={{ color: 'var(--color-text-primary)' }}
                 >
-                  Color
+                  Color Theme
                 </label>
-                <input
-                  type="color"
-                  value={newListColor}
-                  onChange={(e) => setNewListColor(e.target.value)}
-                  className="w-full h-10 rounded border cursor-pointer"
-                  style={{
-                    borderColor: 'var(--color-border)',
-                  }}
-                />
+                <div className="flex items-center gap-3">
+                  <input
+                    type="color"
+                    value={newListColor}
+                    onChange={(e) => setNewListColor(e.target.value)}
+                    className="w-16 h-12 rounded-lg border-2 cursor-pointer"
+                    style={{
+                      borderColor: 'var(--color-border)',
+                    }}
+                  />
+                  <div
+                    className="flex-1 px-4 py-2.5 rounded-lg border-2 font-mono text-sm"
+                    style={{
+                      backgroundColor: 'var(--color-background)',
+                      borderColor: 'var(--color-border)',
+                      color: 'var(--color-text-primary)',
+                    }}
+                  >
+                    {newListColor.toUpperCase()}
+                  </div>
+                </div>
               </div>
             </div>
 
-            <div className="flex gap-3 mt-6">
+            <div className="flex gap-3 mt-8">
               <button
                 onClick={handleCreateList}
-                className="flex-1 px-4 py-2 rounded font-medium transition-all hover:scale-105 hover:shadow-lg"
+                className="flex-1 px-6 py-3 rounded-lg font-semibold transition-all hover:scale-105 hover:shadow-lg"
                 style={{
                   backgroundColor: 'var(--color-accent)',
                   color: 'white',
                 }}
               >
-                Create
+                Create List
               </button>
               <button
                 onClick={() => {
@@ -233,7 +252,7 @@ export default function Lists() {
                   setNewListDescription('');
                   setNewListColor('#3b82f6');
                 }}
-                className="flex-1 px-4 py-2 rounded font-medium transition-all hover:bg-opacity-80 border"
+                className="px-6 py-3 rounded-lg font-semibold transition-all hover:bg-opacity-80 border-2"
                 style={{
                   backgroundColor: 'var(--color-background)',
                   borderColor: 'var(--color-border)',

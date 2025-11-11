@@ -9,7 +9,11 @@ interface ListCardProps {
 }
 
 const ListCard = ({ entry, onRemoveFromList, onCardClick, listId }: ListCardProps) => {
-  const handleCardClick = () => {
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Don't open modal if dragging
+    if ((e.target as HTMLElement).closest('[draggable="true"]')?.getAttribute('data-dragging') === 'true') {
+      return;
+    }
     if (onCardClick) {
       onCardClick(entry.id);
     }
@@ -24,8 +28,29 @@ const ListCard = ({ entry, onRemoveFromList, onCardClick, listId }: ListCardProp
     }
   };
 
+  const handleDragStart = (e: React.DragEvent) => {
+    e.stopPropagation();
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('entryId', entry.id.toString());
+    e.dataTransfer.setData('sourceListId', listId?.toString() || '');
+    (e.currentTarget as HTMLElement).setAttribute('data-dragging', 'true');
+    
+    // Add visual feedback
+    (e.currentTarget as HTMLElement).style.opacity = '0.5';
+  };
+
+  const handleDragEnd = (e: React.DragEvent) => {
+    (e.currentTarget as HTMLElement).removeAttribute('data-dragging');
+    (e.currentTarget as HTMLElement).style.opacity = '1';
+  };
+
   return (
-    <div className="relative group">
+    <div
+      className="relative group"
+      draggable
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+    >
       {/* Remove button overlay - shows on hover */}
       {onRemoveFromList && listId && (
         <button
@@ -43,7 +68,7 @@ const ListCard = ({ entry, onRemoveFromList, onCardClick, listId }: ListCardProp
 
       {/* Read-only preview card */}
       <div
-        className="rounded-lg shadow-md overflow-hidden cursor-pointer transition-all hover:shadow-xl border-2"
+        className="rounded-lg shadow-md overflow-hidden cursor-move transition-all hover:shadow-xl border-2"
         style={{
           backgroundColor: 'var(--color-card-bg)',
           borderColor: 'var(--color-border)',
