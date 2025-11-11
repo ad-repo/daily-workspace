@@ -50,6 +50,7 @@ class NoteEntry(NoteEntryBase):
     created_at: datetime
     updated_at: datetime
     labels: list[Label] = []
+    lists: list['ListResponse'] = []
     include_in_report: bool = False
     is_important: bool = False
     is_completed: bool = False
