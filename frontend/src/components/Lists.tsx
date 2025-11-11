@@ -229,17 +229,13 @@ export default function Lists() {
             {lists.map((list) => (
               <div
                 key={list.id}
-                draggable
-                onDragStart={() => handleListDragStart(list.id)}
                 onDragOver={(e) => handleListDragOver(e, list.id)}
                 onDragLeave={handleListDragLeave}
                 onDrop={(e) => handleListDrop(e, list.id)}
-                onDragEnd={handleListDragEnd}
                 style={{
                   opacity: draggedListId === list.id ? 0.5 : 1,
                   transform: dragOverListId === list.id && draggedListId !== list.id ? 'scale(1.02)' : 'scale(1)',
                   transition: 'transform 0.2s ease, opacity 0.2s ease',
-                  cursor: 'grab',
                 }}
               >
                 <ListColumn
@@ -247,6 +243,9 @@ export default function Lists() {
                   entries={list.entries}
                   onUpdate={() => loadLists(true)}
                   onDelete={handleDeleteList}
+                  onDragStart={() => handleListDragStart(list.id)}
+                  onDragEnd={handleListDragEnd}
+                  isDragging={draggedListId === list.id}
                 />
               </div>
             ))}

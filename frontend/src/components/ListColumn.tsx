@@ -11,9 +11,12 @@ interface ListColumnProps {
   entries: NoteEntry[];
   onUpdate: () => void;
   onDelete: (listId: number, listName: string) => void;
+  onDragStart?: () => void;
+  onDragEnd?: () => void;
+  isDragging?: boolean;
 }
 
-const ListColumn = ({ list, entries, onUpdate, onDelete }: ListColumnProps) => {
+const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd, isDragging }: ListColumnProps) => {
   const [showActions, setShowActions] = useState(false);
   const [selectedEntryId, setSelectedEntryId] = useState<number | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -104,6 +107,16 @@ const ListColumn = ({ list, entries, onUpdate, onDelete }: ListColumnProps) => {
           style={{
             borderBottom: `3px solid ${list.color}`,
             background: `linear-gradient(135deg, ${list.color}08 0%, ${list.color}15 100%)`,
+            cursor: isDragging ? 'grabbing' : 'grab',
+          }}
+          draggable
+          onDragStart={(e) => {
+            e.stopPropagation();
+            onDragStart?.();
+          }}
+          onDragEnd={(e) => {
+            e.stopPropagation();
+            onDragEnd?.();
           }}
           onMouseEnter={() => setShowActions(true)}
           onMouseLeave={() => setShowActions(false)}

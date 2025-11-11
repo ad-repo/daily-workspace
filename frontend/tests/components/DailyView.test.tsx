@@ -96,6 +96,7 @@ vi.mock('lucide-react', () => ({
   CheckSquare: () => <div>CheckSquare</div>,
   Combine: () => <div>Combine</div>,
   Columns: () => <div>Columns</div>,
+  GripVertical: () => <div>GripVertical</div>,
 }));
 
 // Mock date-fns
