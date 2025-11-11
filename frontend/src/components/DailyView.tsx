@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { format, parse, addDays, subDays } from 'date-fns';
-import { ChevronLeft, ChevronRight, Plus, CheckSquare, Combine } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, CheckSquare, Combine, Columns } from 'lucide-react';
 import axios from 'axios';
 import { notesApi, entriesApi, goalsApi } from '../api';
 import type { DailyNote, NoteEntry, Goal } from '../types';
@@ -9,6 +9,7 @@ import NoteEntryCard from './NoteEntryCard';
 import LabelSelector from './LabelSelector';
 import EntryDropdown from './EntryDropdown';
 import SimpleRichTextEditor from './SimpleRichTextEditor';
+import EntryListSelector from './EntryListSelector';
 import { useFullScreen } from '../contexts/FullScreenContext';
 import { useDailyGoals } from '../contexts/DailyGoalsContext';
 import { useSprintGoals } from '../contexts/SprintGoalsContext';
@@ -49,6 +50,7 @@ const DailyView = () => {
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedEntries, setSelectedEntries] = useState<Set<number>>(new Set());
   const [isMerging, setIsMerging] = useState(false);
+  const [listSelectorEntryId, setListSelectorEntryId] = useState<number | null>(null);
   const dailyGoalTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dailyGoalRef = useRef<string>(dailyGoal);
 
@@ -1192,11 +1194,44 @@ const DailyView = () => {
               <div 
                 key={entry.id} 
                 data-entry-id={entry.id}
-                className="entry-card-container"
+                className="entry-card-container relative group"
                 style={{
                   animation: index === 0 ? 'slideDown 0.3s ease-out' : 'none'
                 }}
               >
+                {/* List selector button - appears on hover */}
+                <button
+                  onClick={() => setListSelectorEntryId(entry.id)}
+                  className="absolute top-2 right-2 z-10 p-2 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                  style={{
+                    backgroundColor: 'var(--color-accent)',
+                    color: 'white',
+                  }}
+                  title="Add to lists"
+                >
+                  <Columns className="w-4 h-4" />
+                </button>
+                {/* Show list badges if entry belongs to lists */}
+                {entry.lists && entry.lists.length > 0 && (
+                  <div className="absolute top-2 left-2 z-10 flex gap-1">
+                    {entry.lists.map((list) => (
+                      <span
+                        key={list.id}
+                        className="px-2 py-1 rounded text-xs"
+                        style={{
+                          backgroundColor: list.color + '40',
+                          color: 'var(--color-text-primary)',
+                          borderColor: list.color,
+                          borderWidth: '1px',
+                          borderStyle: 'solid',
+                        }}
+                        title={list.description}
+                      >
+                        {list.name}
+                      </span>
+                    ))}
+                  </div>
+                )}
                 <NoteEntryCard
                   entry={entry}
                   onUpdate={handleEntryUpdate}
@@ -1213,6 +1248,18 @@ const DailyView = () => {
           </>
         )}
       </div>
+
+      {/* Entry List Selector Modal */}
+      {listSelectorEntryId !== null && (
+        <EntryListSelector
+          entryId={listSelectorEntryId}
+          currentLists={entries.find((e) => e.id === listSelectorEntryId)?.lists || []}
+          onClose={() => setListSelectorEntryId(null)}
+          onUpdate={() => {
+            loadDailyNote();
+          }}
+        />
+      )}
     </div>
     </div>
   );

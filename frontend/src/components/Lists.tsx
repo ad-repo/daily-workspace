@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { List } from '../types';
+import { List, ListWithEntries } from '../types';
 import { listsApi } from '../api';
+import ListColumn from './ListColumn';
 
 export default function Lists() {
-  const [lists, setLists] = useState<List[]>([]);
+  const [lists, setLists] = useState<ListWithEntries[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -18,8 +19,13 @@ export default function Lists() {
   const loadLists = async () => {
     try {
       setLoading(true);
-      const data = await listsApi.getAll(false);
-      setLists(data);
+      // Get all lists first
+      const allLists = await listsApi.getAll(false);
+      // Fetch detailed data (with entries) for each list
+      const detailedLists = await Promise.all(
+        allLists.map((list) => listsApi.getById(list.id))
+      );
+      setLists(detailedLists);
       setError(null);
     } catch (err) {
       setError('Failed to load lists');
@@ -119,51 +125,13 @@ export default function Lists() {
         ) : (
           <div className="flex gap-4 p-4 h-full">
             {lists.map((list) => (
-              <div
+              <ListColumn
                 key={list.id}
-                className="flex-shrink-0 w-80 rounded-lg shadow-lg flex flex-col"
-                style={{
-                  backgroundColor: 'var(--color-surface)',
-                  borderColor: list.color,
-                  borderWidth: '2px',
-                  borderStyle: 'solid',
-                }}
-              >
-                {/* List Header */}
-                <div className="p-4 border-b" style={{ borderColor: 'var(--color-border)' }}>
-                  <div className="flex justify-between items-start mb-2">
-                    <h2
-                      className="text-lg font-bold flex-1"
-                      style={{ color: 'var(--color-text-primary)' }}
-                    >
-                      {list.name}
-                    </h2>
-                    <button
-                      onClick={() => handleDeleteList(list.id, list.name)}
-                      className="ml-2 px-2 py-1 text-sm rounded hover:bg-opacity-80"
-                      style={{ color: 'var(--color-text-secondary)' }}
-                      title="Delete list"
-                    >
-                      🗑️
-                    </button>
-                  </div>
-                  {list.description && (
-                    <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-                      {list.description}
-                    </p>
-                  )}
-                  <p className="text-sm mt-2" style={{ color: 'var(--color-text-secondary)' }}>
-                    {list.entry_count || 0} {list.entry_count === 1 ? 'entry' : 'entries'}
-                  </p>
-                </div>
-
-                {/* List Content (placeholder) */}
-                <div className="flex-1 overflow-y-auto p-4">
-                  <p className="text-center" style={{ color: 'var(--color-text-secondary)' }}>
-                    Drag entries here from daily notes
-                  </p>
-                </div>
-              </div>
+                list={list}
+                entries={list.entries}
+                onUpdate={loadLists}
+                onDelete={handleDeleteList}
+              />
             ))}
           </div>
         )}
