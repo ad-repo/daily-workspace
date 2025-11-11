@@ -68,8 +68,13 @@ class ReorderEntriesRequest(BaseModel):
     entries: list[EntryListAssociation]
 
 
+class ListOrderUpdate(BaseModel):
+    id: int
+    order_index: int
+
+
 class ReorderListsRequest(BaseModel):
-    lists: list[dict]  # list of {id: int, order_index: int}
+    lists: list[ListOrderUpdate]
 
 
 # Entry Schemas
