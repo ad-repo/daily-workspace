@@ -1,6 +1,6 @@
-import { Star, Check, Skull, X } from 'lucide-react';
-import { format } from 'date-fns';
+import { X } from 'lucide-react';
 import type { NoteEntry } from '../types';
+import NoteEntryCard from './NoteEntryCard';
 
 interface ListCardProps {
   entry: NoteEntry;
@@ -10,14 +10,6 @@ interface ListCardProps {
 }
 
 const ListCard = ({ entry, onRemoveFromList, onCardClick, listId }: ListCardProps) => {
-  // Extract plain text from HTML for preview
-  const getTextPreview = (html: string, maxLength: number = 150) => {
-    const temp = document.createElement('div');
-    temp.innerHTML = html;
-    const text = temp.textContent || temp.innerText || '';
-    return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
-  };
-
   const handleCardClick = () => {
     if (onCardClick) {
       onCardClick(entry.id);
@@ -33,101 +25,50 @@ const ListCard = ({ entry, onRemoveFromList, onCardClick, listId }: ListCardProp
     }
   };
 
+  // Dummy handlers for NoteEntryCard (read-only in list view)
+  const noopUpdate = () => {};
+  const noopDelete = () => {};
+  const noopLabelsUpdate = () => {};
+
   return (
-    <div
-      className="rounded-lg p-3 mb-2 cursor-pointer transition-all hover:shadow-md"
-      style={{
-        backgroundColor: 'var(--color-background)',
-        borderColor: 'var(--color-border)',
-        borderWidth: '1px',
-        borderStyle: 'solid',
-      }}
-      onClick={handleCardClick}
-    >
-      {/* Header with title and actions */}
-      <div className="flex justify-between items-start mb-2">
-        <div className="flex-1">
-          {entry.title && (
-            <h3 className="text-sm font-semibold mb-1" style={{ color: 'var(--color-text-primary)' }}>
-              {entry.title}
-            </h3>
-          )}
-        </div>
-        <div className="flex gap-1 ml-2">
-          {/* Status icons */}
-          {entry.is_important && (
-            <Star className="w-4 h-4" style={{ color: 'var(--color-accent)' }} fill="var(--color-accent)" />
-          )}
-          {entry.is_completed && (
-            <Check className="w-4 h-4" style={{ color: 'var(--color-success, #10b981)' }} />
-          )}
-          {entry.is_dev_null && (
-            <Skull className="w-4 h-4" style={{ color: 'var(--color-text-secondary)' }} />
-          )}
-          {/* Remove button */}
-          {onRemoveFromList && listId && (
-            <button
-              onClick={handleRemove}
-              className="p-1 rounded hover:bg-opacity-80"
-              style={{ color: 'var(--color-text-secondary)' }}
-              title="Remove from list"
-            >
-              <X className="w-3 h-3" />
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Content preview */}
-      <p className="text-sm mb-2" style={{ color: 'var(--color-text-secondary)' }}>
-        {getTextPreview(entry.content)}
-      </p>
-
-      {/* Labels */}
-      {entry.labels && entry.labels.length > 0 && (
-        <div className="flex flex-wrap gap-1 mb-2">
-          {entry.labels.map((label) => (
-            <span
-              key={label.id}
-              className="px-2 py-0.5 rounded text-xs"
-              style={{
-                backgroundColor: label.color + '20',
-                color: label.color,
-                borderColor: label.color,
-                borderWidth: '1px',
-                borderStyle: 'solid',
-              }}
-            >
-              {label.name}
-            </span>
-          ))}
-        </div>
+    <div className="relative group">
+      {/* Remove button overlay - shows on hover */}
+      {onRemoveFromList && listId && (
+        <button
+          onClick={handleRemove}
+          className="absolute top-2 right-2 z-10 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+          style={{
+            backgroundColor: 'var(--color-surface)',
+            color: '#ef4444',
+          }}
+          title="Remove from list"
+        >
+          <X className="w-3.5 h-3.5" />
+        </button>
       )}
 
-      {/* Lists this entry belongs to */}
-      {entry.lists && entry.lists.length > 0 && (
-        <div className="flex flex-wrap gap-1">
-          {entry.lists.map((list) => (
-            <span
-              key={list.id}
-              className="px-2 py-0.5 rounded text-xs"
-              style={{
-                backgroundColor: 'var(--color-background)',
-                color: 'var(--color-text-secondary)',
-                borderColor: list.color,
-                borderWidth: '1px',
-                borderStyle: 'solid',
-              }}
-            >
-              📋 {list.name}
-            </span>
-          ))}
+      {/* Scaled-down NoteEntryCard in fixed-height container */}
+      <div
+        className="overflow-hidden cursor-pointer transition-all hover:shadow-lg"
+        style={{
+          height: '200px',
+          transform: 'scale(0.85)',
+          transformOrigin: 'top left',
+          width: 'calc(100% / 0.85)', // Compensate for scale
+        }}
+        onClick={handleCardClick}
+      >
+        {/* Disable pointer events on the card itself so clicks go to the wrapper */}
+        <div style={{ pointerEvents: 'none' }}>
+          <NoteEntryCard
+            entry={entry}
+            onUpdate={noopUpdate}
+            onDelete={noopDelete}
+            onLabelsUpdate={noopLabelsUpdate}
+            selectionMode={false}
+            isSelected={false}
+          />
         </div>
-      )}
-
-      {/* Date footer */}
-      <div className="mt-2 text-xs" style={{ color: 'var(--color-text-secondary)' }}>
-        {format(new Date(entry.created_at), 'MMM d, yyyy')}
       </div>
     </div>
   );
