@@ -76,7 +76,16 @@ def get_list(list_id: int, db: Session = Depends(get_db)):
                 'is_dev_null': bool(entry.is_dev_null),
                 'created_at': entry.created_at,
                 'updated_at': entry.updated_at,
-                'labels': [{'id': label.id, 'name': label.name, 'color': label.color} for label in entry.labels],
+                'labels': [
+                    {
+                        'id': label.id,
+                        'name': label.name,
+                        'color': label.color,
+                        'created_at': label.created_at,
+                    }
+                    for label in entry.labels
+                ],
+                'lists': [],  # Don't include lists in this response to avoid circular reference
             }
             for entry in lst.entries
         ],
