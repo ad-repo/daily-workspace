@@ -43,6 +43,12 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
   };
 
   const handleDragOver = (e: React.DragEvent) => {
+    // If dragging a list (has 'listid' type), let it bubble for list reordering
+    if (e.dataTransfer.types.includes('listid')) return;
+    
+    // Only handle entry card drags
+    if (!e.dataTransfer.types.includes('entryid')) return;
+    
     e.preventDefault();
     e.stopPropagation();
     e.dataTransfer.dropEffect = 'move';
@@ -50,20 +56,37 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
   };
 
   const handleDragLeave = (e: React.DragEvent) => {
+    // If dragging a list, let it bubble
+    if (e.dataTransfer.types.includes('listid')) return;
+    
+    // Only handle if we were showing drag-over state
+    if (!isDragOver) return;
+    
     e.preventDefault();
     e.stopPropagation();
     setIsDragOver(false);
   };
 
   const handleDrop = async (e: React.DragEvent) => {
+    // If dragging a list, let it bubble for list reordering
+    if (e.dataTransfer.types.includes('listid')) {
+      setIsDragOver(false);
+      return;
+    }
+    
+    const entryId = parseInt(e.dataTransfer.getData('entryId'));
+    
+    // If no entryId, let it bubble
+    if (!entryId) {
+      setIsDragOver(false);
+      return;
+    }
+    
     e.preventDefault();
     e.stopPropagation();
     setIsDragOver(false);
 
-    const entryId = parseInt(e.dataTransfer.getData('entryId'));
     const sourceListId = parseInt(e.dataTransfer.getData('sourceListId'));
-
-    if (!entryId) return;
 
     // Don't do anything if dropped on the same list
     if (sourceListId === list.id) return;
@@ -88,6 +111,7 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
   return (
     <>
       <div
+        data-testid={`list-column-${list.id}`}
         className="flex-shrink-0 w-96 rounded-xl shadow-lg flex flex-col transition-all"
         style={{
           backgroundColor: isDragOver ? `${list.color}15` : 'var(--color-card-bg)',
@@ -111,11 +135,12 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
           }}
           draggable
           onDragStart={(e) => {
-            e.stopPropagation();
+            // Set drag data to identify this as a list drag (not an entry drag)
+            e.dataTransfer.setData('listId', list.id.toString());
+            e.dataTransfer.effectAllowed = 'move';
             onDragStart?.();
           }}
           onDragEnd={(e) => {
-            e.stopPropagation();
             onDragEnd?.();
           }}
           onMouseEnter={() => setShowActions(true)}

@@ -107,23 +107,35 @@ describe('Lists Drag and Drop', () => {
     // Wait for lists to load
     await waitFor(() => {
       expect(screen.getByText('List A')).toBeInTheDocument();
+      expect(screen.getByText('List B')).toBeInTheDocument();
+      expect(screen.getByText('List C')).toBeInTheDocument();
     });
 
-    // Get the drag handles (GripVertical icons)
-    const dragHandles = screen.getAllByText('GripVertical');
-    expect(dragHandles).toHaveLength(3);
+    // Get all list columns
+    const listColumns = screen.getAllByTestId(/list-column-/);
+    expect(listColumns).toHaveLength(3);
+    
+    // Initial order should be A, B, C
+    expect(listColumns[0]).toHaveAttribute('data-testid', 'list-column-1');
+    expect(listColumns[1]).toHaveAttribute('data-testid', 'list-column-2');
+    expect(listColumns[2]).toHaveAttribute('data-testid', 'list-column-3');
 
-    const handleA = dragHandles[0].closest('[draggable]');
-    const listCContainer = screen.getByTestId('list-column-3').parentElement;
+    // Get the draggable headers (they are inside the list columns)
+    const listAContainer = listColumns[0].parentElement;
+    const listCContainer = listColumns[2].parentElement;
+    const headerA = listColumns[0].previousElementSibling || listColumns[0].querySelector('[draggable]');
 
-    expect(handleA).not.toBeNull();
+    // Find draggable element (should be the header)
+    const draggableA = listAContainer?.querySelector('[draggable]');
+
+    expect(draggableA).not.toBeNull();
     expect(listCContainer).not.toBeNull();
 
     // Simulate drag and drop: drag List A to List C position
-    fireEvent.dragStart(handleA!);
+    fireEvent.dragStart(draggableA!);
     fireEvent.dragOver(listCContainer!);
     fireEvent.drop(listCContainer!);
-    fireEvent.dragEnd(handleA!);
+    fireEvent.dragEnd(draggableA!);
 
     // Verify reorderLists API was called with correct order
     await waitFor(() => {
