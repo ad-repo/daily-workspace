@@ -43,12 +43,22 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
   };
 
   const handleDragOver = (e: React.DragEvent) => {
-    // If dragging a list (has 'listid' type), let it bubble for list reordering
-    if (e.dataTransfer.types.includes('listid')) return;
+    // If dragging a list (has 'text/x-listid' type), let it bubble for list reordering
+    const types = Array.from(e.dataTransfer.types);
+    console.log('ListColumn dragOver types:', types);
+    
+    if (types.includes('text/x-listid')) {
+      console.log('List drag detected, letting bubble');
+      return;
+    }
     
     // Only handle entry card drags
-    if (!e.dataTransfer.types.includes('entryid')) return;
+    if (!types.includes('text/x-entryid')) {
+      console.log('No entryid, letting bubble');
+      return;
+    }
     
+    console.log('Entry drag, handling in ListColumn');
     e.preventDefault();
     e.stopPropagation();
     e.dataTransfer.dropEffect = 'move';
@@ -57,7 +67,7 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
 
   const handleDragLeave = (e: React.DragEvent) => {
     // If dragging a list, let it bubble
-    if (e.dataTransfer.types.includes('listid')) return;
+    if (e.dataTransfer.types.includes('text/x-listid')) return;
     
     // Only handle if we were showing drag-over state
     if (!isDragOver) return;
@@ -69,12 +79,12 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
 
   const handleDrop = async (e: React.DragEvent) => {
     // If dragging a list, let it bubble for list reordering
-    if (e.dataTransfer.types.includes('listid')) {
+    if (e.dataTransfer.types.includes('text/x-listid')) {
       setIsDragOver(false);
       return;
     }
     
-    const entryId = parseInt(e.dataTransfer.getData('entryId'));
+    const entryId = parseInt(e.dataTransfer.getData('text/x-entryid'));
     
     // If no entryId, let it bubble
     if (!entryId) {
@@ -86,7 +96,7 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
     e.stopPropagation();
     setIsDragOver(false);
 
-    const sourceListId = parseInt(e.dataTransfer.getData('sourceListId'));
+    const sourceListId = parseInt(e.dataTransfer.getData('text/x-sourcelistid'));
 
     // Don't do anything if dropped on the same list
     if (sourceListId === list.id) return;
@@ -136,7 +146,8 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
           draggable
           onDragStart={(e) => {
             // Set drag data to identify this as a list drag (not an entry drag)
-            e.dataTransfer.setData('listId', list.id.toString());
+            // Note: type must be lowercase per HTML5 spec
+            e.dataTransfer.setData('text/x-listid', list.id.toString());
             e.dataTransfer.effectAllowed = 'move';
             onDragStart?.();
           }}

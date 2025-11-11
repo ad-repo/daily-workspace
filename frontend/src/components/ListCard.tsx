@@ -31,8 +31,9 @@ const ListCard = ({ entry, onRemoveFromList, onCardClick, listId }: ListCardProp
   const handleDragStart = (e: React.DragEvent) => {
     e.stopPropagation();
     e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('entryId', entry.id.toString());
-    e.dataTransfer.setData('sourceListId', listId?.toString() || '');
+    // Use text/x- prefix for custom types per HTML5 spec
+    e.dataTransfer.setData('text/x-entryid', entry.id.toString());
+    e.dataTransfer.setData('text/x-sourcelistid', listId?.toString() || '');
     (e.currentTarget as HTMLElement).setAttribute('data-dragging', 'true');
     
     // Add visual feedback

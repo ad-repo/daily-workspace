@@ -97,10 +97,12 @@ export default function Lists() {
   }, [lists.length]);
 
   const handleListDragStart = (listId: number) => {
+    console.log('Lists: drag start for list', listId);
     setDraggedListId(listId);
   };
 
   const handleListDragOver = (e: React.DragEvent, listId: number) => {
+    console.log('Lists: drag over list', listId, 'dragged:', draggedListId);
     e.preventDefault();
     if (draggedListId === null || draggedListId === listId) return;
     setDragOverListId(listId);
