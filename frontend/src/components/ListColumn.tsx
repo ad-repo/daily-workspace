@@ -141,9 +141,9 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
-        {/* List Header */}
+        {/* List Header - Draggable */}
         <div
-          className="px-5 py-4"
+          className="px-5 py-4 relative"
           style={{
             borderBottom: `3px solid ${list.color}`,
             background: `linear-gradient(135deg, ${list.color}08 0%, ${list.color}15 100%)`,
@@ -151,19 +151,19 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
           }}
           draggable
           onDragStart={(e) => {
-            // Set drag data to identify this as a list drag (not an entry drag)
-            // Note: type must be lowercase per HTML5 spec
+            console.log('DRAG START on header');
             e.dataTransfer.setData('text/x-listid', list.id.toString());
             e.dataTransfer.effectAllowed = 'move';
             onDragStart?.();
           }}
           onDragEnd={(e) => {
+            console.log('DRAG END on header');
             onDragEnd?.();
           }}
           onMouseEnter={() => setShowActions(true)}
           onMouseLeave={() => setShowActions(false)}
         >
-          <div className="flex justify-between items-start mb-3">
+          <div className="flex justify-between items-start mb-3" style={{ pointerEvents: 'none' }}>
             <div className="flex items-center gap-2 flex-1 min-w-0">
               <div
                 className="w-1 h-8 rounded-full flex-shrink-0"
@@ -178,7 +178,7 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
               </h2>
             </div>
             {showActions && (
-              <div className="flex gap-1.5 ml-2">
+              <div className="flex gap-1.5 ml-2" style={{ pointerEvents: 'auto' }}>
                 <button
                   onClick={() => setShowAddModal(true)}
                   className="p-2 rounded-lg transition-all hover:scale-110 hover:shadow-md"
