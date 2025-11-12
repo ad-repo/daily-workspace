@@ -108,6 +108,11 @@ const ListCard = ({ entry, onRemoveFromList, onUpdate, onLabelsUpdate, listId }:
         onUpdate={handleEntryUpdate}
         onDelete={handleEntryDelete}
         onLabelsUpdate={onLabelsUpdate}
+        onMoveToTop={undefined}
+        selectionMode={false}
+        isSelected={false}
+        onSelectionChange={undefined}
+        currentDate={entry.daily_note_date}
       />
     </div>
   );
