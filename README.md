@@ -27,6 +27,7 @@ A modern, powerful daily workspace application for capturing and organizing your
 - **Entry States**: Mark entries as:
   - ⭐ Important (starred)
   - ✓ Completed
+  - 📌 Pinned (auto-copy to future days)
   - 📄 Add to Report (for weekly summaries)
   - 💀 /dev/null (discarded/nothing)
 
@@ -44,6 +45,16 @@ A modern, powerful daily workspace application for capturing and organizing your
   - Horizontal scrolling column layout (Trello-style)
   - Each list tracks entry count
   - Lists are independent of dates (persistent organization)
+  - Navigate from list entries back to their daily note
+  - Create new entries directly from list view
+  - Search and filter by lists
+- **Pinned Entries**: Auto-copy important entries to future days
+  - Pin any card to have it automatically appear on all future days
+  - Perfect for recurring tasks, daily reminders, or ongoing work
+  - Completion status resets each day
+  - Labels and list associations are preserved
+  - Multiple cards can be pinned simultaneously
+  - Unpin at any time to stop copying forward
 - **Daily Goals**: Set goals for each day (visible as tooltips in calendar)
   - **Rich Text Editor**: Full formatting support (bold, italic, underline, strikethrough, headings, lists, task lists with checkboxes, links, code, blockquotes)
   - **Scrollable**: Goals scroll when content exceeds 300px height

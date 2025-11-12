@@ -87,6 +87,8 @@ docker-compose exec backend python migrations/run_migrations.py
 | 013 | Add goal date fields to app_settings | 2025-11-07 |
 | 014 | **Automatic timezone fix** - moves PAST entries to correct dates (skips future dates) | 2025-11-07 (fixed 11/7 evening) |
 | 015 | **Date-aware goals** - creates sprint_goals and quarterly_goals tables for historical tracking | 2025-11-07 |
+| 016 | **Lists feature** - creates lists and entry_lists tables for Trello-style organization | 2025-11-11 |
+| 017 | **Pinned entries** - adds is_pinned column for auto-copying entries to future days | 2025-11-12 |
 
 ## Creating New Migrations
 
