@@ -69,11 +69,21 @@ const ListCard = ({ entry, onRemoveFromList, onCardClick, listId }: ListCardProp
 
       {/* Read-only preview card */}
       <div
-        className="rounded-lg shadow-md overflow-hidden cursor-move transition-all hover:shadow-xl border-2"
+        className="rounded-lg overflow-hidden cursor-move transition-all border"
         style={{
           backgroundColor: 'var(--color-card-bg)',
           borderColor: 'var(--color-border)',
           height: '180px',
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06), 0 1px 3px 0 rgba(0, 0, 0, 0.1)',
+          transform: 'translateY(0)',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'translateY(-2px)';
+          e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05), 0 2px 4px 0 rgba(0, 0, 0, 0.12)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'translateY(0)';
+          e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06), 0 1px 3px 0 rgba(0, 0, 0, 0.1)';
         }}
         onClick={handleCardClick}
       >
