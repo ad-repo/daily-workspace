@@ -103,6 +103,7 @@ class NoteEntryUpdate(BaseModel):
 class NoteEntry(NoteEntryBase):
     id: int
     daily_note_id: int
+    daily_note_date: str | None = None  # YYYY-MM-DD format for navigation
     created_at: datetime
     updated_at: datetime
     labels: list[Label] = []
