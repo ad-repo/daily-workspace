@@ -126,6 +126,28 @@ def create_list(list_data: schemas.ListCreate, db: Session = Depends(get_db)):
     }
 
 
+# ===========================
+# Reordering Endpoints (MUST come before /{list_id} route)
+# ===========================
+
+
+@router.put('/reorder')
+def reorder_lists(reorder_data: schemas.ReorderListsRequest, db: Session = Depends(get_db)):
+    """Update order_index for all lists."""
+    print(f"Received reorder request: {reorder_data}")
+    print(f"Lists: {reorder_data.lists}")
+    for list_data in reorder_data.lists:
+        print(f"Processing list {list_data.id} with order_index {list_data.order_index}")
+        lst = db.query(models.List).filter(models.List.id == list_data.id).first()
+        if lst:
+            lst.order_index = list_data.order_index
+            lst.updated_at = datetime.utcnow()
+    
+    db.commit()
+    
+    return {'message': 'Lists reordered successfully'}
+
+
 @router.put('/{list_id}', response_model=schemas.ListResponse)
 def update_list(list_id: int, list_data: schemas.ListUpdate, db: Session = Depends(get_db)):
     """Update a list."""
@@ -247,18 +269,4 @@ def reorder_entries_in_list(list_id: int, reorder_data: schemas.ReorderEntriesRe
     db.commit()
     
     return {'message': 'Entries reordered successfully'}
-
-
-@router.put('/reorder')
-def reorder_lists(reorder_data: schemas.ReorderListsRequest, db: Session = Depends(get_db)):
-    """Update order_index for all lists."""
-    for list_data in reorder_data.lists:
-        lst = db.query(models.List).filter(models.List.id == list_data.id).first()
-        if lst:
-            lst.order_index = list_data.order_index
-            lst.updated_at = datetime.utcnow()
-    
-    db.commit()
-    
-    return {'message': 'Lists reordered successfully'}
 

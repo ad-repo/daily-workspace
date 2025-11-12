@@ -145,7 +145,7 @@ export default function Lists() {
         order_index: index,
       }));
 
-      console.log('New order:', reorderedLists);
+      console.log('New order:', JSON.stringify(reorderedLists, null, 2));
 
       // Update state immediately
       setLists(newLists);
@@ -153,10 +153,13 @@ export default function Lists() {
       setDragOverListId(null);
 
       // Send to backend in background
+      console.log('Sending to backend:', JSON.stringify({ lists: reorderedLists }, null, 2));
       await listsApi.reorderLists(reorderedLists);
       console.log('Backend updated successfully');
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error reordering lists:', err);
+      console.error('Response data:', JSON.stringify(err?.response?.data, null, 2));
+      console.error('Response status:', err?.response?.status);
       // Reload to get correct state
       await loadLists(true);
     }
