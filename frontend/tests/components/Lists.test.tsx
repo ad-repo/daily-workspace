@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, waitFor, cleanup } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import Lists from '../../src/components/Lists';
 import * as api from '../../src/api';
@@ -30,6 +30,23 @@ vi.mock('lucide-react', () => ({
   Edit2: () => <div>Edit2</div>,
   Calendar: () => <div>Calendar</div>,
   Search: () => <div>Search</div>,
+  Clock: () => <div>Clock</div>,
+  ExternalLink: () => <div>ExternalLink</div>,
+}));
+
+// Mock child components to avoid their dependencies
+vi.mock('../../src/components/ListCard', () => ({
+  default: ({ entry }: any) => (
+    <div data-testid={`list-card-${entry.id}`}>{entry.title || 'Entry'}</div>
+  ),
+}));
+
+vi.mock('../../src/components/AddEntryToListModal', () => ({
+  default: () => <div>AddEntryToListModal</div>,
+}));
+
+vi.mock('../../src/components/CreateEntryModal', () => ({
+  default: () => <div>CreateEntryModal</div>,
 }));
 
 describe('Lists Component', () => {
@@ -76,6 +93,10 @@ describe('Lists Component', () => {
       Promise.resolve(mockLists.find((l) => l.id === id) as any)
     );
     vi.mocked(api.listsApi.reorderLists).mockResolvedValue(undefined);
+  });
+
+  afterEach(() => {
+    cleanup();
   });
 
   describe('Rendering', () => {
