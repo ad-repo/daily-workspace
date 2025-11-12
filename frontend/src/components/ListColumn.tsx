@@ -255,7 +255,7 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
         </div>
 
         {/* List Content - Scrollable entries */}
-        <div ref={scrollContainerRef} className="flex-1 overflow-y-auto custom-scrollbar" style={{ padding: '20px' }}>
+        <div ref={scrollContainerRef} className="flex-1 overflow-y-auto custom-scrollbar" style={{ padding: '20px 20px 0 20px' }}>
           {entries.length === 0 ? (
             <div className="text-center py-12">
               <div
