@@ -25,6 +25,17 @@ const AddEntryToListModal = ({ list, onClose, onUpdate }: AddEntryToListModalPro
     filterEntries();
   }, [searchQuery, allEntries]);
 
+  // Add Escape key support
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [onClose]);
+
   const loadEntries = async () => {
     try {
       setLoading(true);
@@ -104,14 +115,20 @@ const AddEntryToListModal = ({ list, onClose, onUpdate }: AddEntryToListModalPro
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 flex items-center justify-center p-4"
+      style={{
+        zIndex: 9999,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        backdropFilter: 'blur(2px)',
+      }}
       onClick={onClose}
     >
       <div
-        className="rounded-xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col"
+        className="rounded-xl shadow-2xl w-full max-w-2xl flex flex-col"
         style={{
           backgroundColor: 'var(--color-card-bg)',
           border: '1px solid var(--color-border)',
+          maxHeight: '80vh',
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -128,9 +145,16 @@ const AddEntryToListModal = ({ list, onClose, onUpdate }: AddEntryToListModalPro
               Add Entries to {list.name}
             </h2>
             <button
-              onClick={onClose}
-              className="p-2 rounded-lg hover:bg-opacity-80"
-              style={{ color: 'var(--color-text-secondary)' }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onClose();
+              }}
+              className="p-2 rounded-lg transition-all hover:scale-110"
+              style={{
+                color: 'var(--color-text-secondary)',
+                backgroundColor: 'var(--color-background)',
+              }}
+              title="Close (Esc)"
             >
               <X className="w-5 h-5" />
             </button>
