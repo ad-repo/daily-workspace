@@ -140,7 +140,7 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
         style={{
           backgroundColor: isDragOver ? `${list.color}15` : 'var(--color-card-bg)',
           border: isDragOver ? `3px dashed ${list.color}` : '1px solid var(--color-border)',
-          height: 'calc(100vh - 14rem)',
+          height: 'calc(100vh - 20rem)',
           boxShadow: isDragOver 
             ? `0 0 20px ${list.color}40` 
             : '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
