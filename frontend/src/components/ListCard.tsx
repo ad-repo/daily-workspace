@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X } from 'lucide-react';
+import { X, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import type { NoteEntry } from '../types';
 import NoteEntryCard from './NoteEntryCard';
@@ -39,22 +39,7 @@ const ListCard = ({ entry, onRemoveFromList, onUpdate, onLabelsUpdate, listId }:
   };
 
   const handleViewInDaily = (e: React.MouseEvent) => {
-    // Don't navigate if clicking on interactive elements
-    const target = e.target as HTMLElement;
-    const isInteractive = 
-      target.tagName === 'BUTTON' ||
-      target.tagName === 'INPUT' ||
-      target.tagName === 'TEXTAREA' ||
-      target.closest('button') ||
-      target.closest('input') ||
-      target.closest('textarea') ||
-      target.closest('[contenteditable]') ||
-      target.classList.contains('ProseMirror');
-    
-    if (isInteractive) {
-      return;
-    }
-
+    e.stopPropagation();
     if (entry.daily_note_date) {
       navigate(`/daily/${entry.daily_note_date}`);
     }
@@ -77,19 +62,31 @@ const ListCard = ({ entry, onRemoveFromList, onUpdate, onLabelsUpdate, listId }:
 
   return (
     <div
-      className="relative group transition-all hover:shadow-2xl"
+      className="relative group"
       draggable
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
-      onClick={handleViewInDaily}
       style={{
         opacity: isDragging ? 0.5 : 1,
-        cursor: 'pointer',
+        cursor: isDragging ? 'grabbing' : 'grab',
       }}
-      title={entry.daily_note_date ? `Click card to view in daily notes (${entry.daily_note_date})` : undefined}
     >
       {/* Action buttons overlay - shows on hover */}
       <div className="absolute top-4 right-4 z-10 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        {entry.daily_note_date && (
+          <button
+            onClick={handleViewInDaily}
+            className="p-2 rounded-full shadow-lg transition-all hover:scale-110 flex items-center gap-1 px-3"
+            style={{
+              backgroundColor: 'var(--color-accent)',
+              color: 'white',
+            }}
+            title="View in daily notes"
+          >
+            <ExternalLink className="w-4 h-4" />
+            <span className="text-xs font-medium">Daily</span>
+          </button>
+        )}
         {onRemoveFromList && listId && (
           <button
             onClick={handleRemove}
