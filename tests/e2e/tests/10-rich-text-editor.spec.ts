@@ -133,22 +133,24 @@ test.describe('Rich Text Editor', () => {
 
   test('should create headings', async ({ page }) => {
     await page.click('button:has-text("New Entry")');
-    const editor = page.locator('.ProseMirror').first();
-    await expect(editor).toBeVisible();
+    await page.waitForTimeout(1000);
+    
+    const editor = page.locator('.ProseMirror').last();
+    await expect(editor).toBeVisible({ timeout: 5000 });
     
     // Type text
-    await editor.type('Heading text');
+    await editor.fill('Heading text');
+    await page.waitForTimeout(500);
     await editor.press('Control+A');
+    await page.waitForTimeout(200);
     
     // Click heading button
-    const h1Button = page.getByRole('button', { name: /heading 1|h1/i }).first();
-    if (await h1Button.count() > 0) {
-      await h1Button.click();
-      await expect(editor.locator('h1')).toBeVisible();
-    } else {
-      // Headings might be in dropdown
-      await expect(editor).toBeVisible();
-    }
+    const h2Button = page.locator('button[title="Heading 2"]').first();
+    await h2Button.click();
+    await page.waitForTimeout(500);
+    
+    // Verify heading is in editor
+    await expect(editor.locator('h2')).toBeVisible();
   });
 
   test('should create bullet lists', async ({ page }) => {

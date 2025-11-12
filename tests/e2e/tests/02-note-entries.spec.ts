@@ -31,9 +31,20 @@ test.describe('Note Entry Management', () => {
     await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
     
     // Delete any existing entries for this date (cleanup from previous runs)
-    while (await page.locator('button[title*="Delete" i]').count() > 0) {
-      await page.locator('button[title*="Delete" i]').first().click();
-      await page.waitForTimeout(500); // Wait for deletion and DOM update
+    let deleteCount = await page.locator('button[title*="Delete" i]').count();
+    while (deleteCount > 0) {
+      try {
+        const deleteButton = page.locator('button[title*="Delete" i]').first();
+        await deleteButton.click({ timeout: 2000 });
+        await page.waitForTimeout(1000); // Wait for deletion and DOM update
+        deleteCount = await page.locator('button[title*="Delete" i]').count();
+      } catch (e) {
+        // Button became detached or not found, check count again
+        deleteCount = await page.locator('button[title*="Delete" i]').count();
+        if (deleteCount > 0) {
+          await page.waitForTimeout(500);
+        }
+      }
     }
   });
 

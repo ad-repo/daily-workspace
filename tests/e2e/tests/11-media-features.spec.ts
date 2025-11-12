@@ -8,8 +8,8 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Media Features', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('/day/2025-11-07');
-    await page.waitForLoadState('networkidle');
+    await page.goto('/');
+    await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
   });
 
   test('should show image upload button', async ({ page }) => {
