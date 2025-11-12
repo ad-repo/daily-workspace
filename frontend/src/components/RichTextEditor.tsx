@@ -44,6 +44,7 @@ import {
 import { LinkPreviewExtension, fetchLinkPreview } from '../extensions/LinkPreview';
 import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
 import TurndownService from 'turndown';
+import { marked } from 'marked';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -1268,7 +1269,7 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
             <div>
               <h3 className="text-sm font-semibold mb-2" style={{ color: 'var(--color-text-secondary)' }}>Markdown Preview</h3>
               <div 
-                className="p-4 rounded border font-mono text-sm whitespace-pre-wrap"
+                className="prose max-w-none p-4 rounded border"
                 style={{
                   backgroundColor: 'var(--color-bg-secondary)',
                   borderColor: 'var(--color-border-primary)',
@@ -1276,18 +1277,20 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
                   maxHeight: '500px',
                   overflowY: 'auto'
                 }}
-              >
-                {(() => {
-                  const turndownService = new TurndownService({
-                    headingStyle: 'atx',
-                    codeBlockStyle: 'fenced',
-                    bulletListMarker: '-',
-                    emDelimiter: '*',
-                    strongDelimiter: '**',
-                  });
-                  return turndownService.turndown(editor?.getHTML() || '');
-                })()}
-              </div>
+                dangerouslySetInnerHTML={{
+                  __html: (() => {
+                    const turndownService = new TurndownService({
+                      headingStyle: 'atx',
+                      codeBlockStyle: 'fenced',
+                      bulletListMarker: '-',
+                      emDelimiter: '*',
+                      strongDelimiter: '**',
+                    });
+                    const markdown = turndownService.turndown(editor?.getHTML() || '');
+                    return marked.parse(markdown) as string;
+                  })()
+                }}
+              />
             </div>
           </div>
         ) : (
