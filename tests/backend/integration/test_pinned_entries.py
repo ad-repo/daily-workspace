@@ -115,9 +115,10 @@ def test_pinned_entry_with_labels(db_session: Session):
     today = unique_date_future(0)
     tomorrow = unique_date_future(1)
     
-    # Create a label
+    # Create a label with unique name
+    label_name = f'test-label-{int(time.time() * 1000)}'
     label_response = client.post('/api/labels/', json={
-        'name': 'important',
+        'name': label_name,
         'color': '#ff0000'
     })
     assert label_response.status_code == 201
@@ -151,7 +152,7 @@ def test_pinned_entry_with_labels(db_session: Session):
         if len(pinned_entries) > 0:
             # Check that labels were copied
             assert len(pinned_entries[0]['labels']) > 0
-            assert pinned_entries[0]['labels'][0]['name'] == 'important'
+            assert pinned_entries[0]['labels'][0]['name'] == label_name
 
 
 def test_multiple_pinned_entries(db_session: Session):
@@ -196,10 +197,11 @@ def test_pinned_entry_no_duplicate_on_multiple_access(db_session: Session):
     today = unique_date_future(0)
     tomorrow = unique_date_future(1)
     
-    # Create a daily note and pinned entry
+    # Create a daily note and pinned entry with unique content
+    unique_content = f'No duplicate test {int(time.time() * 1000)}'
     client.post('/api/notes/', json={'date': today})
     entry_response = client.post(f'/api/entries/note/{today}', json={
-        'content': 'No duplicate test',
+        'content': unique_content,
         'content_type': 'rich_text',
         'order_index': 0
     })
@@ -214,7 +216,7 @@ def test_pinned_entry_no_duplicate_on_multiple_access(db_session: Session):
     tomorrow_entries = client.get(f'/api/entries/note/{tomorrow}')
     if tomorrow_entries.status_code == 200:
         entries = tomorrow_entries.json()
-        pinned_entries = [e for e in entries if e['is_pinned'] and e['content'] == 'No duplicate test']
+        pinned_entries = [e for e in entries if e['is_pinned'] and e['content'] == unique_content]
         
         # Should only have one copy, not three
         assert len(pinned_entries) == 1
