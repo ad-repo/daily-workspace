@@ -28,14 +28,7 @@ vi.mock('lucide-react', () => ({
   GripVertical: () => <div>GripVertical</div>,
 }));
 
-// Mock ListColumn component
-vi.mock('../../src/components/ListColumn', () => ({
-  default: ({ list }: any) => (
-    <div data-testid={`list-column-${list.id}`}>
-      {list.name}
-    </div>
-  ),
-}));
+// Don't mock ListColumn - use the real component to test drag and drop properly
 
 describe('Lists Drag and Drop', () => {
   const mockLists = [
