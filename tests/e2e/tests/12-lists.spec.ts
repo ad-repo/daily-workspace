@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Lists Feature', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('http://frontend:5173');
+    await page.goto('http://localhost:5173');
     await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
   });
 
