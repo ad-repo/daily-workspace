@@ -62,7 +62,7 @@ const ListCard = ({ entry, onRemoveFromList, onUpdate, onLabelsUpdate, listId }:
 
   return (
     <div
-      className="relative group"
+      className="entry-card-container relative group"
       draggable
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
@@ -71,12 +71,34 @@ const ListCard = ({ entry, onRemoveFromList, onUpdate, onLabelsUpdate, listId }:
         cursor: isDragging ? 'grabbing' : 'grab',
       }}
     >
+      {/* List badges - show which lists this entry belongs to */}
+      {entry.lists && entry.lists.length > 0 && (
+        <div className="absolute top-2 left-2 z-10 flex gap-1">
+          {entry.lists.map((list) => (
+            <span
+              key={list.id}
+              className="px-2 py-1 rounded text-xs"
+              style={{
+                backgroundColor: list.color + '40',
+                color: 'var(--color-text-primary)',
+                borderColor: list.color,
+                borderWidth: '1px',
+                borderStyle: 'solid',
+              }}
+              title={list.description}
+            >
+              {list.name}
+            </span>
+          ))}
+        </div>
+      )}
+
       {/* Action buttons overlay - shows on hover */}
-      <div className="absolute top-4 right-4 z-10 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="absolute top-2 right-2 z-10 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
         {entry.daily_note_date && (
           <button
             onClick={handleViewInDaily}
-            className="p-2 rounded-full shadow-lg transition-all hover:scale-110 flex items-center gap-1 px-3"
+            className="p-2 rounded shadow-lg transition-all hover:scale-110"
             style={{
               backgroundColor: 'var(--color-accent)',
               color: 'white',
@@ -84,13 +106,12 @@ const ListCard = ({ entry, onRemoveFromList, onUpdate, onLabelsUpdate, listId }:
             title="View in daily notes"
           >
             <ExternalLink className="w-4 h-4" />
-            <span className="text-xs font-medium">Daily</span>
           </button>
         )}
         {onRemoveFromList && listId && (
           <button
             onClick={handleRemove}
-            className="p-2 rounded-full shadow-lg transition-all hover:scale-110"
+            className="p-2 rounded shadow-lg transition-all hover:scale-110"
             style={{
               backgroundColor: 'var(--color-card-bg)',
               color: '#ef4444',
