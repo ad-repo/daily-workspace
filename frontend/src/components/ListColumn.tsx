@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Trash2, Edit2, Archive, Plus } from 'lucide-react';
 import type { List, NoteEntry } from '../types';
 import ListCard from './ListCard';
@@ -21,6 +21,14 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
   const [selectedEntryId, setSelectedEntryId] = useState<number | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // Ensure scroll starts at top when component mounts or entries change
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = 0;
+    }
+  }, [list.id]); // Reset when list changes
 
   const handleRemoveEntry = async (entryId: number) => {
     try {
@@ -247,7 +255,7 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
         </div>
 
         {/* List Content - Scrollable entries */}
-        <div className="flex-1 overflow-y-auto p-5 custom-scrollbar">
+        <div ref={scrollContainerRef} className="flex-1 overflow-y-auto p-5 custom-scrollbar">
           {entries.length === 0 ? (
             <div className="text-center py-12">
               <div
