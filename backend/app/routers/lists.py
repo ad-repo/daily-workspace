@@ -76,7 +76,7 @@ def get_list(list_id: int, db: Session = Depends(get_db)):
             {
                 'id': entry.id,
                 'daily_note_id': entry.daily_note_id,
-                'daily_note_date': entry.daily_note.date,  # Add date for navigation
+                'daily_note_date': entry.daily_note.date if entry.daily_note else None,  # Add date for navigation
                 'title': entry.title,
                 'content': entry.content,
                 'content_type': entry.content_type,
