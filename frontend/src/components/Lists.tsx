@@ -229,12 +229,12 @@ export default function Lists() {
   }
 
   return (
-    <div className="h-screen flex flex-col" style={{ backgroundColor: 'var(--color-background)' }}>
+    <div className="h-screen flex flex-col page-fade-in" style={{ backgroundColor: 'var(--color-background)' }}>
       {/* Lists Container */}
       <div 
         ref={scrollContainerRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-x-auto overflow-y-hidden" 
+        className="flex-1 overflow-x-auto overflow-y-hidden py-6" 
         style={{ position: 'relative' }}
       >
         {isRefreshing && (
@@ -262,8 +262,8 @@ export default function Lists() {
             </div>
           </div>
         ) : (
-          <div className="flex gap-6 p-8 h-full items-stretch">
-            {lists.map((list) => (
+          <div className="flex gap-6 px-8 py-6 h-full items-stretch">
+            {lists.map((list, index) => (
               <div
                 key={list.id}
                 onDragOver={(e) => handleListDragOver(e, list.id)}
@@ -273,6 +273,8 @@ export default function Lists() {
                   opacity: draggedListId === list.id ? 0.5 : 1,
                   transform: dragOverListId === list.id && draggedListId !== list.id ? 'scale(1.02)' : 'scale(1)',
                   transition: 'transform 0.2s ease, opacity 0.2s ease',
+                  paddingLeft: index === 0 ? '2rem' : '0',
+                  paddingRight: index === lists.length - 1 ? '2rem' : '0',
                 }}
               >
                 <ListColumn
