@@ -1224,9 +1224,34 @@ const DailyView = () => {
                 data-entry-id={entry.id}
                 className="entry-card-container relative group"
                 style={{
-                  animation: index === 0 ? 'slideDown 0.3s ease-out' : 'none'
+                  animation: index === 0 ? 'slideDown 0.3s ease-out' : 'none',
+                  paddingTop: entry.lists && entry.lists.length > 0 ? '48px' : '0',
                 }}
               >
+                {/* Show list badges if entry belongs to lists */}
+                {entry.lists && entry.lists.length > 0 && (
+                  <div className="absolute top-2 left-2 z-10 flex gap-1.5 flex-wrap" style={{ maxWidth: 'calc(100% - 60px)' }}>
+                    {entry.lists.map((list) => (
+                      <button
+                        key={list.id}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/lists?highlight=${entry.id}&list=${list.id}`);
+                        }}
+                        className="px-3 py-1.5 rounded-full text-xs font-medium transition-all hover:scale-105 hover:shadow-md"
+                        style={{
+                          backgroundColor: list.color,
+                          color: 'white',
+                          border: 'none',
+                          cursor: 'pointer',
+                        }}
+                        title={`View in "${list.name}" list${list.description ? ': ' + list.description : ''}`}
+                      >
+                        {list.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
                 {/* List selector button - appears on hover */}
                 <button
                   onClick={() => setListSelectorEntryId(entry.id)}
@@ -1239,27 +1264,6 @@ const DailyView = () => {
                 >
                   <Columns className="w-4 h-4" />
                 </button>
-                {/* Show list badges if entry belongs to lists */}
-                {entry.lists && entry.lists.length > 0 && (
-                  <div className="absolute top-2 left-2 z-10 flex gap-1">
-                    {entry.lists.map((list) => (
-                      <span
-                        key={list.id}
-                        className="px-2 py-1 rounded text-xs"
-                        style={{
-                          backgroundColor: list.color + '40',
-                          color: 'var(--color-text-primary)',
-                          borderColor: list.color,
-                          borderWidth: '1px',
-                          borderStyle: 'solid',
-                        }}
-                        title={list.description}
-                      >
-                        {list.name}
-                      </span>
-                    ))}
-                  </div>
-                )}
                 <NoteEntryCard
                   entry={entry}
                   onUpdate={handleEntryUpdate}

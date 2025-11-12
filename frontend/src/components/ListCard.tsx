@@ -50,6 +50,7 @@ const ListCard = ({ entry, onRemoveFromList, onUpdate, onLabelsUpdate, listId }:
   return (
     <div
       className="entry-card-container relative group"
+      data-entry-id={entry.id}
       draggable
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}

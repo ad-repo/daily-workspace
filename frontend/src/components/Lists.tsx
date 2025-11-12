@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { List, ListWithEntries } from '../types';
 import { listsApi } from '../api';
 import ListColumn from './ListColumn';
 import { Plus } from 'lucide-react';
 
 export default function Lists() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [lists, setLists] = useState<ListWithEntries[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -21,6 +23,44 @@ export default function Lists() {
   useEffect(() => {
     loadLists();
   }, []);
+
+  // Handle highlight and scroll to specific entry in specific list
+  useEffect(() => {
+    if (lists.length === 0) return;
+
+    const highlightEntryId = searchParams.get('highlight');
+    const targetListId = searchParams.get('list');
+
+    if (highlightEntryId && targetListId) {
+      setTimeout(() => {
+        // Find the list column
+        const listColumn = document.querySelector(`[data-testid="list-column-${targetListId}"]`);
+        if (listColumn) {
+          // Scroll horizontally to the list
+          listColumn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+          
+          // Find and highlight the entry within that list
+          setTimeout(() => {
+            const entryCard = listColumn.querySelector(`[data-entry-id="${highlightEntryId}"]`);
+            if (entryCard) {
+              entryCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              
+              // Add highlight animation
+              entryCard.classList.add('highlight-pulse');
+              setTimeout(() => {
+                entryCard.classList.remove('highlight-pulse');
+              }, 2000);
+            }
+          }, 300);
+        }
+
+        // Clear query params after scrolling
+        searchParams.delete('highlight');
+        searchParams.delete('list');
+        setSearchParams(searchParams, { replace: true });
+      }, 300);
+    }
+  }, [lists, searchParams, setSearchParams]);
 
   const loadLists = useCallback(async (silent = false) => {
     try {
