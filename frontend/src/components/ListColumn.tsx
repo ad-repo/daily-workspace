@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import { Trash2, Edit2, Archive, Plus, PlusCircle } from 'lucide-react';
 import type { List, NoteEntry } from '../types';
 import ListCard from './ListCard';
@@ -21,29 +21,6 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
   const [isDragOver, setIsDragOver] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-
-  // Force scroll to top after entries render - use multiple strategies to ensure it works
-  useEffect(() => {
-    const resetScroll = () => {
-      if (scrollContainerRef.current) {
-        scrollContainerRef.current.scrollTop = 0;
-      }
-    };
-
-    // Strategy 1: Immediate reset
-    resetScroll();
-
-    // Strategy 2: After next render
-    requestAnimationFrame(() => {
-      resetScroll();
-    });
-
-    // Strategy 3: After DOM updates
-    const timer = setTimeout(resetScroll, 10);
-
-    return () => clearTimeout(timer);
-  }, [entries.length]); // Reset when entries are loaded
 
   const handleRemoveEntry = async (entryId: number) => {
     try {
@@ -281,7 +258,7 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
         </div>
 
         {/* List Content - Scrollable entries */}
-        <div ref={scrollContainerRef} className="flex-1 overflow-y-auto custom-scrollbar" style={{ padding: '20px' }}>
+        <div className="flex-1 overflow-y-auto custom-scrollbar" style={{ padding: '20px', minHeight: 0 }}>
           {entries.length === 0 ? (
             <div className="text-center py-12">
               <div
