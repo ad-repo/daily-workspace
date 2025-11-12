@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Search as SearchIcon, X, Star, CheckCircle } from 'lucide-react';
+import { Search as SearchIcon, X, Star, CheckCircle, Columns } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import type { NoteEntry, Label } from '../types';
+import type { NoteEntry, Label, List } from '../types';
 import { useTimezone } from '../contexts/TimezoneContext';
 import { useTransparentLabels } from '../contexts/TransparentLabelsContext';
 import { formatTimestamp } from '../utils/timezone';
@@ -19,7 +19,9 @@ const Search = () => {
   const { transparentLabels } = useTransparentLabels();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLabels, setSelectedLabels] = useState<number[]>([]);
+  const [selectedLists, setSelectedLists] = useState<number[]>([]);
   const [allLabels, setAllLabels] = useState<Label[]>([]);
+  const [allLists, setAllLists] = useState<List[]>([]);
   const [results, setResults] = useState<NoteEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
@@ -30,6 +32,7 @@ const Search = () => {
 
   useEffect(() => {
     loadLabels();
+    loadLists();
     loadSearchHistory();
   }, []);
 
@@ -38,21 +41,22 @@ const Search = () => {
     return () => {
       setSearchQuery('');
       setSelectedLabels([]);
+      setSelectedLists([]);
       setResults([]);
       setHasSearched(false);
     };
   }, []);
 
-  // Auto-search when labels or filters change
+  // Auto-search when labels, lists, or filters change
   useEffect(() => {
-    if (selectedLabels.length > 0 || filterStarred !== null || filterCompleted !== null) {
+    if (selectedLabels.length > 0 || selectedLists.length > 0 || filterStarred !== null || filterCompleted !== null) {
       handleSearch();
     } else if (hasSearched && !searchQuery.trim()) {
       // Clear results if no filters and no query
       setResults([]);
       setHasSearched(false);
     }
-  }, [selectedLabels, filterStarred, filterCompleted]);
+  }, [selectedLabels, selectedLists, filterStarred, filterCompleted]);
 
   const loadLabels = async () => {
     try {
@@ -60,6 +64,15 @@ const Search = () => {
       setAllLabels(response.data);
     } catch (error) {
       console.error('Failed to load labels:', error);
+    }
+  };
+
+  const loadLists = async () => {
+    try {
+      const response = await axios.get<List[]>(`${API_URL}/api/lists`);
+      setAllLists(response.data);
+    } catch (error) {
+      console.error('Failed to load lists:', error);
     }
   };
 
@@ -87,7 +100,7 @@ const Search = () => {
   };
 
   const handleSearch = async () => {
-    if (!searchQuery.trim() && selectedLabels.length === 0 && filterStarred === null && filterCompleted === null) {
+    if (!searchQuery.trim() && selectedLabels.length === 0 && selectedLists.length === 0 && filterStarred === null && filterCompleted === null) {
       return;
     }
 
@@ -106,6 +119,9 @@ const Search = () => {
       }
       if (selectedLabels.length > 0) {
         params.label_ids = selectedLabels.join(',');
+      }
+      if (selectedLists.length > 0) {
+        params.list_ids = selectedLists.join(',');
       }
       if (filterStarred !== null) {
         params.is_important = filterStarred;
@@ -141,6 +157,7 @@ const Search = () => {
   const clearSearch = () => {
     setSearchQuery('');
     setSelectedLabels([]);
+    setSelectedLists([]);
     setFilterStarred(null);
     setFilterCompleted(null);
     setResults([]);
@@ -191,24 +208,24 @@ const Search = () => {
             />
             <button
               onClick={handleSearch}
-              disabled={loading || (!searchQuery.trim() && selectedLabels.length === 0 && filterStarred === null && filterCompleted === null)}
+              disabled={loading || (!searchQuery.trim() && selectedLabels.length === 0 && selectedLists.length === 0 && filterStarred === null && filterCompleted === null)}
               className="px-6 py-3 rounded-lg transition-colors flex items-center gap-2"
               style={{
-                backgroundColor: (loading || (!searchQuery.trim() && selectedLabels.length === 0 && filterStarred === null && filterCompleted === null)) 
+                backgroundColor: (loading || (!searchQuery.trim() && selectedLabels.length === 0 && selectedLists.length === 0 && filterStarred === null && filterCompleted === null)) 
                   ? 'var(--color-bg-tertiary)' 
                   : 'var(--color-accent)',
-                color: (loading || (!searchQuery.trim() && selectedLabels.length === 0 && filterStarred === null && filterCompleted === null))
+                color: (loading || (!searchQuery.trim() && selectedLabels.length === 0 && selectedLists.length === 0 && filterStarred === null && filterCompleted === null))
                   ? 'var(--color-text-tertiary)'
                   : 'var(--color-accent-text)',
-                cursor: (loading || (!searchQuery.trim() && selectedLabels.length === 0 && filterStarred === null && filterCompleted === null)) ? 'not-allowed' : 'pointer',
+                cursor: (loading || (!searchQuery.trim() && selectedLabels.length === 0 && selectedLists.length === 0 && filterStarred === null && filterCompleted === null)) ? 'not-allowed' : 'pointer',
               }}
               onMouseEnter={(e) => {
-                if (!loading && (searchQuery.trim() || selectedLabels.length > 0 || filterStarred !== null || filterCompleted !== null)) {
+                if (!loading && (searchQuery.trim() || selectedLabels.length > 0 || selectedLists.length > 0 || filterStarred !== null || filterCompleted !== null)) {
                   e.currentTarget.style.backgroundColor = 'var(--color-accent-hover)';
                 }
               }}
               onMouseLeave={(e) => {
-                if (!loading && (searchQuery.trim() || selectedLabels.length > 0 || filterStarred !== null || filterCompleted !== null)) {
+                if (!loading && (searchQuery.trim() || selectedLabels.length > 0 || selectedLists.length > 0 || filterStarred !== null || filterCompleted !== null)) {
                   e.currentTarget.style.backgroundColor = 'var(--color-accent)';
                 }
               }}
@@ -360,6 +377,42 @@ const Search = () => {
           </div>
         </div>
 
+        {/* Lists Filter */}
+        <div className="mb-6">
+          <label className="block text-sm font-medium mb-2 flex items-center gap-2" style={{ color: 'var(--color-text-primary)' }}>
+            <Columns className="h-4 w-4" />
+            Filter by Lists:
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {allLists.length === 0 ? (
+              <p className="text-sm" style={{ color: 'var(--color-text-tertiary)' }}>No lists available</p>
+            ) : (
+              allLists.map((list) => (
+                <button
+                  key={list.id}
+                  onClick={() => setSelectedLists(prev => 
+                    prev.includes(list.id)
+                      ? prev.filter(id => id !== list.id)
+                      : [...prev, list.id]
+                  )}
+                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                    selectedLists.includes(list.id)
+                      ? 'ring-2 ring-offset-2'
+                      : 'opacity-70 hover:opacity-100'
+                  }`}
+                  style={{
+                    backgroundColor: list.color,
+                    color: 'white',
+                    ringColor: list.color
+                  }}
+                >
+                  {list.name}
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+
         {/* Search History */}
         {searchHistory.length > 0 && !hasSearched && (
           <div className="mb-6">
@@ -404,6 +457,7 @@ const Search = () => {
             Found {results.length} result{results.length !== 1 ? 's' : ''}
             {searchQuery.trim() && ` for "${searchQuery}"`}
             {selectedLabels.length > 0 && ` with selected labels`}
+            {selectedLists.length > 0 && ` in selected lists`}
             {filterStarred === true && ` (starred only)`}
             {filterCompleted === true && ` (completed only)`}
             {filterCompleted === false && ` (not completed)`}
