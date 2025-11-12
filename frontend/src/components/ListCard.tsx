@@ -93,11 +93,12 @@ const ListCard = ({ entry, onRemoveFromList, onUpdate, onLabelsUpdate, listId }:
         )}
       </div>
 
-      {/* Read-only card preview */}
+      {/* Read-only card preview - scrollable */}
       <div 
+        className="custom-scrollbar"
         style={{ 
           maxHeight: '600px', 
-          overflow: 'hidden',
+          overflowY: 'auto',
           position: 'relative',
         }}
       >
@@ -160,19 +161,6 @@ const ListCard = ({ entry, onRemoveFromList, onUpdate, onLabelsUpdate, listId }:
             />
           </div>
         </div>
-
-        {/* Subtle fade gradient at bottom to indicate more content */}
-        <div 
-          style={{
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: '40px',
-            background: 'linear-gradient(to bottom, rgba(0,0,0,0), var(--color-card-bg) 90%)',
-            pointerEvents: 'none',
-          }}
-        />
       </div>
     </div>
   );
