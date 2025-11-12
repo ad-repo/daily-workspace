@@ -38,7 +38,6 @@ import {
   Type,
   CaseSensitive,
   CheckSquare,
-  FileJson,
 } from 'lucide-react';
 import { LinkPreviewExtension, fetchLinkPreview } from '../extensions/LinkPreview';
 import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
@@ -121,6 +120,8 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
   const [showFontSizeMenu, setShowFontSizeMenu] = useState(false);
   const [showMarkdownPreview, setShowMarkdownPreview] = useState(false);
   const [jsonError, setJsonError] = useState<string | null>(null);
+  const [showJsonFormatted, setShowJsonFormatted] = useState(false);
+  const [originalContent, setOriginalContent] = useState<string>('');
   
   // Check if camera/video should be available
   // getUserMedia (camera/video) requires HTTPS on mobile browsers when accessed over network
@@ -894,28 +895,39 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
     setIsRecordingVideo(false);
   };
 
-  const formatJSON = () => {
-    try {
-      // Get the current content as text
-      const text = editor?.getText() || '';
-      
-      // Try to parse it as JSON
-      const parsed = JSON.parse(text);
-      
-      // Format it with 2-space indentation
-      const formatted = JSON.stringify(parsed, null, 2);
-      
-      // Replace the content with formatted JSON in a code block
-      editor?.commands.setContent(`<pre><code>${formatted}</code></pre>`);
-      
+  const toggleJsonFormat = () => {
+    if (showJsonFormatted) {
+      // Restore original content
+      editor?.commands.setContent(originalContent);
+      setShowJsonFormatted(false);
       setJsonError(null);
-    } catch (error) {
-      // Show error message
-      const errorMessage = error instanceof Error ? error.message : 'Invalid JSON';
-      setJsonError(errorMessage);
-      
-      // Clear error after 5 seconds
-      setTimeout(() => setJsonError(null), 5000);
+    } else {
+      try {
+        // Save original content
+        setOriginalContent(editor?.getHTML() || '');
+        
+        // Get the current content as text
+        const text = editor?.getText() || '';
+        
+        // Try to parse it as JSON
+        const parsed = JSON.parse(text);
+        
+        // Format it with 2-space indentation
+        const formatted = JSON.stringify(parsed, null, 2);
+        
+        // Replace the content with formatted JSON in a code block
+        editor?.commands.setContent(`<pre><code>${formatted}</code></pre>`);
+        
+        setShowJsonFormatted(true);
+        setJsonError(null);
+      } catch (error) {
+        // Show error message
+        const errorMessage = error instanceof Error ? error.message : 'Invalid JSON';
+        setJsonError(errorMessage);
+        
+        // Clear error after 5 seconds
+        setTimeout(() => setJsonError(null), 5000);
+      }
     }
   };
 
@@ -1272,11 +1284,11 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
         </ToolbarButton>
 
         <ToolbarButton
-          onClick={formatJSON}
-          active={false}
-          title="Format JSON (prettify and check for errors)"
+          onClick={toggleJsonFormat}
+          active={showJsonFormatted}
+          title={showJsonFormatted ? "Show Original Content" : "Format JSON (prettify and check for errors)"}
         >
-          <FileJson className="h-4 w-4" />
+          <span className="font-bold text-sm">J</span>
         </ToolbarButton>
 
         <ToolbarButton
