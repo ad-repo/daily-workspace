@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Calendar } from 'lucide-react';
+import { X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import type { NoteEntry } from '../types';
 import NoteEntryCard from './NoteEntryCard';
@@ -39,7 +39,22 @@ const ListCard = ({ entry, onRemoveFromList, onUpdate, onLabelsUpdate, listId }:
   };
 
   const handleViewInDaily = (e: React.MouseEvent) => {
-    e.stopPropagation();
+    // Don't navigate if clicking on interactive elements
+    const target = e.target as HTMLElement;
+    const isInteractive = 
+      target.tagName === 'BUTTON' ||
+      target.tagName === 'INPUT' ||
+      target.tagName === 'TEXTAREA' ||
+      target.closest('button') ||
+      target.closest('input') ||
+      target.closest('textarea') ||
+      target.closest('[contenteditable]') ||
+      target.classList.contains('ProseMirror');
+    
+    if (isInteractive) {
+      return;
+    }
+
     if (entry.daily_note_date) {
       navigate(`/daily/${entry.daily_note_date}`);
     }
@@ -62,31 +77,19 @@ const ListCard = ({ entry, onRemoveFromList, onUpdate, onLabelsUpdate, listId }:
 
   return (
     <div
-      className="relative group"
+      className="relative group transition-all hover:shadow-2xl"
       draggable
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
+      onClick={handleViewInDaily}
       style={{
         opacity: isDragging ? 0.5 : 1,
-        cursor: isDragging ? 'grabbing' : 'grab',
+        cursor: 'pointer',
       }}
+      title={entry.daily_note_date ? `Click card to view in daily notes (${entry.daily_note_date})` : undefined}
     >
       {/* Action buttons overlay - shows on hover */}
       <div className="absolute top-4 right-4 z-10 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-        {entry.daily_note_date && (
-          <button
-            onClick={handleViewInDaily}
-            className="p-2 rounded-full shadow-lg transition-all hover:scale-110"
-            style={{
-              backgroundColor: 'var(--color-card-bg)',
-              color: 'var(--color-accent)',
-              border: '2px solid var(--color-accent)',
-            }}
-            title="View in daily notes"
-          >
-            <Calendar className="w-4 h-4" />
-          </button>
-        )}
         {onRemoveFromList && listId && (
           <button
             onClick={handleRemove}
