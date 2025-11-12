@@ -137,12 +137,10 @@ export default function Lists() {
   }, [lists.length]);
 
   const handleListDragStart = (listId: number) => {
-    console.log('Lists: drag start for list', listId);
     setDraggedListId(listId);
   };
 
   const handleListDragOver = (e: React.DragEvent, listId: number) => {
-    console.log('Lists: drag over list', listId, 'dragged:', draggedListId);
     e.preventDefault();
     if (draggedListId === null || draggedListId === listId) return;
     setDragOverListId(listId);
@@ -168,11 +166,8 @@ export default function Lists() {
       const targetIndex = lists.findIndex((l) => l.id === targetListId);
 
       if (draggedIndex === -1 || targetIndex === -1) {
-        console.error('Invalid indices', { draggedIndex, targetIndex });
         return;
       }
-
-      console.log('Reordering from', draggedIndex, 'to', targetIndex);
 
       // Reorder locally first for instant feedback
       const newLists = [...lists];
@@ -185,21 +180,15 @@ export default function Lists() {
         order_index: index,
       }));
 
-      console.log('New order:', JSON.stringify(reorderedLists, null, 2));
-
       // Update state immediately
       setLists(newLists);
       setDraggedListId(null);
       setDragOverListId(null);
 
       // Send to backend in background
-      console.log('Sending to backend:', JSON.stringify({ lists: reorderedLists }, null, 2));
       await listsApi.reorderLists(reorderedLists);
-      console.log('Backend updated successfully');
     } catch (err: any) {
       console.error('Error reordering lists:', err);
-      console.error('Response data:', JSON.stringify(err?.response?.data, null, 2));
-      console.error('Response status:', err?.response?.status);
       // Reload to get correct state
       await loadLists(true);
     }

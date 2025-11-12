@@ -46,21 +46,17 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
     e.preventDefault();
     
     const types = Array.from(e.dataTransfer.types);
-    console.log('ListColumn dragOver types:', types);
     
     // If dragging a list, allow drop but don't handle it here - let it bubble
     if (types.includes('text/x-listid')) {
-      console.log('List drag detected, allowing drop but letting bubble');
       return; // Let parent handle list reordering
     }
     
     // Only handle entry card drags
     if (!types.includes('text/x-entryid')) {
-      console.log('No entryid, letting bubble');
       return;
     }
     
-    console.log('Entry drag, handling in ListColumn');
     e.stopPropagation(); // Stop propagation only for entry drags
     e.dataTransfer.dropEffect = 'move';
     setIsDragOver(true);
@@ -84,7 +80,6 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
     // If dragging a list, let it bubble for list reordering (parent will handle)
     if (e.dataTransfer.types.includes('text/x-listid')) {
       setIsDragOver(false);
-      console.log('List drop detected, letting bubble');
       return; // Don't stopPropagation - let parent handle it
     }
     
@@ -99,7 +94,6 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
     // Entry drop - handle here and stop propagation
     e.stopPropagation();
     setIsDragOver(false);
-    console.log('Entry drop, handling in ListColumn');
 
     const sourceListId = parseInt(e.dataTransfer.getData('text/x-sourcelistid'));
 
@@ -152,13 +146,11 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
           }}
           draggable="true"
           onDragStart={(e) => {
-            console.log('DRAG START on header', list.id);
             e.dataTransfer.setData('text/x-listid', list.id.toString());
             e.dataTransfer.effectAllowed = 'move';
             onDragStart?.();
           }}
           onDragEnd={(e) => {
-            console.log('DRAG END on header', list.id);
             onDragEnd?.();
           }}
           onMouseDown={(e) => {
