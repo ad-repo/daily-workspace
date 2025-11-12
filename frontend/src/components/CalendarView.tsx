@@ -17,20 +17,19 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
   const [notes, setNotes] = useState<DailyNote[]>([]);
   const [sprintGoals, setSprintGoals] = useState<Goal[]>([]);
   const [quarterlyGoals, setQuarterlyGoals] = useState<Goal[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
   useEffect(() => {
-    loadMonthNotes();
-    loadAllGoals();
+    loadMonthData();
   }, [currentMonth]);
 
   // Add tooltips to calendar tiles after notes and goals are loaded
   useEffect(() => {
-    if (notes.length === 0 && sprintGoals.length === 0 && quarterlyGoals.length === 0) return;
+    if (loading || (notes.length === 0 && sprintGoals.length === 0 && quarterlyGoals.length === 0)) return;
 
-    // Wait for calendar to render
-    setTimeout(() => {
+    // Use requestAnimationFrame for smoother DOM updates
+    requestAnimationFrame(() => {
       const tiles = document.querySelectorAll('.react-calendar__tile');
       tiles.forEach((tile) => {
         const abbr = tile.querySelector('abbr');
@@ -67,10 +66,10 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
           }
         }
       });
-    }, 100);
-  }, [notes, sprintGoals, quarterlyGoals]);
+    });
+  }, [notes, sprintGoals, quarterlyGoals, loading]);
 
-  const loadMonthNotes = async () => {
+  const loadMonthData = async () => {
     setLoading(true);
     try {
       const curYear = currentMonth.getFullYear();
@@ -85,35 +84,29 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
       const nextYear = nextDate.getFullYear();
       const nextMonth = nextDate.getMonth() + 1;
 
-      const [prevData, curData, nextData] = await Promise.all([
+      // Load all data in parallel
+      const [prevData, curData, nextData, sprints, quarterlies] = await Promise.all([
         notesApi.getByMonth(prevYear, prevMonth),
         notesApi.getByMonth(curYear, curMonth),
         notesApi.getByMonth(nextYear, nextMonth),
+        goalsApi.getAllSprints(),
+        goalsApi.getAllQuarterly(),
       ]);
 
-      // Merge by unique date
+      // Merge notes by unique date
       const byDate = new Map<string, DailyNote>();
       for (const n of [...prevData, ...curData, ...nextData]) {
         byDate.set(n.date, n);
       }
+      
+      // Update all state at once
       setNotes(Array.from(byDate.values()));
-    } catch (error) {
-      console.error('Failed to load notes:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadAllGoals = async () => {
-    try {
-      const [sprints, quarterlies] = await Promise.all([
-        goalsApi.getAllSprints(),
-        goalsApi.getAllQuarterly(),
-      ]);
       setSprintGoals(sprints);
       setQuarterlyGoals(quarterlies);
     } catch (error) {
-      console.error('Failed to load goals:', error);
+      console.error('Failed to load calendar data:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -197,17 +190,19 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
       <div className="rounded-xl shadow-xl p-6" style={{ backgroundColor: 'var(--color-bg-primary)' }}>
         <h1 className="text-3xl font-bold mb-6" style={{ color: 'var(--color-text-primary)' }}>🗓️ Calendar View</h1>
         
-        {loading && (
-          <div className="text-center py-4" style={{ color: 'var(--color-text-secondary)' }}>Loading notes...</div>
+        {loading ? (
+          <div className="text-center py-12" style={{ color: 'var(--color-text-secondary)' }}>
+            <div className="animate-pulse">Loading calendar...</div>
+          </div>
+        ) : (
+          <Calendar
+            value={selectedDate}
+            onClickDay={handleDateClick}
+            onActiveStartDateChange={handleActiveStartDateChange}
+            tileContent={getTileContent}
+            className="w-full"
+          />
         )}
-
-        <Calendar
-          value={selectedDate}
-          onClickDay={handleDateClick}
-          onActiveStartDateChange={handleActiveStartDateChange}
-          tileContent={getTileContent}
-          className="w-full"
-        />
 
         <div className="mt-6 p-4 rounded-lg" style={{ backgroundColor: 'var(--color-bg-secondary)', border: '1px solid var(--color-border-primary)' }}>
           <h3 className="text-base font-bold mb-3" style={{ color: 'var(--color-text-primary)' }}>📋 Legend</h3>
