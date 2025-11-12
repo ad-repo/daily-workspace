@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
-import { Trash2, Edit2, Archive, Plus } from 'lucide-react';
+import { Trash2, Edit2, Archive, Plus, PlusCircle } from 'lucide-react';
 import type { List, NoteEntry } from '../types';
 import ListCard from './ListCard';
 import EntryModal from './EntryModal';
 import AddEntryToListModal from './AddEntryToListModal';
+import CreateEntryModal from './CreateEntryModal';
 import { listsApi } from '../api';
 
 interface ListColumnProps {
@@ -21,6 +22,7 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
   const [selectedEntryId, setSelectedEntryId] = useState<number | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Ensure scroll starts at top when component mounts or entries change
@@ -197,6 +199,17 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
             {showActions && (
               <div className="flex gap-1.5 ml-2" style={{ pointerEvents: 'auto' }} onMouseDown={(e) => e.stopPropagation()}>
                 <button
+                  onClick={() => setShowCreateModal(true)}
+                  className="p-2 rounded-lg transition-all hover:scale-110 hover:shadow-md"
+                  style={{
+                    backgroundColor: list.color,
+                    color: 'white',
+                  }}
+                  title="Create new entry"
+                >
+                  <PlusCircle className="w-4 h-4" />
+                </button>
+                <button
                   onClick={() => setShowAddModal(true)}
                   className="p-2 rounded-lg transition-all hover:scale-110 hover:shadow-md"
                   style={{
@@ -302,6 +315,15 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
           list={list}
           onClose={() => setShowAddModal(false)}
           onUpdate={onUpdate}
+        />
+      )}
+
+      {/* Create Entry Modal */}
+      {showCreateModal && (
+        <CreateEntryModal
+          list={list}
+          onClose={() => setShowCreateModal(false)}
+          onSuccess={onUpdate}
         />
       )}
     </>

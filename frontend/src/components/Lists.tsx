@@ -311,14 +311,15 @@ export default function Lists() {
       {/* Floating Action Button */}
       <button
         onClick={() => setShowCreateModal(true)}
-        className="fixed bottom-8 right-8 w-16 h-16 rounded-full shadow-2xl transition-all hover:scale-110 hover:shadow-3xl flex items-center justify-center z-40"
+        className="fixed bottom-8 right-8 w-20 h-20 rounded-full shadow-2xl transition-all hover:scale-110 hover:shadow-3xl flex items-center justify-center z-40"
         style={{
           backgroundColor: 'var(--color-accent)',
           color: 'white',
+          boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3)',
         }}
         title="Create New List"
       >
-        <Plus className="w-8 h-8" />
+        <Plus className="w-10 h-10" strokeWidth={2.5} />
       </button>
 
       {/* Create List Modal */}
