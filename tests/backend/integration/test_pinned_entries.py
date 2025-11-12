@@ -1,5 +1,5 @@
 """
-Tests for pinned entries feature.
+Integration tests for pinned entries feature.
 
 Tests the ability to pin note entries so they automatically copy to future days.
 """
@@ -7,37 +7,26 @@ import pytest
 from datetime import datetime, timedelta
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
+import time
+import random
 
-from backend.app.main import app
-from backend.app.database import get_db, Base, engine
-from backend.app import models
-
-
-@pytest.fixture
-def client():
-    """Create a test client with a fresh database."""
-    # Create tables
-    Base.metadata.create_all(bind=engine)
-    
-    client = TestClient(app)
-    yield client
-    
-    # Clean up
-    Base.metadata.drop_all(bind=engine)
+from app.main import app
+from app import models
 
 
-@pytest.fixture
-def db():
-    """Get a database session."""
-    db = next(get_db())
-    yield db
-    db.close()
+client = TestClient(app)
 
 
-def test_toggle_pin_entry(client):
+def unique_date_future(days_ahead: int = 1) -> str:
+    """Generate unique future date for tests"""
+    base_date = datetime.now() + timedelta(days=days_ahead)
+    return f"{base_date.strftime('%Y-%m-%d')}_{int(time.time() * 1000)}"
+
+
+def test_toggle_pin_entry(db_session: Session):
     """Test toggling pin status on an entry."""
     # Create a daily note
-    today = datetime.now().strftime('%Y-%m-%d')
+    today = unique_date_future(0)
     note_response = client.post('/api/notes/', json={
         'date': today,
         'fire_rating': 0,
@@ -66,11 +55,11 @@ def test_toggle_pin_entry(client):
     assert unpin_response.json()['is_pinned'] is False
 
 
-def test_pinned_entry_copies_to_future_day(client):
+def test_pinned_entry_copies_to_future_day(db_session: Session):
     """Test that pinned entries automatically copy to future days."""
     # Create a daily note for today
-    today = datetime.now().strftime('%Y-%m-%d')
-    tomorrow = (datetime.now() + timedelta(days=1)).strftime('%Y-%m-%d')
+    today = unique_date_future(0)
+    tomorrow = unique_date_future(1)
     
     note_response = client.post('/api/notes/', json={
         'date': today,
@@ -121,10 +110,10 @@ def test_pinned_entry_copies_to_future_day(client):
         assert pinned_entries[0]['is_completed'] is False
 
 
-def test_pinned_entry_with_labels(client):
+def test_pinned_entry_with_labels(db_session: Session):
     """Test that pinned entries preserve labels when copied."""
-    today = datetime.now().strftime('%Y-%m-%d')
-    tomorrow = (datetime.now() + timedelta(days=1)).strftime('%Y-%m-%d')
+    today = unique_date_future(0)
+    tomorrow = unique_date_future(1)
     
     # Create a label
     label_response = client.post('/api/labels/', json={
@@ -165,10 +154,10 @@ def test_pinned_entry_with_labels(client):
             assert pinned_entries[0]['labels'][0]['name'] == 'important'
 
 
-def test_multiple_pinned_entries(client):
+def test_multiple_pinned_entries(db_session: Session):
     """Test that multiple entries can be pinned simultaneously."""
-    today = datetime.now().strftime('%Y-%m-%d')
-    tomorrow = (datetime.now() + timedelta(days=1)).strftime('%Y-%m-%d')
+    today = unique_date_future(0)
+    tomorrow = unique_date_future(1)
     
     # Create a daily note
     client.post('/api/notes/', json={'date': today})
@@ -197,10 +186,10 @@ def test_multiple_pinned_entries(client):
         assert len(pinned_entries) == 3
 
 
-def test_pinned_entry_no_duplicate_on_multiple_access(client):
+def test_pinned_entry_no_duplicate_on_multiple_access(db_session: Session):
     """Test that pinned entries don't duplicate when accessing the same day multiple times."""
-    today = datetime.now().strftime('%Y-%m-%d')
-    tomorrow = (datetime.now() + timedelta(days=1)).strftime('%Y-%m-%d')
+    today = unique_date_future(0)
+    tomorrow = unique_date_future(1)
     
     # Create a daily note and pinned entry
     client.post('/api/notes/', json={'date': today})
@@ -226,9 +215,9 @@ def test_pinned_entry_no_duplicate_on_multiple_access(client):
         assert len(pinned_entries) == 1
 
 
-def test_update_entry_pin_status_via_patch(client):
+def test_update_entry_pin_status_via_patch(db_session: Session):
     """Test updating pin status via PATCH endpoint."""
-    today = datetime.now().strftime('%Y-%m-%d')
+    today = unique_date_future(0)
     
     # Create a daily note and entry
     client.post('/api/notes/', json={'date': today})
@@ -254,9 +243,9 @@ def test_update_entry_pin_status_via_patch(client):
     assert patch_response.json()['is_pinned'] is False
 
 
-def test_pinned_entry_in_backup(client):
+def test_pinned_entry_in_backup(db_session: Session):
     """Test that pinned status is included in backup export."""
-    today = datetime.now().strftime('%Y-%m-%d')
+    today = unique_date_future(0)
     
     # Create a daily note and pinned entry
     client.post('/api/notes/', json={'date': today})
