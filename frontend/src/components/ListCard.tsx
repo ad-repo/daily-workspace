@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, ExternalLink, Clock } from 'lucide-react';
+import { Trash2, Calendar, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import type { NoteEntry } from '../types';
 import { useTimezone } from '../contexts/TimezoneContext';
@@ -58,33 +58,36 @@ const ListCard = ({ entry, onRemoveFromList, onUpdate, onLabelsUpdate, listId }:
         cursor: isDragging ? 'grabbing' : 'grab',
       }}
     >
-      {/* Action buttons overlay - shows on hover */}
-      <div className="absolute top-2 right-2 z-10 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+      {/* Action buttons - always visible */}
+      <div className="absolute top-3 right-3 z-10 flex gap-2">
         {entry.daily_note_date && (
           <button
             onClick={handleViewInDaily}
-            className="p-2 rounded shadow-lg transition-all hover:scale-110"
+            className="p-2 rounded-lg transition-all hover:scale-105"
             style={{
-              backgroundColor: 'var(--color-accent)',
-              color: 'white',
+              backgroundColor: 'var(--color-background)',
+              color: 'var(--color-accent)',
+              border: '1px solid var(--color-border)',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
             }}
             title="View in daily notes"
           >
-            <ExternalLink className="w-4 h-4" />
+            <Calendar className="w-4 h-4" />
           </button>
         )}
         {onRemoveFromList && listId && (
           <button
             onClick={handleRemove}
-            className="p-2 rounded shadow-lg transition-all hover:scale-110"
+            className="p-2 rounded-lg transition-all hover:scale-105"
             style={{
-              backgroundColor: 'var(--color-card-bg)',
-              color: '#ef4444',
-              border: '2px solid #ef4444',
+              backgroundColor: 'var(--color-background)',
+              color: 'var(--color-text-secondary)',
+              border: '1px solid var(--color-border)',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
             }}
             title="Remove from list"
           >
-            <X className="w-4 h-4" />
+            <Trash2 className="w-4 h-4" />
           </button>
         )}
       </div>
