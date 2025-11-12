@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { X, ExternalLink } from 'lucide-react';
+import { X, ExternalLink, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import type { NoteEntry } from '../types';
-import NoteEntryCard from './NoteEntryCard';
+import { useTimezone } from '../contexts/TimezoneContext';
+import { formatTimestamp } from '../utils/timezone';
 
 interface ListCardProps {
   entry: NoteEntry;
@@ -14,6 +15,7 @@ interface ListCardProps {
 
 const ListCard = ({ entry, onRemoveFromList, onUpdate, onLabelsUpdate, listId }: ListCardProps) => {
   const navigate = useNavigate();
+  const { timezone } = useTimezone();
   const [isDragging, setIsDragging] = useState(false);
 
   const handleDragStart = (e: React.DragEvent) => {
@@ -43,21 +45,6 @@ const ListCard = ({ entry, onRemoveFromList, onUpdate, onLabelsUpdate, listId }:
     if (entry.daily_note_date) {
       navigate(`/day/${entry.daily_note_date}?highlight=${entry.id}`);
     }
-  };
-
-  const handleEntryUpdate = async (id: number, content: string) => {
-    // The NoteEntryCard handles the actual update via API
-    // We just need to refresh the list after the update completes
-    onUpdate();
-  };
-
-  const handleEntryDelete = async (id: number) => {
-    // Delete the entry entirely (not just remove from list)
-    if (confirm('This will delete the entry completely. Remove from list instead?')) {
-      return;
-    }
-    // Let NoteEntryCard handle the actual deletion
-    onUpdate();
   };
 
   return (
@@ -102,7 +89,7 @@ const ListCard = ({ entry, onRemoveFromList, onUpdate, onLabelsUpdate, listId }:
         )}
       </div>
 
-      {/* Full NoteEntryCard - with max height for list view */}
+      {/* Read-only card preview */}
       <div 
         style={{ 
           maxHeight: '600px', 
@@ -110,17 +97,66 @@ const ListCard = ({ entry, onRemoveFromList, onUpdate, onLabelsUpdate, listId }:
           position: 'relative',
         }}
       >
-        <NoteEntryCard
-          entry={entry}
-          onUpdate={handleEntryUpdate}
-          onDelete={handleEntryDelete}
-          onLabelsUpdate={onLabelsUpdate}
-          onMoveToTop={undefined}
-          selectionMode={false}
-          isSelected={false}
-          onSelectionChange={undefined}
-          currentDate={entry.daily_note_date}
-        />
+        <div 
+          className="rounded-2xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl"
+          style={{
+            backgroundColor: 'var(--color-card-bg)',
+          }}
+        >
+          <div className="p-6">
+            {/* Timestamp */}
+            <div className="flex items-center gap-2 text-sm mb-4" style={{ color: 'var(--color-text-tertiary)' }}>
+              <Clock className="h-4 w-4" />
+              <span>
+                {formatTimestamp(entry.created_at, timezone, 'h:mm a zzz')}
+              </span>
+            </div>
+
+            {/* Title (read-only) */}
+            {entry.title && (
+              <div className="mb-4 text-lg font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+                {entry.title}
+              </div>
+            )}
+
+            {/* Labels (read-only) */}
+            {entry.labels && entry.labels.length > 0 && (
+              <div className="mb-4 pb-4 flex flex-wrap gap-2" style={{ borderBottom: '1px solid var(--color-border-primary)' }}>
+                {entry.labels.map((label) => (
+                  <span
+                    key={label.id}
+                    className="px-3 py-1 rounded-full text-sm font-medium"
+                    style={{
+                      backgroundColor: label.color + '20',
+                      color: label.color,
+                      border: `1px solid ${label.color}40`,
+                    }}
+                  >
+                    {label.name}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {/* Content (read-only, HTML rendered, links clickable) */}
+            <div 
+              className="prose prose-sm max-w-none"
+              style={{ 
+                color: 'var(--color-text-primary)',
+                pointerEvents: 'auto', // Allow link clicks
+              }}
+              dangerouslySetInnerHTML={{ __html: entry.content }}
+              onClick={(e) => {
+                // Only allow link clicks, prevent other interactions
+                const target = e.target as HTMLElement;
+                if (target.tagName !== 'A') {
+                  e.preventDefault();
+                }
+              }}
+            />
+          </div>
+        </div>
+
         {/* Subtle fade gradient at bottom to indicate more content */}
         <div 
           style={{
