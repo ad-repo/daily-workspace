@@ -190,10 +190,12 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
               <div className="flex gap-1.5 ml-2" style={{ pointerEvents: 'auto' }} onMouseDown={(e) => e.stopPropagation()}>
                 <button
                   onClick={() => setShowCreateModal(true)}
-                  className="p-2 rounded-lg transition-all hover:scale-110 hover:shadow-md"
+                  className="p-2 rounded-lg transition-all hover:scale-105"
                   style={{
-                    backgroundColor: list.color,
-                    color: 'white',
+                    backgroundColor: 'var(--color-background)',
+                    color: 'var(--color-accent)',
+                    border: '1px solid var(--color-border)',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
                   }}
                   title="Create new entry"
                 >
@@ -201,10 +203,12 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
                 </button>
                 <button
                   onClick={() => setShowAddModal(true)}
-                  className="p-2 rounded-lg transition-all hover:scale-110 hover:shadow-md"
+                  className="p-2 rounded-lg transition-all hover:scale-105"
                   style={{
-                    backgroundColor: list.color,
-                    color: 'white',
+                    backgroundColor: 'var(--color-background)',
+                    color: 'var(--color-accent)',
+                    border: '1px solid var(--color-border)',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
                   }}
                   title="Add entries via search"
                 >
@@ -212,10 +216,12 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
                 </button>
                 <button
                   onClick={handleArchive}
-                  className="p-2 rounded-lg transition-all hover:scale-110 hover:shadow-md"
+                  className="p-2 rounded-lg transition-all hover:scale-105"
                   style={{
                     backgroundColor: 'var(--color-background)',
                     color: 'var(--color-text-secondary)',
+                    border: '1px solid var(--color-border)',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
                   }}
                   title={list.is_archived ? 'Unarchive list' : 'Archive list'}
                 >
@@ -223,10 +229,12 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
                 </button>
                 <button
                   onClick={() => onDelete(list.id, list.name)}
-                  className="p-2 rounded-lg transition-all hover:scale-110 hover:shadow-md"
+                  className="p-2 rounded-lg transition-all hover:scale-105"
                   style={{
-                    backgroundColor: '#fee',
-                    color: '#ef4444',
+                    backgroundColor: 'var(--color-background)',
+                    color: 'var(--color-text-secondary)',
+                    border: '1px solid var(--color-border)',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
                   }}
                   title="Delete list"
                 >
