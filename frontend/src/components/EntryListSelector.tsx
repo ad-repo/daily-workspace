@@ -147,11 +147,11 @@ const EntryListSelector = ({ entryId, currentLists, onUpdate }: EntryListSelecto
         <div
           className="absolute top-full left-0 mt-2 rounded-lg shadow-xl z-[100] max-h-64 overflow-y-auto"
           style={{
-            backgroundColor: 'var(--color-surface)',
+            backgroundColor: 'var(--color-bg-primary)',
             border: '1px solid var(--color-border-primary)',
             minWidth: '280px',
             maxWidth: '400px',
-            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)',
+            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.2)',
           }}
         >
           {loading ? (
