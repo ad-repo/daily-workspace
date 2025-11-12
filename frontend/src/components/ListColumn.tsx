@@ -266,7 +266,7 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
         </div>
 
         {/* List Content - Scrollable entries */}
-        <div ref={scrollContainerRef} className="flex-1 overflow-y-auto custom-scrollbar" style={{ paddingLeft: '20px', paddingRight: '20px' }}>
+        <div ref={scrollContainerRef} className="flex-1 overflow-y-auto custom-scrollbar" style={{ padding: '20px' }}>
           {entries.length === 0 ? (
             <div className="text-center py-12">
               <div
@@ -283,7 +283,7 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
               </p>
             </div>
           ) : (
-            <div className="space-y-3" style={{ paddingTop: '20px', paddingBottom: '20px' }}>
+            <div className="space-y-3">
               {entries.map((entry) => (
                 <ListCard
                   key={entry.id}
