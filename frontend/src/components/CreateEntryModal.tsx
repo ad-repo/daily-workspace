@@ -89,8 +89,8 @@ const CreateEntryModal = ({ list, onClose, onSuccess }: CreateEntryModalProps) =
       className="fixed inset-0 flex items-center justify-center p-4"
       style={{
         zIndex: 10000,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        backdropFilter: 'blur(2px)',
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        backdropFilter: 'blur(4px)',
       }}
       onClick={onClose}
     >
@@ -99,8 +99,7 @@ const CreateEntryModal = ({ list, onClose, onSuccess }: CreateEntryModalProps) =
         style={{
           backgroundColor: 'var(--color-card-bg)',
           border: '1px solid var(--color-border)',
-          maxHeight: '90vh',
-          marginBottom: '6rem',
+          maxHeight: '85vh',
         }}
         onClick={(e) => e.stopPropagation()}
       >
