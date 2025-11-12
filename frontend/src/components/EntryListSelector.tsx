@@ -138,23 +138,30 @@ const EntryListSelector = ({ entryId, currentLists, onUpdate, onOptimisticUpdate
       // Add the new list to allLists
       setAllLists([...allLists, newList]);
       
-      // Add entry to the new list
-      await listsApi.addEntry(newList.id, entryId);
-      
-      // Update local state
+      // Optimistically update UI first
       const newLists = [...localLists, newList];
       setLocalLists(newLists);
       if (onOptimisticUpdate) {
         onOptimisticUpdate(newLists);
       }
       
+      // Add entry to the new list
+      await listsApi.addEntry(newList.id, entryId);
+      
       // Reset form
       setNewListName('');
       setNewListDescription('');
       setNewListColor('#3b82f6');
       setShowCreateForm(false);
+      
+      // Don't call onUpdate() to avoid refresh
     } catch (error: any) {
       console.error('Error creating list:', error);
+      // Revert on error
+      setLocalLists(currentLists);
+      if (onOptimisticUpdate) {
+        onOptimisticUpdate(currentLists);
+      }
       alert('Failed to create list');
     } finally {
       setProcessing(false);
@@ -189,7 +196,7 @@ const EntryListSelector = ({ entryId, currentLists, onUpdate, onOptimisticUpdate
           className="flex items-center gap-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
           <Plus className="h-4 w-4" />
-          Add
+          Add to list
         </button>
       </div>
 
