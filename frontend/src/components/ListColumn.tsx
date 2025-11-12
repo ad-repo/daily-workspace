@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from 'react';
 import { Trash2, Edit2, Archive, Plus, PlusCircle } from 'lucide-react';
 import type { List, NoteEntry } from '../types';
 import ListCard from './ListCard';
-import EntryModal from './EntryModal';
 import AddEntryToListModal from './AddEntryToListModal';
 import CreateEntryModal from './CreateEntryModal';
 import { listsApi } from '../api';
@@ -19,7 +18,6 @@ interface ListColumnProps {
 
 const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd, isDragging }: ListColumnProps) => {
   const [showActions, setShowActions] = useState(false);
-  const [selectedEntryId, setSelectedEntryId] = useState<number | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -292,22 +290,17 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
                   entry={entry}
                   listId={list.id}
                   onRemoveFromList={handleRemoveEntry}
-                  onCardClick={setSelectedEntryId}
+                  onUpdate={onUpdate}
+                  onLabelsUpdate={(entryId, labels) => {
+                    // Refresh the list to get updated entry data
+                    onUpdate();
+                  }}
                 />
               ))}
             </div>
           )}
         </div>
       </div>
-
-      {/* Entry Modal */}
-      {selectedEntryId !== null && (
-        <EntryModal
-          entryId={selectedEntryId}
-          onClose={() => setSelectedEntryId(null)}
-          onUpdate={onUpdate}
-        />
-      )}
 
       {/* Add Entry Modal */}
       {showAddModal && (
