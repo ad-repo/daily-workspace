@@ -540,7 +540,7 @@ const DailyView = () => {
                     }
                   }}
                   className="space-y-3"
-                  style={{ maxHeight: '300px', overflowY: 'auto' }}
+                  style={{ maxHeight: '200px', overflowY: 'auto' }}
                 >
                   <SimpleRichTextEditor
                     content={dailyGoal}
