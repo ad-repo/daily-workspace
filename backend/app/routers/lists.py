@@ -4,7 +4,7 @@ API routes for lists (Trello-style boards for organizing note entries)
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func
 
 from .. import models, schemas
@@ -47,7 +47,17 @@ def get_all_lists(include_archived: bool = False, db: Session = Depends(get_db))
 @router.get('/{list_id}', response_model=schemas.ListWithEntries)
 def get_list(list_id: int, db: Session = Depends(get_db)):
     """Get a single list with all its entries."""
-    lst = db.query(models.List).filter(models.List.id == list_id).first()
+    lst = (
+        db.query(models.List)
+        .options(
+            joinedload(models.List.entries)
+            .joinedload(models.NoteEntry.daily_note),
+            joinedload(models.List.entries)
+            .joinedload(models.NoteEntry.labels)
+        )
+        .filter(models.List.id == list_id)
+        .first()
+    )
     
     if not lst:
         raise HTTPException(status_code=404, detail='List not found')
@@ -66,6 +76,7 @@ def get_list(list_id: int, db: Session = Depends(get_db)):
             {
                 'id': entry.id,
                 'daily_note_id': entry.daily_note_id,
+                'daily_note_date': entry.daily_note.date,  # Add date for navigation
                 'title': entry.title,
                 'content': entry.content,
                 'content_type': entry.content_type,

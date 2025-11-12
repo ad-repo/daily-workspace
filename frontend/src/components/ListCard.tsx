@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { X } from 'lucide-react';
+import { X, Calendar } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import type { NoteEntry } from '../types';
 import NoteEntryCard from './NoteEntryCard';
 
@@ -12,6 +13,7 @@ interface ListCardProps {
 }
 
 const ListCard = ({ entry, onRemoveFromList, onUpdate, onLabelsUpdate, listId }: ListCardProps) => {
+  const navigate = useNavigate();
   const [isDragging, setIsDragging] = useState(false);
 
   const handleDragStart = (e: React.DragEvent) => {
@@ -33,6 +35,13 @@ const ListCard = ({ entry, onRemoveFromList, onUpdate, onLabelsUpdate, listId }:
       if (confirm('Remove this entry from the list?')) {
         onRemoveFromList(entry.id);
       }
+    }
+  };
+
+  const handleViewInDaily = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (entry.daily_note_date) {
+      navigate(`/daily/${entry.daily_note_date}`);
     }
   };
 
@@ -62,21 +71,37 @@ const ListCard = ({ entry, onRemoveFromList, onUpdate, onLabelsUpdate, listId }:
         cursor: isDragging ? 'grabbing' : 'grab',
       }}
     >
-      {/* Remove from list button overlay - shows on hover */}
-      {onRemoveFromList && listId && (
-        <button
-          onClick={handleRemove}
-          className="absolute top-4 right-4 z-10 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
-          style={{
-            backgroundColor: 'var(--color-card-bg)',
-            color: '#ef4444',
-            border: '2px solid #ef4444',
-          }}
-          title="Remove from list"
-        >
-          <X className="w-4 h-4" />
-        </button>
-      )}
+      {/* Action buttons overlay - shows on hover */}
+      <div className="absolute top-4 right-4 z-10 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        {entry.daily_note_date && (
+          <button
+            onClick={handleViewInDaily}
+            className="p-2 rounded-full shadow-lg transition-all hover:scale-110"
+            style={{
+              backgroundColor: 'var(--color-card-bg)',
+              color: 'var(--color-accent)',
+              border: '2px solid var(--color-accent)',
+            }}
+            title="View in daily notes"
+          >
+            <Calendar className="w-4 h-4" />
+          </button>
+        )}
+        {onRemoveFromList && listId && (
+          <button
+            onClick={handleRemove}
+            className="p-2 rounded-full shadow-lg transition-all hover:scale-110"
+            style={{
+              backgroundColor: 'var(--color-card-bg)',
+              color: '#ef4444',
+              border: '2px solid #ef4444',
+            }}
+            title="Remove from list"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        )}
+      </div>
 
       {/* Full NoteEntryCard - identical to daily view */}
       <NoteEntryCard

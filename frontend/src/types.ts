@@ -8,6 +8,7 @@ export interface Label {
 export interface NoteEntry {
   id: number;
   daily_note_id: number;
+  daily_note_date?: string; // YYYY-MM-DD format for navigation
   title: string;
   content: string;
   content_type: 'rich_text' | 'code' | 'markdown';
