@@ -89,7 +89,7 @@ const CreateEntryModal = ({ list, onClose, onSuccess }: CreateEntryModalProps) =
     <div
       className="fixed inset-0 flex items-center justify-center p-4"
       style={{
-        zIndex: 9999,
+        zIndex: 10000,
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
         backdropFilter: 'blur(2px)',
       }}
@@ -207,10 +207,13 @@ const CreateEntryModal = ({ list, onClose, onSuccess }: CreateEntryModalProps) =
         {/* Actions */}
         <div
           className="px-6 py-4 border-t flex gap-3"
-          style={{ borderColor: 'var(--color-border)' }}
+          style={{ borderColor: 'var(--color-border)', position: 'relative', zIndex: 1 }}
         >
           <button
-            onClick={handleCreate}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleCreate();
+            }}
             disabled={saving}
             className="flex-1 px-6 py-3 rounded-lg font-semibold transition-all hover:scale-105 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             style={{
@@ -221,7 +224,10 @@ const CreateEntryModal = ({ list, onClose, onSuccess }: CreateEntryModalProps) =
             {saving ? 'Creating...' : 'Create Entry'}
           </button>
           <button
-            onClick={onClose}
+            onClick={(e) => {
+              e.stopPropagation();
+              onClose();
+            }}
             disabled={saving}
             className="px-6 py-3 rounded-lg font-semibold transition-all hover:bg-opacity-80 border-2"
             style={{
