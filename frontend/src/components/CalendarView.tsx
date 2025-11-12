@@ -71,6 +71,7 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
 
   const loadMonthData = async () => {
     setLoading(true);
+    
     try {
       const curYear = currentMonth.getFullYear();
       const curMonth = currentMonth.getMonth() + 1;
@@ -99,10 +100,13 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
         byDate.set(n.date, n);
       }
       
-      // Update all state at once
+      // Update all state at once, then wait a frame for smooth transition
       setNotes(Array.from(byDate.values()));
       setSprintGoals(sprints);
       setQuarterlyGoals(quarterlies);
+      
+      // Wait for next frame before removing loading state
+      await new Promise(resolve => requestAnimationFrame(() => resolve(null)));
     } catch (error) {
       console.error('Failed to load calendar data:', error);
     } finally {
@@ -190,19 +194,38 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
       <div className="rounded-xl shadow-xl p-6" style={{ backgroundColor: 'var(--color-bg-primary)' }}>
         <h1 className="text-3xl font-bold mb-6" style={{ color: 'var(--color-text-primary)' }}>🗓️ Calendar View</h1>
         
-        {loading ? (
-          <div className="text-center py-12" style={{ color: 'var(--color-text-secondary)' }}>
-            <div className="animate-pulse">Loading calendar...</div>
-          </div>
-        ) : (
-          <Calendar
-            value={selectedDate}
-            onClickDay={handleDateClick}
-            onActiveStartDateChange={handleActiveStartDateChange}
-            tileContent={getTileContent}
-            className="w-full"
-          />
-        )}
+        <div style={{ minHeight: '400px' }}>
+          {loading ? (
+            <div 
+              className="text-center py-12" 
+              style={{ 
+                color: 'var(--color-text-secondary)',
+                minHeight: '400px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                opacity: 0.6
+              }}
+            >
+              <div className="animate-pulse text-4xl">📅</div>
+            </div>
+          ) : (
+            <div 
+              style={{ 
+                animation: 'fadeIn 0.3s ease-in',
+                opacity: 1
+              }}
+            >
+              <Calendar
+                value={selectedDate}
+                onClickDay={handleDateClick}
+                onActiveStartDateChange={handleActiveStartDateChange}
+                tileContent={getTileContent}
+                className="w-full"
+              />
+            </div>
+          )}
+        </div>
 
         <div className="mt-6 p-4 rounded-lg" style={{ backgroundColor: 'var(--color-bg-secondary)', border: '1px solid var(--color-border-primary)' }}>
           <h3 className="text-base font-bold mb-3" style={{ color: 'var(--color-text-primary)' }}>📋 Legend</h3>
