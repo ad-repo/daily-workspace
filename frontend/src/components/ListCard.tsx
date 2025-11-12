@@ -104,9 +104,10 @@ const ListCard = ({ entry, onRemoveFromList, onUpdate, onLabelsUpdate, listId }:
         }}
       >
         <div 
-          className="rounded-2xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl"
+          className="rounded-2xl shadow-lg transition-all duration-300 hover:shadow-xl"
           style={{
             backgroundColor: 'var(--color-card-bg)',
+            minWidth: 'min-content',
           }}
         >
           <div className="p-6">
