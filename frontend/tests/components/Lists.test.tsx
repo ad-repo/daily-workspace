@@ -222,10 +222,13 @@ describe('Lists Component', () => {
         </BrowserRouter>
       );
 
-      // Should still render the lists even if details fail to load
+      // When getById fails, the whole loadLists fails and shows error state
       await waitFor(() => {
-        expect(screen.getByText('List A')).toBeInTheDocument();
+        expect(screen.getByText('Failed to load lists')).toBeInTheDocument();
       });
+
+      // Verify console.error was called
+      expect(consoleErrorSpy).toHaveBeenCalled();
 
       consoleErrorSpy.mockRestore();
     });
