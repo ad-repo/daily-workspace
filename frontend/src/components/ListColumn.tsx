@@ -136,11 +136,11 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
     <>
       <div
         data-testid={`list-column-${list.id}`}
-        className="flex-shrink-0 w-96 rounded-xl shadow-lg flex flex-col transition-all"
+        className="flex-shrink-0 w-96 rounded-xl shadow-lg flex flex-col transition-all overflow-hidden"
         style={{
           backgroundColor: isDragOver ? `${list.color}15` : 'var(--color-card-bg)',
           border: isDragOver ? `3px dashed ${list.color}` : '1px solid var(--color-border)',
-          maxHeight: 'calc(100vh - 14rem)',
+          height: 'calc(100vh - 14rem)',
           boxShadow: isDragOver 
             ? `0 0 20px ${list.color}40` 
             : '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
@@ -255,7 +255,7 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
         </div>
 
         {/* List Content - Scrollable entries */}
-        <div ref={scrollContainerRef} className="flex-1 overflow-y-auto p-5 custom-scrollbar">
+        <div ref={scrollContainerRef} className="flex-1 overflow-y-auto custom-scrollbar" style={{ padding: '20px' }}>
           {entries.length === 0 ? (
             <div className="text-center py-12">
               <div
