@@ -136,6 +136,7 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
       >
         {/* List Header - Draggable */}
         <div
+          data-testid={`list-header-${list.id}`}
           className="px-5 py-4 relative"
           style={{
             borderBottom: `3px solid ${list.color}`,
