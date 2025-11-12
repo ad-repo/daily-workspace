@@ -136,7 +136,7 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
     <>
       <div
         data-testid={`list-column-${list.id}`}
-        className="flex-shrink-0 w-96 rounded-xl shadow-lg flex flex-col transition-all overflow-hidden"
+        className="flex-shrink-0 w-96 rounded-xl shadow-lg flex flex-col transition-all"
         style={{
           backgroundColor: isDragOver ? `${list.color}15` : 'var(--color-card-bg)',
           border: isDragOver ? `3px dashed ${list.color}` : '1px solid var(--color-border)',
