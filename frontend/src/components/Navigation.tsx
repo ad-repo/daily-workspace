@@ -1,17 +1,14 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Calendar, Laptop, Settings, FileText, Search, BookOpen, Maximize2, Minimize2, Columns } from 'lucide-react';
+import { Calendar, Laptop, Settings, FileText, Search, BookOpen, Columns } from 'lucide-react';
 import { formatInTimeZone } from 'date-fns-tz';
 import { useTimezone } from '../contexts/TimezoneContext';
-import { useFullScreen } from '../contexts/FullScreenContext';
 
 const Navigation = () => {
   const location = useLocation();
   const { timezone } = useTimezone();
-  const { isFullScreen, toggleFullScreen } = useFullScreen();
   const now = new Date();
   const today = formatInTimeZone(now, timezone, 'yyyy-MM-dd');
   const dayName = formatInTimeZone(now, timezone, 'EEEE'); // Full day name like "Monday"
-  const isOnDayView = location.pathname.includes('/day/');
 
   return (
     <nav className="shadow-sm" style={{ backgroundColor: 'var(--color-card-bg)', borderBottom: '1px solid var(--color-border-primary)' }}>
@@ -76,28 +73,6 @@ const Navigation = () => {
                 </Link>
               );
             })}
-
-            {/* Full-screen toggle - only show on day view and desktop */}
-            {isOnDayView && (
-              <button
-                onClick={toggleFullScreen}
-                className="hidden sm:flex items-center px-3 py-2 rounded-lg transition-colors"
-                style={{
-                  backgroundColor: 'transparent',
-                  color: 'var(--color-text-secondary)'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = 'var(--color-bg-hover)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'transparent';
-                }}
-                aria-label={isFullScreen ? "Exit full screen" : "Enter full screen"}
-                title={isFullScreen ? "Exit full screen" : "Enter full screen"}
-              >
-                {isFullScreen ? <Minimize2 className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}
-              </button>
-            )}
           </div>
         </div>
       </div>

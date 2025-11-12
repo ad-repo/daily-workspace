@@ -293,7 +293,7 @@ export default function Lists() {
 
         {/* Scroll Indicator */}
         {lists.length > 0 && (
-          <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 z-50 pointer-events-none">
+          <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 z-50 pointer-events-none">
             <div 
               className="flex items-center gap-3 px-5 py-3 rounded-full shadow-2xl backdrop-blur-sm"
               style={{
