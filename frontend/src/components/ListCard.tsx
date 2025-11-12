@@ -41,7 +41,7 @@ const ListCard = ({ entry, onRemoveFromList, onUpdate, onLabelsUpdate, listId }:
   const handleViewInDaily = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (entry.daily_note_date) {
-      navigate(`/day/${entry.daily_note_date}`);
+      navigate(`/day/${entry.daily_note_date}?highlight=${entry.id}`);
     }
   };
 

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { format, parse, addDays, subDays } from 'date-fns';
 import { ChevronLeft, ChevronRight, Plus, CheckSquare, Combine, Columns } from 'lucide-react';
 import axios from 'axios';
@@ -21,6 +21,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 const DailyView = () => {
   const { date } = useParams<{ date: string }>();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { isFullScreen } = useFullScreen();
   const { showDailyGoals } = useDailyGoals();
   const { showSprintGoals } = useSprintGoals();
@@ -105,23 +106,50 @@ const DailyView = () => {
     }
   };
 
-  // Scroll to specific entry if hash is present
+  // Scroll to specific entry if hash or highlight param is present
   useEffect(() => {
-    if (entries.length > 0 && window.location.hash) {
+    if (entries.length === 0) return;
+
+    let entryId: string | null = null;
+
+    // Check for hash (#entry-123)
+    if (window.location.hash) {
       const hash = window.location.hash.slice(1); // Remove the #
       if (hash.startsWith('entry-')) {
-        const entryId = hash.replace('entry-', '');
-        setTimeout(() => {
-          const element = document.querySelector(`[data-entry-id="${entryId}"]`);
-          if (element) {
-            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            // Clear the hash after scrolling
-            window.history.replaceState(null, '', window.location.pathname);
-          }
-        }, 300);
+        entryId = hash.replace('entry-', '');
       }
     }
-  }, [entries]);
+
+    // Check for highlight query param (?highlight=123)
+    const highlightParam = searchParams.get('highlight');
+    if (highlightParam) {
+      entryId = highlightParam;
+    }
+
+    if (entryId) {
+      setTimeout(() => {
+        const element = document.querySelector(`[data-entry-id="${entryId}"]`);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          
+          // Add brief highlight animation
+          element.classList.add('highlight-pulse');
+          setTimeout(() => {
+            element.classList.remove('highlight-pulse');
+          }, 2000);
+
+          // Clear the query param after scrolling
+          searchParams.delete('highlight');
+          setSearchParams(searchParams, { replace: true });
+          
+          // Clear the hash after scrolling
+          if (window.location.hash) {
+            window.history.replaceState(null, '', window.location.pathname);
+          }
+        }
+      }, 300);
+    }
+  }, [entries, searchParams, setSearchParams]);
 
   const loadDailyNote = async (preserveScroll = false) => {
     if (!date) return;
