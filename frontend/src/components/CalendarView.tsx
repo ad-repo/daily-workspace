@@ -207,7 +207,7 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
                 opacity: 0.6
               }}
             >
-              <div className="animate-pulse text-4xl">📅</div>
+              <div className="animate-pulse text-2xl">🗓️</div>
             </div>
           ) : (
             <div 
