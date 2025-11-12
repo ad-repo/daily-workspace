@@ -8,6 +8,7 @@ import type { NoteEntry } from '../types';
 import RichTextEditor from './RichTextEditor';
 import CodeEditor from './CodeEditor';
 import LabelSelector from './LabelSelector';
+import EntryListSelector from './EntryListSelector';
 import { useTimezone } from '../contexts/TimezoneContext';
 import { formatTimestamp } from '../utils/timezone';
 
@@ -30,6 +31,7 @@ interface NoteEntryCardProps {
   onUpdate: (id: number, content: string) => void;
   onDelete: (id: number) => void;
   onLabelsUpdate: (entryId: number, labels: any[]) => void;
+  onListsUpdate?: () => void;
   onMoveToTop?: (id: number) => void;
   isSelected?: boolean;
   onSelectionChange?: (id: number, selected: boolean) => void;
@@ -37,7 +39,7 @@ interface NoteEntryCardProps {
   currentDate?: string; // YYYY-MM-DD format
 }
 
-const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onMoveToTop, isSelected = false, onSelectionChange, selectionMode = false, currentDate }: NoteEntryCardProps) => {
+const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onListsUpdate, onMoveToTop, isSelected = false, onSelectionChange, selectionMode = false, currentDate }: NoteEntryCardProps) => {
   const { timezone } = useTimezone();
   const navigate = useNavigate();
   const [title, setTitle] = useState(entry.title || '');
@@ -656,6 +658,19 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onMoveToTop,
             selectedLabels={entry.labels || []}
             onLabelsChange={() => {}}
             onOptimisticUpdate={(labels) => onLabelsUpdate(entry.id, labels)}
+          />
+        </div>
+
+        {/* Entry Lists */}
+        <div className="mb-4 pb-4" style={{ borderBottom: '1px solid var(--color-border-primary)' }}>
+          <EntryListSelector
+            entryId={entry.id}
+            currentLists={entry.lists || []}
+            onUpdate={() => {
+              if (onListsUpdate) {
+                onListsUpdate();
+              }
+            }}
           />
         </div>
 

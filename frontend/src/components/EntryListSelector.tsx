@@ -1,23 +1,40 @@
-import { useState, useEffect } from 'react';
-import { X, Plus, Check } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { X, Columns } from 'lucide-react';
 import type { List } from '../types';
 import { listsApi } from '../api';
 
 interface EntryListSelectorProps {
   entryId: number;
   currentLists: List[];
-  onClose: () => void;
   onUpdate: () => void;
 }
 
-const EntryListSelector = ({ entryId, currentLists, onClose, onUpdate }: EntryListSelectorProps) => {
+const EntryListSelector = ({ entryId, currentLists, onUpdate }: EntryListSelectorProps) => {
   const [allLists, setAllLists] = useState<List[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [processing, setProcessing] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     loadLists();
   }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+
+    if (showDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showDropdown]);
 
   const loadLists = async () => {
     try {
@@ -47,50 +64,101 @@ const EntryListSelector = ({ entryId, currentLists, onClose, onUpdate }: EntryLi
       }
       onUpdate();
     } catch (error: any) {
-      alert(error?.response?.data?.detail || 'Failed to update list membership');
       console.error('Error toggling list membership:', error);
     } finally {
       setProcessing(false);
     }
   };
 
-  return (
-    <div
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-      onClick={onClose}
-    >
-      <div
-        className="rounded-lg p-6 w-96 max-w-full m-4 max-h-[80vh] flex flex-col"
-        style={{ backgroundColor: 'var(--color-surface)' }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold" style={{ color: 'var(--color-text-primary)' }}>
-            Organize in Lists
-          </h2>
-          <button
-            onClick={onClose}
-            className="p-1 rounded hover:bg-opacity-80"
-            style={{ color: 'var(--color-text-secondary)' }}
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+  const handleRemoveFromList = async (listId: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      setProcessing(true);
+      await listsApi.removeEntry(listId, entryId);
+      onUpdate();
+    } catch (error: any) {
+      console.error('Error removing from list:', error);
+    } finally {
+      setProcessing(false);
+    }
+  };
 
-        {/* Lists */}
-        <div className="flex-1 overflow-y-auto">
+  return (
+    <div className="relative" ref={dropdownRef}>
+      {/* Current Lists Display */}
+      <div className="flex flex-wrap gap-2 items-center">
+        {currentLists.map((list) => (
+          <button
+            key={list.id}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-sm font-medium transition-all"
+            style={{
+              backgroundColor: list.color + '20',
+              color: list.color,
+              border: `1px solid ${list.color}40`,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = list.color + '30';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = list.color + '20';
+            }}
+            title={list.description || list.name}
+            disabled={processing}
+          >
+            <Columns className="w-3 h-3" />
+            <span>{list.name}</span>
+            <X
+              className="w-3 h-3 hover:opacity-70"
+              onClick={(e) => handleRemoveFromList(list.id, e)}
+            />
+          </button>
+        ))}
+
+        {/* Add to List Button */}
+        <button
+          onClick={() => setShowDropdown(!showDropdown)}
+          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-sm font-medium transition-all"
+          style={{
+            backgroundColor: 'var(--color-bg-tertiary)',
+            color: 'var(--color-text-secondary)',
+            border: '1px dashed var(--color-border-primary)',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = 'var(--color-bg-hover)';
+            e.currentTarget.style.color = 'var(--color-text-primary)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'var(--color-bg-tertiary)';
+            e.currentTarget.style.color = 'var(--color-text-secondary)';
+          }}
+          title="Add to list"
+        >
+          <Columns className="w-3 h-3" />
+          <span>Add to list</span>
+        </button>
+      </div>
+
+      {/* Dropdown Menu */}
+      {showDropdown && (
+        <div
+          className="absolute top-full left-0 mt-2 rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto"
+          style={{
+            backgroundColor: 'var(--color-surface)',
+            border: '1px solid var(--color-border-primary)',
+            minWidth: '250px',
+          }}
+        >
           {loading ? (
-            <div className="text-center py-4" style={{ color: 'var(--color-text-secondary)' }}>
+            <div className="p-4 text-center text-sm" style={{ color: 'var(--color-text-secondary)' }}>
               Loading lists...
             </div>
           ) : allLists.length === 0 ? (
-            <div className="text-center py-4" style={{ color: 'var(--color-text-secondary)' }}>
+            <div className="p-4 text-center text-sm" style={{ color: 'var(--color-text-secondary)' }}>
               <p>No lists available</p>
-              <p className="text-sm mt-2">Create a list first from the Lists page</p>
+              <p className="text-xs mt-1">Create a list from the Lists page</p>
             </div>
           ) : (
-            <div className="space-y-2">
+            <div className="p-2">
               {allLists.map((list) => {
                 const inList = isInList(list.id);
                 return (
@@ -98,36 +166,44 @@ const EntryListSelector = ({ entryId, currentLists, onClose, onUpdate }: EntryLi
                     key={list.id}
                     onClick={() => handleToggleList(list.id)}
                     disabled={processing}
-                    className="w-full p-3 rounded flex items-center justify-between transition-colors"
+                    className="w-full p-2 rounded flex items-center gap-2 text-left transition-colors"
                     style={{
-                      backgroundColor: inList
-                        ? list.color + '20'
-                        : 'var(--color-background)',
-                      borderColor: list.color,
-                      borderWidth: '1px',
-                      borderStyle: 'solid',
+                      backgroundColor: inList ? list.color + '15' : 'transparent',
                       opacity: processing ? 0.6 : 1,
                       cursor: processing ? 'not-allowed' : 'pointer',
                     }}
+                    onMouseEnter={(e) => {
+                      if (!processing) {
+                        e.currentTarget.style.backgroundColor = inList ? list.color + '25' : 'var(--color-bg-hover)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!processing) {
+                        e.currentTarget.style.backgroundColor = inList ? list.color + '15' : 'transparent';
+                      }
+                    }}
                   >
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="w-3 h-3 rounded"
-                        style={{ backgroundColor: list.color }}
-                      />
-                      <div className="text-left">
-                        <div className="font-medium" style={{ color: 'var(--color-text-primary)' }}>
-                          {list.name}
-                        </div>
-                        {list.description && (
-                          <div className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
-                            {list.description}
-                          </div>
-                        )}
+                    <div
+                      className="w-3 h-3 rounded flex-shrink-0"
+                      style={{ backgroundColor: list.color }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-sm truncate" style={{ color: 'var(--color-text-primary)' }}>
+                        {list.name}
                       </div>
+                      {list.description && (
+                        <div className="text-xs truncate" style={{ color: 'var(--color-text-secondary)' }}>
+                          {list.description}
+                        </div>
+                      )}
                     </div>
                     {inList && (
-                      <Check className="w-5 h-5" style={{ color: list.color }} />
+                      <div
+                        className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
+                        style={{ backgroundColor: list.color }}
+                      >
+                        <span className="text-white text-xs">✓</span>
+                      </div>
                     )}
                   </button>
                 );
@@ -135,16 +211,7 @@ const EntryListSelector = ({ entryId, currentLists, onClose, onUpdate }: EntryLi
             </div>
           )}
         </div>
-
-        {/* Footer */}
-        <div className="mt-4 pt-4 border-t" style={{ borderColor: 'var(--color-border)' }}>
-          <p className="text-xs text-center" style={{ color: 'var(--color-text-secondary)' }}>
-            {currentLists.length > 0
-              ? `In ${currentLists.length} ${currentLists.length === 1 ? 'list' : 'lists'}`
-              : 'Not in any lists'}
-          </p>
-        </div>
-      </div>
+      )}
     </div>
   );
 };
