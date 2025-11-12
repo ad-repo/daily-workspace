@@ -1227,33 +1227,8 @@ const DailyView = () => {
                 className="entry-card-container relative group"
                 style={{
                   animation: index === 0 ? 'slideDown 0.3s ease-out' : 'none',
-                  paddingTop: entry.lists && entry.lists.length > 0 ? '48px' : '0',
                 }}
               >
-                {/* Show list badges if entry belongs to lists */}
-                {entry.lists && entry.lists.length > 0 && (
-                  <div className="absolute top-2 left-2 z-10 flex gap-1.5 flex-wrap" style={{ maxWidth: 'calc(100% - 60px)' }}>
-                    {entry.lists.map((list) => (
-                      <button
-                        key={list.id}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate(`/lists?highlight=${entry.id}&list=${list.id}`);
-                        }}
-                        className="px-3 py-1.5 rounded-full text-xs font-medium transition-all hover:scale-105 hover:shadow-md"
-                        style={{
-                          backgroundColor: list.color,
-                          color: 'white',
-                          border: 'none',
-                          cursor: 'pointer',
-                        }}
-                        title={`View in "${list.name}" list${list.description ? ': ' + list.description : ''}`}
-                      >
-                        {list.name}
-                      </button>
-                    ))}
-                  </div>
-                )}
                 <NoteEntryCard
                   entry={entry}
                   onUpdate={handleEntryUpdate}
