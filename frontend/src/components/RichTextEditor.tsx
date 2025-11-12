@@ -38,8 +38,7 @@ import {
   Type,
   CaseSensitive,
   CheckSquare,
-  Eye,
-  EyeOff,
+  FileJson,
 } from 'lucide-react';
 import { LinkPreviewExtension, fetchLinkPreview } from '../extensions/LinkPreview';
 import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
@@ -121,6 +120,7 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
   const [showFontFamilyMenu, setShowFontFamilyMenu] = useState(false);
   const [showFontSizeMenu, setShowFontSizeMenu] = useState(false);
   const [showMarkdownPreview, setShowMarkdownPreview] = useState(false);
+  const [jsonError, setJsonError] = useState<string | null>(null);
   
   // Check if camera/video should be available
   // getUserMedia (camera/video) requires HTTPS on mobile browsers when accessed over network
@@ -894,6 +894,31 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
     setIsRecordingVideo(false);
   };
 
+  const formatJSON = () => {
+    try {
+      // Get the current content as text
+      const text = editor?.getText() || '';
+      
+      // Try to parse it as JSON
+      const parsed = JSON.parse(text);
+      
+      // Format it with 2-space indentation
+      const formatted = JSON.stringify(parsed, null, 2);
+      
+      // Replace the content with formatted JSON in a code block
+      editor?.commands.setContent(`<pre><code>${formatted}</code></pre>`);
+      
+      setJsonError(null);
+    } catch (error) {
+      // Show error message
+      const errorMessage = error instanceof Error ? error.message : 'Invalid JSON';
+      setJsonError(errorMessage);
+      
+      // Clear error after 5 seconds
+      setTimeout(() => setJsonError(null), 5000);
+    }
+  };
+
   const ToolbarButton = ({
     onClick,
     active,
@@ -1243,7 +1268,15 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
           active={showMarkdownPreview}
           title={showMarkdownPreview ? "Hide Markdown Preview" : "Show Markdown Preview"}
         >
-          {showMarkdownPreview ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          <span className="font-bold text-sm">M</span>
+        </ToolbarButton>
+
+        <ToolbarButton
+          onClick={formatJSON}
+          active={false}
+          title="Format JSON (prettify and check for errors)"
+        >
+          <FileJson className="h-4 w-4" />
         </ToolbarButton>
 
         <ToolbarButton
@@ -1320,6 +1353,33 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
             <div className="pr-6">
               <strong className="block mb-1">Voice Dictation Issue</strong>
               <p className="text-sm whitespace-pre-line">{dictationError}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* JSON Error Alert */}
+      {jsonError && (
+        <div 
+          className="m-4 p-4 rounded-lg text-sm shadow-lg relative"
+          style={{
+            backgroundColor: '#fef2f2',
+            color: '#991b1b',
+            border: '2px solid #ef4444'
+          }}
+        >
+          <button
+            onClick={() => setJsonError(null)}
+            className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 text-xl leading-none"
+            title="Dismiss"
+          >
+            ×
+          </button>
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0 text-lg">⚠️</div>
+            <div className="pr-6">
+              <strong className="block mb-1">JSON Format Error</strong>
+              <p className="text-sm whitespace-pre-line">{jsonError}</p>
             </div>
           </div>
         </div>
