@@ -93,12 +93,13 @@ const ListCard = ({ entry, onRemoveFromList, onUpdate, onLabelsUpdate, listId }:
         )}
       </div>
 
-      {/* Read-only card preview - scrollable */}
+      {/* Read-only card preview - scrollable in both directions */}
       <div 
         className="custom-scrollbar"
         style={{ 
-          maxHeight: '600px', 
-          overflowY: 'auto',
+          maxHeight: '600px',
+          maxWidth: '100%',
+          overflow: 'auto',
           position: 'relative',
         }}
       >
