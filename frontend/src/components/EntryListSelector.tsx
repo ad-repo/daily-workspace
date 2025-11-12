@@ -88,7 +88,7 @@ const EntryListSelector = ({ entryId, currentLists, onUpdate }: EntryListSelecto
       {/* Current Lists Display */}
       <div className="flex flex-wrap gap-1.5 items-center">
         {currentLists.map((list) => (
-          <button
+          <div
             key={list.id}
             className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium transition-all"
             style={{
@@ -105,15 +105,18 @@ const EntryListSelector = ({ entryId, currentLists, onUpdate }: EntryListSelecto
               e.currentTarget.style.borderColor = list.color + '30';
             }}
             title={list.description || list.name}
-            disabled={processing}
           >
             <Columns className="w-2.5 h-2.5" />
             <span>{list.name}</span>
-            <X
-              className="w-2.5 h-2.5 hover:opacity-70 cursor-pointer"
+            <button
+              className="inline-flex items-center justify-center hover:opacity-70 cursor-pointer"
               onClick={(e) => handleRemoveFromList(list.id, e)}
-            />
-          </button>
+              disabled={processing}
+              style={{ background: 'none', border: 'none', padding: 0 }}
+            >
+              <X className="w-2.5 h-2.5" />
+            </button>
+          </div>
         ))}
 
         {/* Add to List Button */}
