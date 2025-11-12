@@ -99,6 +99,7 @@ async def export_data(db: Session = Depends(get_db)):
                         'is_important': bool(entry.is_important),
                         'is_completed': bool(entry.is_completed),
                         'is_dev_null': bool(entry.is_dev_null),
+                        'is_pinned': bool(entry.is_pinned),
                         'created_at': entry.created_at.isoformat(),
                         'updated_at': entry.updated_at.isoformat(),
                         'labels': [label.id for label in entry.labels],
@@ -268,6 +269,8 @@ async def export_markdown(db: Session = Depends(get_db)):
                     metadata.append('⭐ Important')
                 if entry.is_completed:
                     metadata.append('✓ Completed')
+                if entry.is_pinned:
+                    metadata.append('📌 Pinned')
                 if entry.include_in_report:
                     metadata.append('📄 In Report')
                 if entry.is_dev_null:
@@ -540,6 +543,7 @@ async def import_data(file: UploadFile = File(...), replace: bool = False, db: S
                     is_important=1 if entry_data.get('is_important', False) else 0,
                     is_completed=1 if entry_data.get('is_completed', False) else 0,
                     is_dev_null=1 if entry_data.get('is_dev_null', False) else 0,
+                    is_pinned=1 if entry_data.get('is_pinned', False) else 0,
                     created_at=datetime.fromisoformat(entry_data['created_at'])
                     if 'created_at' in entry_data
                     else datetime.utcnow(),
@@ -805,6 +809,7 @@ async def full_restore(
                     is_important=1 if entry_data.get('is_important', False) else 0,
                     is_completed=1 if entry_data.get('is_completed', False) else 0,
                     is_dev_null=1 if entry_data.get('is_dev_null', False) else 0,
+                    is_pinned=1 if entry_data.get('is_pinned', False) else 0,
                     created_at=datetime.fromisoformat(entry_data['created_at'])
                     if 'created_at' in entry_data
                     else datetime.utcnow(),

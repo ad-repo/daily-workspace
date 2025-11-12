@@ -82,6 +82,11 @@ export const entriesApi = {
     const response = await api.get<NoteEntry>(`/api/entries/${entryId}`);
     return response.data;
   },
+
+  togglePin: async (entryId: number): Promise<NoteEntry> => {
+    const response = await api.post<NoteEntry>(`/api/entries/${entryId}/toggle-pin`);
+    return response.data;
+  },
 };
 
 // Goals API

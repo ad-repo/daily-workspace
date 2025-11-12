@@ -144,6 +144,7 @@ class NoteEntry(Base):
     is_important = Column(Integer, default=0)  # 0 = false, 1 = true (starred/important)
     is_completed = Column(Integer, default=0)  # 0 = false, 1 = true (completed checkbox)
     is_dev_null = Column(Integer, default=0)  # 0 = false, 1 = true (marked as /dev/null - discarded)
+    is_pinned = Column(Integer, default=0)  # 0 = false, 1 = true (pinned - auto-copy to next day)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

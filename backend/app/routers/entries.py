@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -9,9 +9,83 @@ from app.database import get_db
 router = APIRouter()
 
 
+def copy_pinned_entries_to_date(date: str, db: Session):
+    """
+    Copy pinned entries from previous days to the specified date if they don't already exist.
+    This is called when getting entries for a date to ensure pinned entries carry forward.
+    """
+    # Get or create the daily note for this date
+    note = db.query(models.DailyNote).filter(models.DailyNote.date == date).first()
+    if not note:
+        note = models.DailyNote(date=date)
+        db.add(note)
+        db.commit()
+        db.refresh(note)
+    
+    # Get all pinned entries from before this date
+    all_pinned = (
+        db.query(models.NoteEntry)
+        .join(models.DailyNote)
+        .filter(models.NoteEntry.is_pinned == 1)
+        .filter(models.DailyNote.date < date)
+        .all()
+    )
+    
+    if not all_pinned:
+        return
+    
+    # Get existing entry IDs for this date to avoid duplicates
+    existing_entries = (
+        db.query(models.NoteEntry)
+        .filter(models.NoteEntry.daily_note_id == note.id)
+        .all()
+    )
+    
+    # Create a set of content hashes to check for duplicates
+    # We'll consider an entry a duplicate if it has the same content and is_pinned
+    existing_pinned_content = {
+        (entry.content, entry.title) 
+        for entry in existing_entries 
+        if entry.is_pinned
+    }
+    
+    # Copy each pinned entry if it doesn't already exist for this date
+    for pinned_entry in all_pinned:
+        content_key = (pinned_entry.content, pinned_entry.title)
+        
+        if content_key not in existing_pinned_content:
+            # Create a copy of the pinned entry for this date
+            new_entry = models.NoteEntry(
+                daily_note_id=note.id,
+                title=pinned_entry.title,
+                content=pinned_entry.content,
+                content_type=pinned_entry.content_type,
+                order_index=pinned_entry.order_index,
+                include_in_report=pinned_entry.include_in_report,
+                is_important=pinned_entry.is_important,
+                is_completed=0,  # Reset completion status for new day
+                is_dev_null=pinned_entry.is_dev_null,
+                is_pinned=1,  # Keep it pinned
+            )
+            db.add(new_entry)
+            
+            # Copy labels
+            for label in pinned_entry.labels:
+                new_entry.labels.append(label)
+            
+            # Copy list associations
+            for list_obj in pinned_entry.lists:
+                new_entry.lists.append(list_obj)
+    
+    db.commit()
+
+
 @router.get('/note/{date}', response_model=list[schemas.NoteEntry])
 def get_entries_for_date(date: str, db: Session = Depends(get_db)):
     """Get all entries for a specific date"""
+    # First, copy any pinned entries from previous days
+    copy_pinned_entries_to_date(date, db)
+    
     note = db.query(models.DailyNote).filter(models.DailyNote.date == date).first()
     if not note:
         raise HTTPException(status_code=404, detail='Note not found for this date')
@@ -56,7 +130,7 @@ def update_entry(entry_id: int, entry_update: schemas.NoteEntryUpdate, db: Sessi
     update_data = entry_update.model_dump(exclude_unset=True)
     for key, value in update_data.items():
         # Handle boolean to integer conversion for SQLite
-        if key in ['include_in_report', 'is_important', 'is_completed', 'is_dev_null']:
+        if key in ['include_in_report', 'is_important', 'is_completed', 'is_dev_null', 'is_pinned']:
             setattr(db_entry, key, 1 if value else 0)
         else:
             setattr(db_entry, key, value)
@@ -97,6 +171,22 @@ def move_entry_to_top(entry_id: int, db: Session = Depends(get_db)):
     # Set this entry's order_index to be higher than the current max
     new_order_index = (max_order[0] if max_order and max_order[0] is not None else 0) + 1
     db_entry.order_index = new_order_index
+    db_entry.updated_at = datetime.utcnow()
+
+    db.commit()
+    db.refresh(db_entry)
+    return db_entry
+
+
+@router.post('/{entry_id}/toggle-pin', response_model=schemas.NoteEntry)
+def toggle_pin(entry_id: int, db: Session = Depends(get_db)):
+    """Toggle the pinned status of an entry"""
+    db_entry = db.query(models.NoteEntry).filter(models.NoteEntry.id == entry_id).first()
+    if not db_entry:
+        raise HTTPException(status_code=404, detail='Entry not found')
+
+    # Toggle the pinned status
+    db_entry.is_pinned = 0 if db_entry.is_pinned else 1
     db_entry.updated_at = datetime.utcnow()
 
     db.commit()

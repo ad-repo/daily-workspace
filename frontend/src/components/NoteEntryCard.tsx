@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Trash2, Clock, FileText, Star, Check, Copy, CheckCheck, ArrowRight, Skull, ArrowUp, FileDown } from 'lucide-react';
+import { Trash2, Clock, FileText, Star, Check, Copy, CheckCheck, ArrowRight, Skull, ArrowUp, FileDown, Pin } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import axios from 'axios';
@@ -47,6 +47,7 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onMoveToTop,
   const [isImportant, setIsImportant] = useState(entry.is_important || false);
   const [isCompleted, setIsCompleted] = useState(entry.is_completed || false);
   const [isDevNull, setIsDevNull] = useState(entry.is_dev_null || false);
+  const [isPinned, setIsPinned] = useState(entry.is_pinned || false);
   const [copied, setCopied] = useState(false);
   const [copiedMarkdown, setCopiedMarkdown] = useState(false);
   const [copiedJira, setCopiedJira] = useState(false);
@@ -64,6 +65,7 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onMoveToTop,
     setIsImportant(entry.is_important || false);
     setIsCompleted(entry.is_completed || false);
     setIsDevNull(entry.is_dev_null || false);
+    setIsPinned(entry.is_pinned || false);
   }, [entry]);
 
   const handleTitleChange = async (newTitle: string) => {
@@ -156,6 +158,18 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onMoveToTop,
     } catch (error) {
       console.error('Failed to update dev_null status:', error);
       setIsDevNull(!newValue); // Revert on error
+    }
+  };
+
+  const handlePinToggle = async () => {
+    const newValue = !isPinned;
+    setIsPinned(newValue);
+    
+    try {
+      await axios.post(`${API_URL}/api/entries/${entry.id}/toggle-pin`);
+    } catch (error) {
+      console.error('Failed to toggle pin status:', error);
+      setIsPinned(!newValue); // Revert on error
     }
   };
 
@@ -435,6 +449,30 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onMoveToTop,
               title={isImportant ? "Mark as not important" : "Mark as important"}
             >
               <Star className={`h-5 w-5 ${isImportant ? 'fill-current' : ''}`} />
+            </button>
+            
+            <button
+              onClick={handlePinToggle}
+              className="p-2 rounded transition-colors"
+              style={{ 
+                color: isPinned ? 'var(--color-accent)' : 'var(--color-text-tertiary)',
+                backgroundColor: isPinned ? 'rgba(59, 130, 246, 0.1)' : 'transparent'
+              }}
+              onMouseEnter={(e) => {
+                if (!isPinned) {
+                  e.currentTarget.style.backgroundColor = 'rgba(59, 130, 246, 0.1)';
+                  e.currentTarget.style.color = 'var(--color-accent)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isPinned) {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = 'var(--color-text-tertiary)';
+                }
+              }}
+              title={isPinned ? "Unpin (stop copying to future days)" : "Pin (copy to future days)"}
+            >
+              <Pin className={`h-5 w-5 ${isPinned ? 'fill-current' : ''}`} />
             </button>
             
             <button

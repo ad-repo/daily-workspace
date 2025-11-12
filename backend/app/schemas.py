@@ -98,6 +98,7 @@ class NoteEntryUpdate(BaseModel):
     is_important: bool | None = None
     is_completed: bool | None = None
     is_dev_null: bool | None = None
+    is_pinned: bool | None = None
 
 
 class NoteEntry(NoteEntryBase):
@@ -112,6 +113,7 @@ class NoteEntry(NoteEntryBase):
     is_important: bool = False
     is_completed: bool = False
     is_dev_null: bool = False
+    is_pinned: bool = False
 
     class Config:
         from_attributes = True
@@ -204,6 +206,7 @@ class SearchResult(NoteEntryBase):
     is_important: bool = False
     is_completed: bool = False
     is_dev_null: bool = False
+    is_pinned: bool = False
 
     class Config:
         from_attributes = True

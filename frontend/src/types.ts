@@ -21,6 +21,7 @@ export interface NoteEntry {
   is_important: boolean;
   is_completed: boolean;
   is_dev_null: boolean;
+  is_pinned: boolean;
 }
 
 export interface DailyNote {
