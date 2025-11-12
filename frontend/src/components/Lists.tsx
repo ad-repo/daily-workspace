@@ -233,7 +233,7 @@ export default function Lists() {
             </div>
           </div>
         ) : (
-          <div className="flex gap-6 p-8 h-full items-start">
+          <div className="flex gap-6 p-8 h-full items-stretch">
             {lists.map((list) => (
               <div
                 key={list.id}
