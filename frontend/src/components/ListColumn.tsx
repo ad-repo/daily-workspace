@@ -258,39 +258,41 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
         </div>
 
         {/* List Content - Scrollable entries */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar" style={{ padding: '20px', minHeight: 0 }}>
-          {entries.length === 0 ? (
-            <div className="text-center py-12">
-              <div
-                className="w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4"
-                style={{ backgroundColor: list.color + '20' }}
-              >
-                <Plus className="w-8 h-8" style={{ color: list.color }} />
+        <div className="flex-1 overflow-y-auto custom-scrollbar" style={{ minHeight: 0 }}>
+          <div style={{ padding: '20px' }}>
+            {entries.length === 0 ? (
+              <div className="text-center py-12">
+                <div
+                  className="w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4"
+                  style={{ backgroundColor: list.color + '20' }}
+                >
+                  <Plus className="w-8 h-8" style={{ color: list.color }} />
+                </div>
+                <p className="font-medium" style={{ color: 'var(--color-text-secondary)' }}>
+                  No entries yet
+                </p>
+                <p className="text-xs mt-1" style={{ color: 'var(--color-text-secondary)' }}>
+                  Drag entries here or add from daily notes
+                </p>
               </div>
-              <p className="font-medium" style={{ color: 'var(--color-text-secondary)' }}>
-                No entries yet
-              </p>
-              <p className="text-xs mt-1" style={{ color: 'var(--color-text-secondary)' }}>
-                Drag entries here or add from daily notes
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {entries.map((entry) => (
-                <ListCard
-                  key={entry.id}
-                  entry={entry}
-                  listId={list.id}
-                  onRemoveFromList={handleRemoveEntry}
-                  onUpdate={onUpdate}
-                  onLabelsUpdate={(entryId, labels) => {
-                    // Refresh the list to get updated entry data
-                    onUpdate();
-                  }}
-                />
-              ))}
-            </div>
-          )}
+            ) : (
+              <div className="space-y-3">
+                {entries.map((entry) => (
+                  <ListCard
+                    key={entry.id}
+                    entry={entry}
+                    listId={list.id}
+                    onRemoveFromList={handleRemoveEntry}
+                    onUpdate={onUpdate}
+                    onLabelsUpdate={(entryId, labels) => {
+                      // Refresh the list to get updated entry data
+                      onUpdate();
+                    }}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
