@@ -90,31 +90,43 @@ const EntryListSelector = ({ entryId, currentLists, onUpdate }: EntryListSelecto
         {currentLists.map((list) => (
           <div
             key={list.id}
-            className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium transition-all"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all shadow-sm"
             style={{
-              backgroundColor: list.color + '15',
+              backgroundColor: list.color + '20',
               color: list.color,
-              border: `1px solid ${list.color}30`,
+              border: `1.5px solid ${list.color}`,
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = list.color + '25';
-              e.currentTarget.style.borderColor = list.color + '50';
+              e.currentTarget.style.backgroundColor = list.color + '30';
+              e.currentTarget.style.transform = 'translateY(-1px)';
+              e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = list.color + '15';
-              e.currentTarget.style.borderColor = list.color + '30';
+              e.currentTarget.style.backgroundColor = list.color + '20';
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 1px 2px rgba(0,0,0,0.05)';
             }}
             title={list.description || list.name}
           >
-            <Columns className="w-2.5 h-2.5" />
-            <span>{list.name}</span>
+            <Columns className="w-3 h-3" />
+            <span className="font-semibold">{list.name}</span>
             <button
-              className="inline-flex items-center justify-center hover:opacity-70 cursor-pointer"
+              className="inline-flex items-center justify-center hover:opacity-70 cursor-pointer transition-opacity rounded-full p-0.5"
               onClick={(e) => handleRemoveFromList(list.id, e)}
               disabled={processing}
-              style={{ background: 'none', border: 'none', padding: 0 }}
+              style={{ 
+                background: 'none', 
+                border: 'none',
+                color: list.color,
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = list.color + '40';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }}
             >
-              <X className="w-2.5 h-2.5" />
+              <X className="w-3 h-3" />
             </button>
           </div>
         ))}
@@ -122,26 +134,30 @@ const EntryListSelector = ({ entryId, currentLists, onUpdate }: EntryListSelecto
         {/* Add to List Button */}
         <button
           onClick={() => setShowDropdown(!showDropdown)}
-          className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium transition-all"
+          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all"
           style={{
-            backgroundColor: 'transparent',
-            color: 'var(--color-text-tertiary)',
-            border: '1px dashed var(--color-border-secondary)',
+            backgroundColor: 'var(--color-bg-tertiary)',
+            color: 'var(--color-text-secondary)',
+            border: '1.5px dashed var(--color-border-primary)',
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.backgroundColor = 'var(--color-bg-hover)';
-            e.currentTarget.style.color = 'var(--color-text-secondary)';
+            e.currentTarget.style.color = 'var(--color-text-primary)';
             e.currentTarget.style.borderStyle = 'solid';
+            e.currentTarget.style.transform = 'translateY(-1px)';
+            e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'transparent';
-            e.currentTarget.style.color = 'var(--color-text-tertiary)';
+            e.currentTarget.style.backgroundColor = 'var(--color-bg-tertiary)';
+            e.currentTarget.style.color = 'var(--color-text-secondary)';
             e.currentTarget.style.borderStyle = 'dashed';
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = 'none';
           }}
           title="Add to list"
         >
-          <Columns className="w-2.5 h-2.5" />
-          <span>Add to list</span>
+          <Columns className="w-3 h-3" />
+          <span className="font-semibold">Add to list</span>
         </button>
       </div>
 
