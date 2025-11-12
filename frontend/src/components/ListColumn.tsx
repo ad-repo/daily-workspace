@@ -247,9 +247,9 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
         </div>
 
         {/* List Content - Scrollable entries */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar" style={{ scrollPaddingTop: '20px' }}>
+        <div className="flex-1 overflow-y-auto p-5 custom-scrollbar">
           {entries.length === 0 ? (
-            <div className="text-center py-12 px-5">
+            <div className="text-center py-12">
               <div
                 className="w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4"
                 style={{ backgroundColor: list.color + '20' }}
@@ -264,7 +264,7 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
               </p>
             </div>
           ) : (
-            <div className="space-y-3 p-5">
+            <div className="space-y-3">
               {entries.map((entry) => (
                 <ListCard
                   key={entry.id}
