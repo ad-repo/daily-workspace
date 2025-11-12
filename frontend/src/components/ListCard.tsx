@@ -102,18 +102,20 @@ const ListCard = ({ entry, onRemoveFromList, onUpdate, onLabelsUpdate, listId }:
         )}
       </div>
 
-      {/* Full NoteEntryCard - identical to daily view */}
-      <NoteEntryCard
-        entry={entry}
-        onUpdate={handleEntryUpdate}
-        onDelete={handleEntryDelete}
-        onLabelsUpdate={onLabelsUpdate}
-        onMoveToTop={undefined}
-        selectionMode={false}
-        isSelected={false}
-        onSelectionChange={undefined}
-        currentDate={entry.daily_note_date}
-      />
+      {/* Full NoteEntryCard - with max height for list view */}
+      <div style={{ maxHeight: '400px', overflow: 'hidden' }}>
+        <NoteEntryCard
+          entry={entry}
+          onUpdate={handleEntryUpdate}
+          onDelete={handleEntryDelete}
+          onLabelsUpdate={onLabelsUpdate}
+          onMoveToTop={undefined}
+          selectionMode={false}
+          isSelected={false}
+          onSelectionChange={undefined}
+          currentDate={entry.daily_note_date}
+        />
+      </div>
     </div>
   );
 };
