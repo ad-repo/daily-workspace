@@ -486,24 +486,28 @@ const DailyView = () => {
             )}
           </div>
 
-          <div className="flex items-center gap-2">
-            <EntryDropdown entries={entries} />
-            <button
-              onClick={handleNextDay}
-              className="p-2 rounded-lg transition-colors"
-              style={{ color: 'var(--color-text-secondary)' }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'var(--color-bg-hover)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'transparent';
-              }}
-              aria-label="Next day"
-            >
-              <ChevronRight className="h-6 w-6" />
-            </button>
-          </div>
+          <button
+            onClick={handleNextDay}
+            className="p-2 rounded-lg transition-colors"
+            style={{ color: 'var(--color-text-secondary)' }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--color-bg-hover)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent';
+            }}
+            aria-label="Next day"
+          >
+            <ChevronRight className="h-6 w-6" />
+          </button>
         </div>
+
+        {/* Jump to Entry - centered below date */}
+        {entries.length > 0 && (
+          <div className="flex justify-center mt-4 pb-4 border-b" style={{ borderColor: 'var(--color-border-primary)' }}>
+            <EntryDropdown entries={entries} />
+          </div>
+        )}
 
           {(showDailyGoals || showSprintGoals || showQuarterlyGoals || showDayLabels) && (
             <div className="flex flex-col items-center gap-6 w-full">
