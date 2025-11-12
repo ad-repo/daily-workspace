@@ -64,8 +64,7 @@ const CreateEntryModal = ({ list, onClose, onSuccess }: CreateEntryModalProps) =
       }
 
       // Create the entry
-      const newEntry = await entriesApi.create({
-        note_id: note.id,
+      const newEntry = await entriesApi.create(today, {
         title: title.trim() || undefined,
         content: content,
       });
@@ -101,6 +100,7 @@ const CreateEntryModal = ({ list, onClose, onSuccess }: CreateEntryModalProps) =
           backgroundColor: 'var(--color-card-bg)',
           border: '1px solid var(--color-border)',
           maxHeight: '90vh',
+          marginBottom: '6rem',
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -165,7 +165,7 @@ const CreateEntryModal = ({ list, onClose, onSuccess }: CreateEntryModalProps) =
                     color: '#ef4444',
                   }}
                 >
-                  {error}
+                  {typeof error === 'string' ? error : JSON.stringify(error)}
                 </div>
               )}
 
