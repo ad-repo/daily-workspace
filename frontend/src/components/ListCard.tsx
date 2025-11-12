@@ -71,28 +71,6 @@ const ListCard = ({ entry, onRemoveFromList, onUpdate, onLabelsUpdate, listId }:
         cursor: isDragging ? 'grabbing' : 'grab',
       }}
     >
-      {/* List badges - show which lists this entry belongs to */}
-      {entry.lists && entry.lists.length > 0 && (
-        <div className="absolute top-2 left-2 z-10 flex gap-1">
-          {entry.lists.map((list) => (
-            <span
-              key={list.id}
-              className="px-2 py-1 rounded text-xs"
-              style={{
-                backgroundColor: list.color + '40',
-                color: 'var(--color-text-primary)',
-                borderColor: list.color,
-                borderWidth: '1px',
-                borderStyle: 'solid',
-              }}
-              title={list.description}
-            >
-              {list.name}
-            </span>
-          ))}
-        </div>
-      )}
-
       {/* Action buttons overlay - shows on hover */}
       <div className="absolute top-2 right-2 z-10 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
         {entry.daily_note_date && (
