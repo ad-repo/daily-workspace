@@ -1,14 +1,9 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
-import { Editor } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
-import Link from '@tiptap/extension-link';
-import TaskList from '@tiptap/extension-task-list';
-import TaskItem from '@tiptap/extension-task-item';
 import { format } from 'date-fns';
 import { notesApi, entriesApi, listsApi } from '../api';
 import type { List } from '../types';
-import TipTapEditor from './TipTapEditor';
+import SimpleRichTextEditor from './SimpleRichTextEditor';
 
 interface CreateEntryModalProps {
   list?: List;
@@ -19,50 +14,8 @@ interface CreateEntryModalProps {
 const CreateEntryModal = ({ list, onClose, onSuccess }: CreateEntryModalProps) => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [editor, setEditor] = useState<Editor | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Initialize editor
-  useEffect(() => {
-    const editorInstance = new Editor({
-      extensions: [
-        StarterKit,
-        Link.configure({
-          openOnClick: false,
-        }),
-        TaskList,
-        TaskItem.configure({
-          nested: true,
-        }),
-      ],
-      content: '',
-      editorProps: {
-        attributes: {
-          class: 'prose prose-sm max-w-none focus:outline-none min-h-[200px]',
-        },
-      },
-    });
-
-    setEditor(editorInstance);
-
-    return () => {
-      editorInstance.destroy();
-    };
-  }, []);
-
-  // Update content when editor changes
-  useEffect(() => {
-    if (editor) {
-      const updateHandler = () => {
-        setContent(editor.getHTML());
-      };
-      editor.on('update', updateHandler);
-      return () => {
-        editor.off('update', updateHandler);
-      };
-    }
-  }, [editor]);
 
   // Add Escape key support
   useEffect(() => {
@@ -76,10 +29,12 @@ const CreateEntryModal = ({ list, onClose, onSuccess }: CreateEntryModalProps) =
   }, [onClose]);
 
   const handleCreate = async () => {
-    if (!editor) return;
-
-    const trimmedContent = editor.getText().trim();
-    if (!trimmedContent) {
+    // Strip HTML to check if content is empty
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = content;
+    const textContent = tempDiv.textContent || tempDiv.innerText || '';
+    
+    if (!textContent.trim()) {
       setError('Please enter some content');
       return;
     }
@@ -108,7 +63,7 @@ const CreateEntryModal = ({ list, onClose, onSuccess }: CreateEntryModalProps) =
       const newEntry = await entriesApi.create({
         note_id: note.id,
         title: title.trim() || undefined,
-        content: editor.getHTML(),
+        content: content,
       });
 
       // Add to list if provided
@@ -224,17 +179,19 @@ const CreateEntryModal = ({ list, onClose, onSuccess }: CreateEntryModalProps) =
             >
               Content
             </label>
-            {editor && (
-              <div
-                className="rounded-lg border-2 overflow-hidden"
-                style={{
-                  backgroundColor: 'var(--color-background)',
-                  borderColor: 'var(--color-border)',
-                }}
-              >
-                <TipTapEditor editor={editor} />
-              </div>
-            )}
+            <div
+              className="rounded-lg border-2 overflow-hidden"
+              style={{
+                backgroundColor: 'var(--color-background)',
+                borderColor: 'var(--color-border)',
+              }}
+            >
+              <SimpleRichTextEditor
+                content={content}
+                onChange={setContent}
+                placeholder="Write your entry content..."
+              />
+            </div>
           </div>
         </div>
 
