@@ -162,16 +162,17 @@ def test_multiple_pinned_entries(db_session: Session):
     # Create a daily note
     client.post('/api/notes/', json={'date': today})
     
-    # Create and pin multiple entries
-    entry_ids = []
+    # Create and pin multiple entries with unique content
+    entry_contents = []
     for i in range(3):
+        content = f'Multi-pin test entry {i+1} {int(time.time() * 1000)}'
+        entry_contents.append(content)
         entry_response = client.post(f'/api/entries/note/{today}', json={
-            'content': f'Pinned entry {i+1}',
+            'content': content,
             'content_type': 'rich_text',
             'order_index': 0
         })
         entry_id = entry_response.json()['id']
-        entry_ids.append(entry_id)
         client.post(f'/api/entries/{entry_id}/toggle-pin')
     
     # Access tomorrow
@@ -180,10 +181,14 @@ def test_multiple_pinned_entries(db_session: Session):
     
     if tomorrow_entries.status_code == 200:
         entries = tomorrow_entries.json()
-        pinned_entries = [e for e in entries if e['is_pinned']]
+        # Filter for our specific test entries
+        test_pinned_entries = [
+            e for e in entries 
+            if e['is_pinned'] and any(content in e['content'] for content in entry_contents)
+        ]
         
         # All three entries should be copied
-        assert len(pinned_entries) == 3
+        assert len(test_pinned_entries) == 3
 
 
 def test_pinned_entry_no_duplicate_on_multiple_access(db_session: Session):

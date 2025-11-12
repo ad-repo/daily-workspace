@@ -18,8 +18,10 @@ class TestNotFoundErrors:
         """Test GET /api/notes/{date} with non-existent date."""
         response = client.get('/api/notes/9999-99-99')
 
-        # Should return 404 or graceful error
-        assert response.status_code in [404, 422, 500]
+        # Note: As of migration 017, getting a note triggers pinned entry copying
+        # which creates the note if it doesn't exist, so we expect 200 with empty entries
+        assert response.status_code == 200
+        assert response.json()['entries'] == []
 
     def test_get_nonexistent_entry(self, client: TestClient):
         """Test GET /api/entries/{id} with non-existent ID."""
