@@ -7,13 +7,15 @@ interface EntryListSelectorProps {
   entryId: number;
   currentLists: List[];
   onUpdate: () => void;
+  onOptimisticUpdate?: (lists: List[]) => void;
 }
 
-const EntryListSelector = ({ entryId, currentLists, onUpdate }: EntryListSelectorProps) => {
+const EntryListSelector = ({ entryId, currentLists, onUpdate, onOptimisticUpdate }: EntryListSelectorProps) => {
   const [allLists, setAllLists] = useState<List[]>([]);
   const [loading, setLoading] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [localLists, setLocalLists] = useState<List[]>(currentLists);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -134,30 +136,21 @@ const EntryListSelector = ({ entryId, currentLists, onUpdate }: EntryListSelecto
         {/* Add to List Button */}
         <button
           onClick={() => setShowDropdown(!showDropdown)}
-          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
           style={{
             backgroundColor: 'var(--color-bg-tertiary)',
-            color: 'var(--color-text-secondary)',
-            border: '1.5px dashed var(--color-border-primary)',
+            color: 'var(--color-text-primary)',
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.backgroundColor = 'var(--color-bg-hover)';
-            e.currentTarget.style.color = 'var(--color-text-primary)';
-            e.currentTarget.style.borderStyle = 'solid';
-            e.currentTarget.style.transform = 'translateY(-1px)';
-            e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.backgroundColor = 'var(--color-bg-tertiary)';
-            e.currentTarget.style.color = 'var(--color-text-secondary)';
-            e.currentTarget.style.borderStyle = 'dashed';
-            e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.boxShadow = 'none';
           }}
           title="Add to list"
         >
-          <Columns className="w-3 h-3" />
-          <span className="font-semibold">Add to list</span>
+          <Columns className="w-3.5 h-3.5" />
+          <span>Add to list</span>
         </button>
       </div>
 
