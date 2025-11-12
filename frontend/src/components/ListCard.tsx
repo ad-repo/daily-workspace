@@ -103,7 +103,13 @@ const ListCard = ({ entry, onRemoveFromList, onUpdate, onLabelsUpdate, listId }:
       </div>
 
       {/* Full NoteEntryCard - with max height for list view */}
-      <div style={{ maxHeight: '400px', overflow: 'hidden' }}>
+      <div 
+        style={{ 
+          maxHeight: '400px', 
+          overflow: 'hidden',
+          position: 'relative',
+        }}
+      >
         <NoteEntryCard
           entry={entry}
           onUpdate={handleEntryUpdate}
@@ -114,6 +120,18 @@ const ListCard = ({ entry, onRemoveFromList, onUpdate, onLabelsUpdate, listId }:
           isSelected={false}
           onSelectionChange={undefined}
           currentDate={entry.daily_note_date}
+        />
+        {/* Fade gradient at bottom to indicate more content */}
+        <div 
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: '80px',
+            background: 'linear-gradient(to bottom, transparent, var(--color-card-bg))',
+            pointerEvents: 'none',
+          }}
         />
       </div>
     </div>
