@@ -1286,7 +1286,7 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
         <ToolbarButton
           onClick={toggleJsonFormat}
           active={showJsonFormatted}
-          title={showJsonFormatted ? "Show Original Content" : "Format JSON (prettify and check for errors)"}
+          title={showJsonFormatted ? "Restore Original Content" : "Format JSON (prettify and validate)"}
         >
           <span className="font-bold text-sm">J</span>
         </ToolbarButton>
