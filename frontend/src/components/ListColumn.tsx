@@ -17,7 +17,6 @@ interface ListColumnProps {
 }
 
 const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd, isDragging }: ListColumnProps) => {
-  const [showActions, setShowActions] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -162,8 +161,6 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
             console.log('DRAG END on header', list.id);
             onDragEnd?.();
           }}
-          onMouseEnter={() => setShowActions(true)}
-          onMouseLeave={() => setShowActions(false)}
           onMouseDown={(e) => {
             // If clicking a button, don't start drag
             const target = e.target as HTMLElement;
@@ -186,8 +183,7 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
                 {list.name}
               </h2>
             </div>
-            {showActions && (
-              <div className="flex gap-1.5 ml-2" style={{ pointerEvents: 'auto' }} onMouseDown={(e) => e.stopPropagation()}>
+            <div className="flex gap-1.5 ml-2" style={{ pointerEvents: 'auto' }} onMouseDown={(e) => e.stopPropagation()}>
                 <button
                   onClick={() => setShowCreateModal(true)}
                   className="p-2 rounded-lg transition-all hover:scale-105"
@@ -241,7 +237,6 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
-            )}
           </div>
           {list.description && (
             <p 
