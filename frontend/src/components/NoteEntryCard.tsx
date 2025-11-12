@@ -176,15 +176,30 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onMoveToTop,
   const handleCopy = async () => {
     try {
       let textToCopy = content;
+      let htmlToCopy = content;
       
-      // Strip HTML for rich text entries
+      // For rich text entries, prepare both plain text and HTML versions
       if (!isCodeEntry) {
         const tmp = document.createElement('div');
         tmp.innerHTML = content;
         textToCopy = tmp.textContent || tmp.innerText || '';
+        htmlToCopy = content;
       }
       
-      await navigator.clipboard.writeText(textToCopy);
+      // Use the modern clipboard API to write both text and HTML
+      if (navigator.clipboard && window.ClipboardItem) {
+        const blob = new Blob([htmlToCopy], { type: 'text/html' });
+        const textBlob = new Blob([textToCopy], { type: 'text/plain' });
+        const clipboardItem = new ClipboardItem({
+          'text/html': blob,
+          'text/plain': textBlob
+        });
+        await navigator.clipboard.write([clipboardItem]);
+      } else {
+        // Fallback to plain text only
+        await navigator.clipboard.writeText(textToCopy);
+      }
+      
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
