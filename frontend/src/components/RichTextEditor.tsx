@@ -38,9 +38,12 @@ import {
   Type,
   CaseSensitive,
   CheckSquare,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 import { LinkPreviewExtension, fetchLinkPreview } from '../extensions/LinkPreview';
 import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
+import TurndownService from 'turndown';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -116,6 +119,7 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
   const [isExpanded, setIsExpanded] = useState(false);
   const [showFontFamilyMenu, setShowFontFamilyMenu] = useState(false);
   const [showFontSizeMenu, setShowFontSizeMenu] = useState(false);
+  const [showMarkdownPreview, setShowMarkdownPreview] = useState(false);
   
   // Check if camera/video should be available
   // getUserMedia (camera/video) requires HTTPS on mobile browsers when accessed over network
@@ -1234,6 +1238,14 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
         </ToolbarButton>
 
         <ToolbarButton
+          onClick={() => setShowMarkdownPreview(!showMarkdownPreview)}
+          active={showMarkdownPreview}
+          title={showMarkdownPreview ? "Hide Markdown Preview" : "Show Markdown Preview"}
+        >
+          {showMarkdownPreview ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+        </ToolbarButton>
+
+        <ToolbarButton
           onClick={() => setIsExpanded(!isExpanded)}
           active={isExpanded}
           title={isExpanded ? "Collapse editor" : "Expand editor"}
@@ -1242,9 +1254,45 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
         </ToolbarButton>
       </div>
 
-      {/* Editor */}
+      {/* Editor and Markdown Preview */}
       <div className={isExpanded ? 'editor-expanded' : ''}>
-        <EditorContent editor={editor} className="prose max-w-none" />
+        {showMarkdownPreview ? (
+          <div className="grid grid-cols-2 gap-4 p-4">
+            {/* Editor Side */}
+            <div>
+              <h3 className="text-sm font-semibold mb-2" style={{ color: 'var(--color-text-secondary)' }}>Editor</h3>
+              <EditorContent editor={editor} className="prose max-w-none" />
+            </div>
+            
+            {/* Markdown Preview Side */}
+            <div>
+              <h3 className="text-sm font-semibold mb-2" style={{ color: 'var(--color-text-secondary)' }}>Markdown Preview</h3>
+              <div 
+                className="p-4 rounded border font-mono text-sm whitespace-pre-wrap"
+                style={{
+                  backgroundColor: 'var(--color-bg-secondary)',
+                  borderColor: 'var(--color-border-primary)',
+                  color: 'var(--color-text-primary)',
+                  maxHeight: '500px',
+                  overflowY: 'auto'
+                }}
+              >
+                {(() => {
+                  const turndownService = new TurndownService({
+                    headingStyle: 'atx',
+                    codeBlockStyle: 'fenced',
+                    bulletListMarker: '-',
+                    emDelimiter: '*',
+                    strongDelimiter: '**',
+                  });
+                  return turndownService.turndown(editor?.getHTML() || '');
+                })()}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <EditorContent editor={editor} className="prose max-w-none" />
+        )}
       </div>
 
       {/* Dictation Error Alert */}
