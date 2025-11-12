@@ -23,11 +23,26 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
   const [showCreateModal, setShowCreateModal] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  // Ensure scroll starts at top when entries load
+  // Force scroll to top after entries render - use multiple strategies to ensure it works
   useEffect(() => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollTop = 0;
-    }
+    const resetScroll = () => {
+      if (scrollContainerRef.current) {
+        scrollContainerRef.current.scrollTop = 0;
+      }
+    };
+
+    // Strategy 1: Immediate reset
+    resetScroll();
+
+    // Strategy 2: After next render
+    requestAnimationFrame(() => {
+      resetScroll();
+    });
+
+    // Strategy 3: After DOM updates
+    const timer = setTimeout(resetScroll, 10);
+
+    return () => clearTimeout(timer);
   }, [entries.length]); // Reset when entries are loaded
 
   const handleRemoveEntry = async (entryId: number) => {
