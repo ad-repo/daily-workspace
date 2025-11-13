@@ -1,12 +1,13 @@
 """
 Tests for migration 016 - Add Lists Feature
 """
-import pytest
-import sqlite3
-import os
-import sys
 import importlib.util
+import os
+import sqlite3
+import sys
 from pathlib import Path
+
+import pytest
 
 # Add migrations directory to path
 backend_path = os.getenv('BACKEND_PATH', str(Path(__file__).parent.parent.parent.parent / 'backend'))
@@ -331,7 +332,7 @@ def test_migration_with_existing_data(tmp_path):
     cursor.execute("INSERT INTO daily_notes (date) VALUES ('2024-11-11')")
     cursor.execute(
         """
-        INSERT INTO note_entries (daily_note_id, content) 
+        INSERT INTO note_entries (daily_note_id, content)
         VALUES (1, 'Entry 1'), (1, 'Entry 2'), (1, 'Entry 3')
     """
     )
@@ -348,7 +349,7 @@ def test_migration_with_existing_data(tmp_path):
 
     cursor.execute(
         """
-        INSERT INTO lists (name, description, color) 
+        INSERT INTO lists (name, description, color)
         VALUES ('Test List', 'Test Description', '#ff0000')
     """
     )
@@ -364,7 +365,7 @@ def test_migration_with_existing_data(tmp_path):
     # Verify foreign keys work
     cursor.execute(
         """
-        SELECT e.content, el.order_index 
+        SELECT e.content, el.order_index
         FROM note_entries e
         JOIN entry_lists el ON e.id = el.entry_id
         WHERE el.list_id = 1

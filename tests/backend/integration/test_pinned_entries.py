@@ -3,10 +3,11 @@ Integration tests for pinned entries feature.
 
 Tests the ability to pin note entries so they automatically copy to future days.
 """
+import time
 from datetime import datetime, timedelta
+
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
-import time
 
 
 def unique_date_future(days_ahead: int = 1) -> str:

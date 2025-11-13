@@ -2,11 +2,12 @@
 Integration tests for list labels feature.
 Tests the ability to add and remove labels from lists.
 """
+from datetime import datetime
+
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy.orm import Session
 from sqlalchemy import text
-from datetime import datetime
+from sqlalchemy.orm import Session
 
 from app.main import app
 

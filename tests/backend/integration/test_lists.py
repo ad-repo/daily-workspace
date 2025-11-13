@@ -1,13 +1,13 @@
 """
 Integration tests for Lists API endpoints
 """
+import random
+import time
+
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
-import time
-import random
 
 from app.main import app
-
 
 client = TestClient(app)
 

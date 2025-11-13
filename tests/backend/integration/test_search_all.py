@@ -2,10 +2,11 @@
 Integration tests for the /api/search/all endpoint.
 Tests searching both entries and lists with label filtering.
 """
+from datetime import datetime
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
-from datetime import datetime
 
 from app.main import app
 
