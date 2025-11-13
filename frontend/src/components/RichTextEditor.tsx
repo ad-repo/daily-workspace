@@ -43,6 +43,7 @@ import { LinkPreviewExtension, fetchLinkPreview } from '../extensions/LinkPrevie
 import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
 import TurndownService from 'turndown';
 import { marked } from 'marked';
+import * as yaml from 'js-yaml';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -118,10 +119,12 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
   const [isExpanded, setIsExpanded] = useState(false);
   const [showFontFamilyMenu, setShowFontFamilyMenu] = useState(false);
   const [showFontSizeMenu, setShowFontSizeMenu] = useState(false);
+  const [showHeadingMenu, setShowHeadingMenu] = useState(false);
   const [showMarkdownPreview, setShowMarkdownPreview] = useState(false);
   const [jsonError, setJsonError] = useState<string | null>(null);
   const [showJsonFormatted, setShowJsonFormatted] = useState(false);
   const [originalContent, setOriginalContent] = useState<string>('');
+  const [yamlError, setYamlError] = useState<string | null>(null);
   
   // Check if camera/video should be available
   // getUserMedia (camera/video) requires HTTPS on mobile browsers when accessed over network
@@ -540,13 +543,14 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
       if (!target.closest('.font-menu-container')) {
         setShowFontFamilyMenu(false);
         setShowFontSizeMenu(false);
+        setShowHeadingMenu(false);
       }
     };
-    if (showFontFamilyMenu || showFontSizeMenu) {
+    if (showFontFamilyMenu || showFontSizeMenu || showHeadingMenu) {
       document.addEventListener('mousedown', handleClickOutside);
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }
-  }, [showFontFamilyMenu, showFontSizeMenu]);
+  }, [showFontFamilyMenu, showFontSizeMenu, showHeadingMenu]);
 
   if (!editor) {
     return null;
@@ -931,6 +935,29 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
     }
   };
 
+  const validateYaml = () => {
+    try {
+      // Get the current content as text
+      const text = editor?.getText() || '';
+      
+      // Try to parse it as YAML
+      yaml.load(text);
+      
+      // If successful, show success message briefly
+      setYamlError('✓ Valid YAML');
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => setYamlError(null), 3000);
+    } catch (error) {
+      // Show error message
+      const errorMessage = error instanceof Error ? error.message : 'Invalid YAML';
+      setYamlError(errorMessage);
+      
+      // Clear error after 5 seconds
+      setTimeout(() => setYamlError(null), 5000);
+    }
+  };
+
   const ToolbarButton = ({
     onClick,
     active,
@@ -985,6 +1012,25 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
           backgroundColor: 'var(--color-bg-tertiary)'
         }}
       >
+        {/* History Group */}
+        <ToolbarButton
+          onClick={() => editor.chain().focus().undo().run()}
+          title="Undo"
+        >
+          <Undo className="h-4 w-4" />
+        </ToolbarButton>
+
+        <ToolbarButton
+          onClick={() => editor.chain().focus().redo().run()}
+          title="Redo"
+        >
+          <Redo className="h-4 w-4" />
+        </ToolbarButton>
+
+        {/* Separator */}
+        <div style={{ width: '1px', height: '24px', backgroundColor: 'var(--color-border-primary)', margin: '0 4px' }} />
+
+        {/* Text Formatting Group */}
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleBold().run()}
           active={editor.isActive('bold')}
@@ -1010,27 +1056,52 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
         </ToolbarButton>
 
         {/* Text Color */}
-        <input
-          type="color"
-          onChange={(e) => {
-            const color = e.target.value;
-            editor.chain().focus().setColor(color).run();
-          }}
-          value={editor.getAttributes('textStyle').color || '#000000'}
-          className="h-8 w-8 rounded cursor-pointer border"
-          style={{ borderColor: 'var(--color-border-primary)' }}
-          title="Text Color"
-        />
+        <div className="relative">
+          <input
+            type="color"
+            onChange={(e) => {
+              const color = e.target.value;
+              editor.chain().focus().setColor(color).run();
+            }}
+            value={editor.getAttributes('textStyle').color || '#000000'}
+            className="h-8 w-8 rounded cursor-pointer"
+            style={{ 
+              border: '1px solid var(--color-border-primary)',
+              backgroundColor: 'transparent',
+              padding: '2px'
+            }}
+            title="Text Color"
+          />
+        </div>
 
         {/* Font Family */}
         <div className="relative font-menu-container">
-          <ToolbarButton
-            onClick={() => setShowFontFamilyMenu(!showFontFamilyMenu)}
-            active={showFontFamilyMenu}
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setShowFontFamilyMenu(!showFontFamilyMenu);
+            }}
+            className="p-2 rounded transition-colors"
+            style={{
+              backgroundColor: showFontFamilyMenu ? 'var(--color-accent)' : 'transparent',
+              color: showFontFamilyMenu ? 'var(--color-accent-text)' : 'var(--color-text-primary)'
+            }}
+            onMouseEnter={(e) => {
+              if (!showFontFamilyMenu) {
+                e.currentTarget.style.backgroundColor = 'var(--color-bg-hover)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!showFontFamilyMenu) {
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }
+            }}
             title="Font Family"
+            type="button"
           >
             <Type className="h-4 w-4" />
-          </ToolbarButton>
+          </button>
           {showFontFamilyMenu && (
             <div
               className="absolute top-full left-0 mt-1 rounded shadow-lg z-50 border font-menu-container"
@@ -1043,25 +1114,42 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
               {[
                 { label: 'Default', value: '' },
                 { label: 'Arial', value: 'Arial, sans-serif' },
-                { label: 'Times', value: "'Times New Roman', serif" },
-                { label: 'Courier', value: "'Courier New', monospace" },
+                { label: 'Times New Roman', value: "'Times New Roman', serif" },
+                { label: 'Courier New', value: "'Courier New', monospace" },
                 { label: 'Georgia', value: 'Georgia, serif' },
                 { label: 'Verdana', value: 'Verdana, sans-serif' },
-                { label: 'Comic Sans', value: "'Comic Sans MS', cursive" },
+                { label: 'Trebuchet MS', value: "'Trebuchet MS', sans-serif" },
+                { label: 'Comic Sans MS', value: "'Comic Sans MS', cursive" },
                 { label: 'Impact', value: 'Impact, fantasy' },
+                { label: 'Lucida Console', value: "'Lucida Console', monospace" },
+                { label: 'Palatino', value: "'Palatino Linotype', 'Book Antiqua', Palatino, serif" },
+                { label: 'Tahoma', value: 'Tahoma, sans-serif' },
+                { label: 'Century Gothic', value: "'Century Gothic', sans-serif" },
+                { label: 'Brush Script MT', value: "'Brush Script MT', cursive" },
               ].map((font) => (
                 <button
-                  key={font.value}
-                  onClick={() => {
-                    editor.chain().focus().setFontFamily(font.value).run();
+                  key={font.value || 'default'}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (font.value === '') {
+                      editor.chain().focus().unsetFontFamily().run();
+                    } else {
+                      editor.chain().focus().setFontFamily(font.value).run();
+                    }
                     setShowFontFamilyMenu(false);
                   }}
                   className="w-full text-left px-3 py-2 text-sm hover:opacity-80 transition-colors"
                   style={{
                     color: 'var(--color-text-primary)',
-                    backgroundColor: editor.getAttributes('textStyle').fontFamily === font.value
+                    backgroundColor: (font.value === '' && !editor.getAttributes('textStyle').fontFamily) || editor.getAttributes('textStyle').fontFamily === font.value
                       ? 'var(--color-bg-hover)'
-                      : 'transparent'
+                      : 'transparent',
+                    fontFamily: font.value || 'inherit'
                   }}
                 >
                   {font.label}
@@ -1073,13 +1161,32 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
 
         {/* Font Size */}
         <div className="relative font-menu-container">
-          <ToolbarButton
-            onClick={() => setShowFontSizeMenu(!showFontSizeMenu)}
-            active={showFontSizeMenu}
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setShowFontSizeMenu(!showFontSizeMenu);
+            }}
+            className="p-2 rounded transition-colors"
+            style={{
+              backgroundColor: showFontSizeMenu ? 'var(--color-accent)' : 'transparent',
+              color: showFontSizeMenu ? 'var(--color-accent-text)' : 'var(--color-text-primary)'
+            }}
+            onMouseEnter={(e) => {
+              if (!showFontSizeMenu) {
+                e.currentTarget.style.backgroundColor = 'var(--color-bg-hover)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!showFontSizeMenu) {
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }
+            }}
             title="Font Size"
+            type="button"
           >
             <CaseSensitive className="h-4 w-4" />
-          </ToolbarButton>
+          </button>
           {showFontSizeMenu && (
             <div
               className="absolute top-full left-0 mt-1 rounded shadow-lg z-50 border font-menu-container"
@@ -1089,10 +1196,16 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
                 minWidth: '100px'
               }}
             >
-              {['12px', '14px', '16px', '18px', '20px', '24px', '32px', '48px'].map((size) => (
+              {['10px', '12px', '14px', '16px', '18px', '20px', '22px', '24px', '28px', '32px', '36px', '42px', '48px', '56px', '64px', '72px'].map((size) => (
                 <button
                   key={size}
-                  onClick={() => {
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
                     editor.chain().focus().setMark('textStyle', { fontSize: size }).run();
                     setShowFontSizeMenu(false);
                   }}
@@ -1101,7 +1214,8 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
                     color: 'var(--color-text-primary)',
                     backgroundColor: editor.getAttributes('textStyle').fontSize === size
                       ? 'var(--color-bg-hover)'
-                      : 'transparent'
+                      : 'transparent',
+                    fontSize: size
                   }}
                 >
                   {size}
@@ -1111,22 +1225,101 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
           )}
         </div>
 
-        <ToolbarButton
-          onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-          active={editor.isActive('heading', { level: 1 })}
-          title="Heading 1"
-        >
-          <Heading1 className="h-4 w-4" />
-        </ToolbarButton>
+        {/* Separator */}
+        <div style={{ width: '1px', height: '24px', backgroundColor: 'var(--color-border-primary)', margin: '0 4px' }} />
+
+        {/* Block Formatting Group */}
+        {/* Heading Picker */}
+        <div className="relative font-menu-container">
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setShowHeadingMenu(!showHeadingMenu);
+            }}
+            className="p-2 rounded transition-colors"
+            style={{
+              backgroundColor: (showHeadingMenu || editor.isActive('heading')) ? 'var(--color-accent)' : 'transparent',
+              color: (showHeadingMenu || editor.isActive('heading')) ? 'var(--color-accent-text)' : 'var(--color-text-primary)'
+            }}
+            onMouseEnter={(e) => {
+              if (!showHeadingMenu && !editor.isActive('heading')) {
+                e.currentTarget.style.backgroundColor = 'var(--color-bg-hover)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!showHeadingMenu && !editor.isActive('heading')) {
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }
+            }}
+            title="Headings"
+            type="button"
+          >
+            <Heading1 className="h-4 w-4" />
+          </button>
+          {showHeadingMenu && (
+            <div
+              className="absolute top-full left-0 mt-1 rounded shadow-lg z-50 border font-menu-container"
+              style={{
+                backgroundColor: 'var(--color-bg-secondary)',
+                borderColor: 'var(--color-border-primary)',
+                minWidth: '150px'
+              }}
+            >
+              {[
+                { label: 'Normal', level: 0 },
+                { label: 'Heading 1', level: 1 },
+                { label: 'Heading 2', level: 2 },
+                { label: 'Heading 3', level: 3 },
+                { label: 'Heading 4', level: 4 },
+                { label: 'Heading 5', level: 5 },
+                { label: 'Heading 6', level: 6 },
+              ].map((heading) => (
+                <button
+                  key={heading.level}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (heading.level === 0) {
+                      editor.chain().focus().setParagraph().run();
+                    } else {
+                      editor.chain().focus().toggleHeading({ level: heading.level as 1 | 2 | 3 | 4 | 5 | 6 }).run();
+                    }
+                    setShowHeadingMenu(false);
+                  }}
+                  className="w-full text-left px-3 py-2 text-sm hover:opacity-80 transition-colors"
+                  style={{
+                    color: 'var(--color-text-primary)',
+                    backgroundColor: (heading.level === 0 && !editor.isActive('heading')) || editor.isActive('heading', { level: heading.level })
+                      ? 'var(--color-bg-hover)'
+                      : 'transparent',
+                    fontSize: heading.level === 0 ? '14px' : `${20 - heading.level * 2}px`,
+                    fontWeight: heading.level === 0 ? 'normal' : 'bold'
+                  }}
+                >
+                  {heading.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
 
         <ToolbarButton
-          onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-          active={editor.isActive('heading', { level: 2 })}
-          title="Heading 2"
+          onClick={() => editor.chain().focus().toggleBlockquote().run()}
+          active={editor.isActive('blockquote')}
+          title="Quote"
         >
-          <Heading2 className="h-4 w-4" />
+          <Quote className="h-4 w-4" />
         </ToolbarButton>
 
+        {/* Separator */}
+        <div style={{ width: '1px', height: '24px', backgroundColor: 'var(--color-border-primary)', margin: '0 4px' }} />
+
+        {/* Lists Group */}
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleBulletList().run()}
           active={editor.isActive('bulletList')}
@@ -1151,14 +1344,10 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
           <CheckSquare className="h-4 w-4" />
         </ToolbarButton>
 
-        <ToolbarButton
-          onClick={() => editor.chain().focus().toggleBlockquote().run()}
-          active={editor.isActive('blockquote')}
-          title="Quote"
-        >
-          <Quote className="h-4 w-4" />
-        </ToolbarButton>
+        {/* Separator */}
+        <div style={{ width: '1px', height: '24px', backgroundColor: 'var(--color-border-primary)', margin: '0 4px' }} />
 
+        {/* Code Group */}
         <ToolbarButton
           onClick={() => {
             // Check if selection spans multiple lines
@@ -1196,6 +1385,10 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
           <FileText className="h-4 w-4" />
         </ToolbarButton>
 
+        {/* Separator */}
+        <div style={{ width: '1px', height: '24px', backgroundColor: 'var(--color-border-primary)', margin: '0 4px' }} />
+
+        {/* Insert/Embed Group */}
         <ToolbarButton onClick={addLink} active={editor.isActive('link')} title="Add Link">
           <Link2 className="h-4 w-4" />
         </ToolbarButton>
@@ -1204,14 +1397,18 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
           <ExternalLink className="h-4 w-4" />
         </ToolbarButton>
 
-            <ToolbarButton onClick={addImage} title="Add Image">
-              <ImageIcon className="h-4 w-4" />
-            </ToolbarButton>
+        <ToolbarButton onClick={addImage} title="Add Image">
+          <ImageIcon className="h-4 w-4" />
+        </ToolbarButton>
 
-            <ToolbarButton onClick={addFile} title="Attach File">
-              <Paperclip className="h-4 w-4" />
-            </ToolbarButton>
+        <ToolbarButton onClick={addFile} title="Attach File">
+          <Paperclip className="h-4 w-4" />
+        </ToolbarButton>
 
+        {/* Separator */}
+        <div style={{ width: '1px', height: '24px', backgroundColor: 'var(--color-border-primary)', margin: '0 4px' }} />
+
+        {/* Media Capture Group */}
         {/* Voice Dictation Button */}
         {isSupported && (
           <button
@@ -1261,20 +1458,10 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
           </ToolbarButton>
         )}
 
-        <ToolbarButton
-          onClick={() => editor.chain().focus().undo().run()}
-          title="Undo"
-        >
-          <Undo className="h-4 w-4" />
-        </ToolbarButton>
+        {/* Separator */}
+        <div style={{ width: '1px', height: '24px', backgroundColor: 'var(--color-border-primary)', margin: '0 4px' }} />
 
-        <ToolbarButton
-          onClick={() => editor.chain().focus().redo().run()}
-          title="Redo"
-        >
-          <Redo className="h-4 w-4" />
-        </ToolbarButton>
-
+        {/* Tools Group */}
         <ToolbarButton
           onClick={() => setShowMarkdownPreview(!showMarkdownPreview)}
           active={showMarkdownPreview}
@@ -1292,6 +1479,17 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
         </ToolbarButton>
 
         <ToolbarButton
+          onClick={validateYaml}
+          title="Validate YAML"
+        >
+          <span className="font-bold text-sm">Y</span>
+        </ToolbarButton>
+
+        {/* Separator */}
+        <div style={{ width: '1px', height: '24px', backgroundColor: 'var(--color-border-primary)', margin: '0 4px' }} />
+
+        {/* View Group */}
+        <ToolbarButton
           onClick={() => setIsExpanded(!isExpanded)}
           active={isExpanded}
           title={isExpanded ? "Collapse editor" : "Expand editor"}
@@ -1303,41 +1501,29 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
       {/* Editor and Markdown Preview */}
       <div className={isExpanded ? 'editor-expanded' : ''}>
         {showMarkdownPreview ? (
-          <div className="grid grid-cols-2 gap-4 p-4">
-            {/* Editor Side */}
-            <div>
-              <h3 className="text-sm font-semibold mb-2" style={{ color: 'var(--color-text-secondary)' }}>Editor</h3>
-              <EditorContent editor={editor} className="prose max-w-none" />
-            </div>
-            
-            {/* Markdown Preview Side */}
-            <div>
-              <h3 className="text-sm font-semibold mb-2" style={{ color: 'var(--color-text-secondary)' }}>Markdown Preview</h3>
-              <div 
-                className="prose max-w-none p-4 rounded border"
-                style={{
-                  backgroundColor: 'var(--color-bg-secondary)',
-                  borderColor: 'var(--color-border-primary)',
-                  color: 'var(--color-text-primary)',
-                  maxHeight: '500px',
-                  overflowY: 'auto'
-                }}
-                dangerouslySetInnerHTML={{
-                  __html: (() => {
-                    const turndownService = new TurndownService({
-                      headingStyle: 'atx',
-                      codeBlockStyle: 'fenced',
-                      bulletListMarker: '-',
-                      emDelimiter: '*',
-                      strongDelimiter: '**',
-                    });
-                    const markdown = turndownService.turndown(editor?.getHTML() || '');
-                    return marked.parse(markdown) as string;
-                  })()
-                }}
-              />
-            </div>
-          </div>
+          <div 
+            className="prose max-w-none p-4 rounded border"
+            style={{
+              backgroundColor: 'var(--color-bg-secondary)',
+              borderColor: 'var(--color-border-primary)',
+              color: 'var(--color-text-primary)',
+              maxHeight: '500px',
+              overflowY: 'auto'
+            }}
+            dangerouslySetInnerHTML={{
+              __html: (() => {
+                const turndownService = new TurndownService({
+                  headingStyle: 'atx',
+                  codeBlockStyle: 'fenced',
+                  bulletListMarker: '-',
+                  emDelimiter: '*',
+                  strongDelimiter: '**',
+                });
+                const markdown = turndownService.turndown(editor?.getHTML() || '');
+                return marked.parse(markdown) as string;
+              })()
+            }}
+          />
         ) : (
           <EditorContent editor={editor} className="prose max-w-none" />
         )}
@@ -1392,6 +1578,33 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
             <div className="pr-6">
               <strong className="block mb-1">JSON Format Error</strong>
               <p className="text-sm whitespace-pre-line">{jsonError}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* YAML Validation Alert */}
+      {yamlError && (
+        <div 
+          className="m-4 p-4 rounded-lg text-sm shadow-lg relative"
+          style={{
+            backgroundColor: yamlError.startsWith('✓') ? '#f0fdf4' : '#fef2f2',
+            color: yamlError.startsWith('✓') ? '#166534' : '#991b1b',
+            border: yamlError.startsWith('✓') ? '2px solid #22c55e' : '2px solid #ef4444'
+          }}
+        >
+          <button
+            onClick={() => setYamlError(null)}
+            className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 text-xl leading-none"
+            title="Dismiss"
+          >
+            ×
+          </button>
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0 text-lg">{yamlError.startsWith('✓') ? '✓' : '⚠️'}</div>
+            <div className="pr-6">
+              <strong className="block mb-1">{yamlError.startsWith('✓') ? 'YAML Validation' : 'YAML Validation Error'}</strong>
+              <p className="text-sm whitespace-pre-line">{yamlError}</p>
             </div>
           </div>
         </div>

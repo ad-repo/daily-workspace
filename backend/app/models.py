@@ -31,6 +31,14 @@ entry_lists = Table(
     Column('created_at', DateTime, default=datetime.utcnow),
 )
 
+# Association table for many-to-many relationship between lists and labels
+list_labels = Table(
+    'list_labels',
+    Base.metadata,
+    Column('list_id', Integer, ForeignKey('lists.id', ondelete='CASCADE')),
+    Column('label_id', Integer, ForeignKey('labels.id', ondelete='CASCADE')),
+)
+
 
 class Label(Base):
     """Model for labels"""
@@ -45,6 +53,7 @@ class Label(Base):
     # Relationships
     notes = relationship('DailyNote', secondary=note_labels, back_populates='labels')
     entries = relationship('NoteEntry', secondary=entry_labels, back_populates='labels')
+    lists = relationship('List', secondary=list_labels, back_populates='labels')
 
 
 class List(Base):
@@ -63,6 +72,7 @@ class List(Base):
 
     # Relationships
     entries = relationship('NoteEntry', secondary=entry_lists, back_populates='lists')
+    labels = relationship('Label', secondary=list_labels, back_populates='lists')
 
 
 class AppSettings(Base):

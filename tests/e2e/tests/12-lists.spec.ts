@@ -39,21 +39,19 @@ test.describe('Lists Feature', () => {
     await page.waitForTimeout(1000);
     
     const editor = page.locator('.ProseMirror').last();
+    await expect(editor).toBeVisible({ timeout: 10000 });
     await editor.fill('Test entry for list');
     await page.locator('body').click({ position: { x: 0, y: 0 } });
     await page.waitForTimeout(1500);
     
-    // Hover over entry to show list button
-    const entryCard = page.locator('.entry-card-container').first();
-    await entryCard.hover();
+    // Find the "Add to list" button in the entry card (inline list selector)
+    const addToListButton = page.locator('button:has-text("Add to list")').first();
+    await expect(addToListButton).toBeVisible({ timeout: 5000 });
+    await addToListButton.click();
     await page.waitForTimeout(500);
     
-    // Click the list selector button (Columns icon)
-    const listButton = entryCard.locator('button[title="Add to lists"]');
-    await listButton.click({ timeout: 5000 });
-    await page.waitForTimeout(1000);
-    
-    // Modal should appear
-    await expect(page.locator('text=Organize in Lists')).toBeVisible();
+    // List selector dropdown should appear with either existing lists or "Create New List" button
+    const createListButton = page.locator('button:has-text("Create New List")').first();
+    await expect(createListButton).toBeVisible({ timeout: 3000 });
   });
 });

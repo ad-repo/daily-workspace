@@ -1,3 +1,5 @@
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -18,8 +20,9 @@ from app.routers import (
     uploads,
 )
 
-# Create database tables
-Base.metadata.create_all(bind=engine)
+# Create database tables only if not in test mode
+if os.getenv('TESTING') != 'true':
+    Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title='Track the Thing API', version='1.0.0')
 

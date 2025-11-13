@@ -5,6 +5,7 @@ import ListCard from './ListCard';
 import AddEntryToListModal from './AddEntryToListModal';
 import CreateEntryModal from './CreateEntryModal';
 import { listsApi } from '../api';
+import LabelSelector from './LabelSelector';
 
 interface ListColumnProps {
   list: List;
@@ -162,21 +163,22 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
             }
           }}
         >
-          <div className="flex justify-between items-start mb-3">
-            <div className="flex items-center gap-2 flex-1 min-w-0" style={{ pointerEvents: 'none' }}>
-              <div
-                className="w-1 h-8 rounded-full flex-shrink-0"
-                style={{ backgroundColor: list.color }}
-              />
-              <h2
-                className="text-xl font-bold truncate"
-                style={{ color: 'var(--color-text-primary)' }}
-                title={list.name}
-              >
-                {list.name}
-              </h2>
-            </div>
-            <div className="flex gap-1.5 ml-2" style={{ pointerEvents: 'auto' }} onMouseDown={(e) => e.stopPropagation()}>
+          <div className="mb-3">
+            <div className="flex justify-between items-start mb-2">
+              <div className="flex items-center gap-2 flex-1 min-w-0" style={{ pointerEvents: 'none' }}>
+                <div
+                  className="w-1 h-8 rounded-full flex-shrink-0"
+                  style={{ backgroundColor: list.color }}
+                />
+                <h2
+                  className="text-xl font-bold truncate"
+                  style={{ color: 'var(--color-text-primary)' }}
+                  title={list.name}
+                >
+                  {list.name}
+                </h2>
+              </div>
+              <div className="flex gap-1.5 ml-2" style={{ pointerEvents: 'auto' }} onMouseDown={(e) => e.stopPropagation()}>
                 <button
                   onClick={() => setShowCreateModal(true)}
                   className="p-2 rounded-lg transition-all hover:scale-105"
@@ -230,7 +232,37 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
+            </div>
+            
+            {/* Labels on a separate line */}
+            <div className="mt-3 px-3" style={{ pointerEvents: 'auto' }} onMouseDown={(e) => e.stopPropagation()}>
+              <LabelSelector
+                selectedLabels={list.labels || []}
+                onLabelsChange={onUpdate}
+                onOptimisticUpdate={async (labels) => {
+                  // Handle label changes
+                  const currentLabelIds = (list.labels || []).map(l => l.id);
+                  const newLabelIds = labels.map(l => l.id);
+                  const added = newLabelIds.filter(id => !currentLabelIds.includes(id));
+                  const removed = currentLabelIds.filter(id => !newLabelIds.includes(id));
+                  
+                  try {
+                    for (const labelId of added) {
+                      await listsApi.addLabel(list.id, labelId);
+                    }
+                    for (const labelId of removed) {
+                      await listsApi.removeLabel(list.id, labelId);
+                    }
+                  } catch (error) {
+                    console.error('Error updating list labels:', error);
+                    // Revert on error
+                    onUpdate();
+                  }
+                }}
+              />
+            </div>
           </div>
+          
           {list.description && (
             <p 
               className="text-sm mb-3 ml-3 break-words line-clamp-2"

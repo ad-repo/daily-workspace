@@ -22,7 +22,7 @@ def get_note_by_date(date: str, db: Session = Depends(get_db)):
     """Get a specific daily note by date (YYYY-MM-DD)"""
     # First, copy any pinned entries from previous days
     copy_pinned_entries_to_date(date, db)
-    
+
     note = db.query(models.DailyNote).filter(models.DailyNote.date == date).first()
     if not note:
         raise HTTPException(status_code=404, detail='Note not found for this date')

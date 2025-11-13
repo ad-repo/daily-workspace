@@ -36,10 +36,12 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile.test
+    environment:
+      - CI=true
     volumes:
       - ./frontend:/app
       - /app/node_modules
-    command: npx vitest --run --coverage
+    command: npx vitest run --coverage
     profiles:
       - test
 

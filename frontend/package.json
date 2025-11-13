@@ -7,9 +7,9 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 113",
-    "test": "vitest",
+    "test": "vitest run",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest --coverage"
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@tiptap/extension-code-block-lowlight": "^2.1.13",
@@ -28,6 +28,7 @@
     "clsx": "^2.0.0",
     "date-fns": "^2.30.0",
     "date-fns-tz": "^2.0.1",
+    "js-yaml": "^4.1.1",
     "lowlight": "^3.1.0",
     "lucide-react": "^0.294.0",
     "marked": "^17.0.0",

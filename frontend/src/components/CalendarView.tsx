@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import Calendar from 'react-calendar';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
-import { Star, Check, Skull } from 'lucide-react';
+import { Star, Check } from 'lucide-react';
 import { notesApi, goalsApi } from '../api';
 import type { DailyNote, Goal } from '../types';
 import 'react-calendar/dist/Calendar.css';
@@ -150,7 +150,6 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
       return null;
     }
 
-    const hasDevNullEntries = note?.entries.some(entry => entry.is_dev_null);
     const hasImportantEntries = note?.entries.some(entry => entry.is_important);
     const hasCompletedEntries = note?.entries.some(entry => entry.is_completed);
     
@@ -159,16 +158,13 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
         {/* Entry indicators - show all that apply */}
         {hasEntries && (
           <div className="flex items-center gap-0.5">
-            {hasDevNullEntries && (
-              <Skull className="h-4 w-4 text-gray-700 stroke-[2.5]" />
-            )}
             {hasImportantEntries && (
               <Star className="h-4 w-4 text-yellow-500 fill-yellow-500 star-rays spin-rays" />
             )}
             {hasCompletedEntries && (
               <Check className="h-4 w-4 text-green-500 stroke-[3] animate-bounce" />
             )}
-            {!hasDevNullEntries && !hasImportantEntries && !hasCompletedEntries && (
+            {!hasImportantEntries && !hasCompletedEntries && (
               <div className="w-1.5 h-1.5 bg-blue-500 rounded-full" />
             )}
           </div>
@@ -234,10 +230,6 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
           <div className="mb-3">
             <h4 className="text-sm font-semibold mb-2" style={{ color: 'var(--color-text-secondary)' }}>Entry Status</h4>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3" style={{ color: 'var(--color-text-secondary)' }}>
-              <div className="flex items-center gap-2 p-2 rounded-lg" style={{ backgroundColor: 'var(--color-card-bg)' }}>
-                <Skull className="h-4 w-4 text-gray-700 stroke-[2.5] flex-shrink-0" />
-                <span className="text-xs font-medium">Has /dev/null</span>
-              </div>
               <div className="flex items-center gap-2 p-2 rounded-lg" style={{ backgroundColor: 'var(--color-card-bg)' }}>
                 <Star className="h-4 w-4 text-yellow-500 fill-yellow-500 star-rays spin-rays flex-shrink-0" />
                 <span className="text-xs font-medium">Has important</span>

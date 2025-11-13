@@ -538,39 +538,61 @@ const DailyView = () => {
                     }
                   }}
                   className="space-y-3"
-                  style={{ maxHeight: '200px', overflowY: 'auto' }}
                 >
                   <SimpleRichTextEditor
                     content={dailyGoal}
                     onChange={handleDailyGoalChange}
                     placeholder="What are your main goals for today?"
                   />
-                  <button
-                    onClick={() => {
-                      setEditingDailyGoal(false);
-                      // Flush any pending debounced save
-                      if (dailyGoalTimeoutRef.current) {
-                        clearTimeout(dailyGoalTimeoutRef.current);
-                        dailyGoalTimeoutRef.current = null;
-                      }
-                      // Immediately save
-                      if (date && dailyGoalRef.current) {
-                        if (note) {
-                          notesApi.update(date, { daily_goal: dailyGoalRef.current });
-                        } else {
-                          notesApi.create({ date, daily_goal: dailyGoalRef.current, fire_rating: 0 });
-                          loadDailyNote();
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        setEditingDailyGoal(false);
+                        // Flush any pending debounced save
+                        if (dailyGoalTimeoutRef.current) {
+                          clearTimeout(dailyGoalTimeoutRef.current);
+                          dailyGoalTimeoutRef.current = null;
                         }
-                      }
-                    }}
-                    className="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                    style={{
-                      backgroundColor: 'var(--color-accent)',
-                      color: 'white',
-                    }}
-                  >
-                    Save
-                  </button>
+                        // Immediately save
+                        if (date && dailyGoalRef.current) {
+                          if (note) {
+                            notesApi.update(date, { daily_goal: dailyGoalRef.current });
+                          } else {
+                            notesApi.create({ date, daily_goal: dailyGoalRef.current, fire_rating: 0 });
+                            loadDailyNote();
+                          }
+                        }
+                      }}
+                      className="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                      style={{
+                        backgroundColor: 'var(--color-accent)',
+                        color: 'white',
+                      }}
+                    >
+                      Save
+                    </button>
+                    <button
+                      onClick={() => {
+                        setEditingDailyGoal(false);
+                        // Clear any pending debounced save
+                        if (dailyGoalTimeoutRef.current) {
+                          clearTimeout(dailyGoalTimeoutRef.current);
+                          dailyGoalTimeoutRef.current = null;
+                        }
+                        // Reset to original value
+                        setDailyGoal(note?.daily_goal || '');
+                        dailyGoalRef.current = note?.daily_goal || '';
+                      }}
+                      className="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                      style={{
+                        backgroundColor: 'var(--color-bg-secondary)',
+                        color: 'var(--color-text-primary)',
+                        border: '1px solid var(--color-border-primary)',
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
                 </div>
               ) : (
                     <div
@@ -691,7 +713,6 @@ const DailyView = () => {
                             }
                           }}
                           className="space-y-3"
-                          style={{ maxHeight: '300px', overflowY: 'auto' }}
                         >
                           <SimpleRichTextEditor
                             content={sprintGoal.text}
@@ -728,27 +749,47 @@ const DailyView = () => {
                               }}
                             />
                           </div>
-                          <button
-                            onClick={() => {
-                              setEditingSprintGoal(false);
-                              const updates: { text?: string; start_date?: string; end_date?: string } = {};
-                              updates.text = sprintGoal.text;
-                              if (editingSprintStartDate && editingSprintStartDate !== sprintGoal.start_date) {
-                                updates.start_date = editingSprintStartDate;
-                              }
-                              if (editingSprintEndDate && editingSprintEndDate !== sprintGoal.end_date) {
-                                updates.end_date = editingSprintEndDate;
-                              }
-                              handleSprintGoalUpdate(updates);
-                            }}
-                            className="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                            style={{
-                              backgroundColor: 'var(--color-accent)',
-                              color: 'white',
-                            }}
-                          >
-                            Save
-                          </button>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => {
+                                setEditingSprintGoal(false);
+                                const updates: { text?: string; start_date?: string; end_date?: string } = {};
+                                updates.text = sprintGoal.text;
+                                if (editingSprintStartDate && editingSprintStartDate !== sprintGoal.start_date) {
+                                  updates.start_date = editingSprintStartDate;
+                                }
+                                if (editingSprintEndDate && editingSprintEndDate !== sprintGoal.end_date) {
+                                  updates.end_date = editingSprintEndDate;
+                                }
+                                handleSprintGoalUpdate(updates);
+                              }}
+                              className="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                              style={{
+                                backgroundColor: 'var(--color-accent)',
+                                color: 'white',
+                              }}
+                            >
+                              Save
+                            </button>
+                            <button
+                              onClick={() => {
+                                setEditingSprintGoal(false);
+                                // Reset to original values
+                                setEditingSprintStartDate(sprintGoal.start_date);
+                                setEditingSprintEndDate(sprintGoal.end_date);
+                                // Reload the sprint goal to discard changes
+                                loadSprintGoal();
+                              }}
+                              className="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                              style={{
+                                backgroundColor: 'var(--color-bg-secondary)',
+                                color: 'var(--color-text-primary)',
+                                border: '1px solid var(--color-border-primary)',
+                              }}
+                            >
+                              Cancel
+                            </button>
+                          </div>
                         </div>
                       ) : (
                         <div
@@ -912,7 +953,6 @@ const DailyView = () => {
                             }
                           }}
                           className="space-y-3"
-                          style={{ maxHeight: '300px', overflowY: 'auto' }}
                         >
                           <SimpleRichTextEditor
                             content={quarterlyGoal.text}
@@ -949,27 +989,47 @@ const DailyView = () => {
                               }}
                             />
                           </div>
-                          <button
-                            onClick={() => {
-                              setEditingQuarterlyGoal(false);
-                              const updates: { text?: string; start_date?: string; end_date?: string } = {};
-                              updates.text = quarterlyGoal.text;
-                              if (editingQuarterlyStartDate && editingQuarterlyStartDate !== quarterlyGoal.start_date) {
-                                updates.start_date = editingQuarterlyStartDate;
-                              }
-                              if (editingQuarterlyEndDate && editingQuarterlyEndDate !== quarterlyGoal.end_date) {
-                                updates.end_date = editingQuarterlyEndDate;
-                              }
-                              handleQuarterlyGoalUpdate(updates);
-                            }}
-                            className="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                            style={{
-                              backgroundColor: 'var(--color-accent)',
-                              color: 'white',
-                            }}
-                          >
-                            Save
-                          </button>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => {
+                                setEditingQuarterlyGoal(false);
+                                const updates: { text?: string; start_date?: string; end_date?: string } = {};
+                                updates.text = quarterlyGoal.text;
+                                if (editingQuarterlyStartDate && editingQuarterlyStartDate !== quarterlyGoal.start_date) {
+                                  updates.start_date = editingQuarterlyStartDate;
+                                }
+                                if (editingQuarterlyEndDate && editingQuarterlyEndDate !== quarterlyGoal.end_date) {
+                                  updates.end_date = editingQuarterlyEndDate;
+                                }
+                                handleQuarterlyGoalUpdate(updates);
+                              }}
+                              className="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                              style={{
+                                backgroundColor: 'var(--color-accent)',
+                                color: 'white',
+                              }}
+                            >
+                              Save
+                            </button>
+                            <button
+                              onClick={() => {
+                                setEditingQuarterlyGoal(false);
+                                // Reset to original values
+                                setEditingQuarterlyStartDate(quarterlyGoal.start_date);
+                                setEditingQuarterlyEndDate(quarterlyGoal.end_date);
+                                // Reload the quarterly goal to discard changes
+                                loadQuarterlyGoal();
+                              }}
+                              className="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                              style={{
+                                backgroundColor: 'var(--color-bg-secondary)',
+                                color: 'var(--color-text-primary)',
+                                border: '1px solid var(--color-border-primary)',
+                              }}
+                            >
+                              Cancel
+                            </button>
+                          </div>
                         </div>
                       ) : (
                         <div

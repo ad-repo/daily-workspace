@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Trash2, Clock, FileText, Star, Check, Copy, CheckCheck, ArrowRight, Skull, ArrowUp, FileDown, Pin } from 'lucide-react';
+import { Trash2, Clock, FileText, Star, Check, Copy, CheckCheck, ArrowRight, ArrowUp, FileDown, Pin } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import axios from 'axios';
@@ -48,7 +48,6 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onListsUpdat
   const [includeInReport, setIncludeInReport] = useState(entry.include_in_report || false);
   const [isImportant, setIsImportant] = useState(entry.is_important || false);
   const [isCompleted, setIsCompleted] = useState(entry.is_completed || false);
-  const [isDevNull, setIsDevNull] = useState(entry.is_dev_null || false);
   const [isPinned, setIsPinned] = useState(entry.is_pinned || false);
   const [copied, setCopied] = useState(false);
   const [copiedMarkdown, setCopiedMarkdown] = useState(false);
@@ -66,7 +65,6 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onListsUpdat
     setIncludeInReport(entry.include_in_report || false);
     setIsImportant(entry.is_important || false);
     setIsCompleted(entry.is_completed || false);
-    setIsDevNull(entry.is_dev_null || false);
     setIsPinned(entry.is_pinned || false);
   }, [entry]);
 
@@ -146,20 +144,6 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onListsUpdat
     } catch (error) {
       console.error('Failed to update completed status:', error);
       setIsCompleted(!newValue); // Revert on error
-    }
-  };
-
-  const handleDevNullToggle = async () => {
-    const newValue = !isDevNull;
-    setIsDevNull(newValue);
-    
-    try {
-      await axios.patch(`${API_URL}/api/entries/${entry.id}`, {
-        is_dev_null: newValue
-      });
-    } catch (error) {
-      console.error('Failed to update dev_null status:', error);
-      setIsDevNull(!newValue); // Revert on error
     }
   };
 
@@ -490,18 +474,6 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onListsUpdat
               title={isPinned ? "Unpin (stop copying to future days)" : "Pin (copy to future days)"}
             >
               <Pin className={`h-5 w-5 ${isPinned ? 'fill-current' : ''}`} />
-            </button>
-            
-            <button
-              onClick={handleDevNullToggle}
-              className={`p-2 rounded transition-colors ${isDevNull ? 'devnull-active' : ''}`}
-              style={{ 
-                color: isDevNull ? 'var(--color-text-primary)' : 'var(--color-text-tertiary)',
-                backgroundColor: isDevNull ? 'rgba(107, 114, 128, 0.1)' : 'transparent'
-              }}
-              title={isDevNull ? "Remove from /dev/null" : "Mark as /dev/null"}
-            >
-              <Skull className={`h-5 w-5 ${isDevNull ? 'stroke-[2.5]' : ''}`} />
             </button>
             
             <button

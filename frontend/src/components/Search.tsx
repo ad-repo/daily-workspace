@@ -23,6 +23,7 @@ const Search = () => {
   const [allLabels, setAllLabels] = useState<Label[]>([]);
   const [allLists, setAllLists] = useState<List[]>([]);
   const [results, setResults] = useState<NoteEntry[]>([]);
+  const [listResults, setListResults] = useState<List[]>([]);
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [searchHistory, setSearchHistory] = useState<SearchHistoryItem[]>([]);
@@ -43,6 +44,7 @@ const Search = () => {
       setSelectedLabels([]);
       setSelectedLists([]);
       setResults([]);
+      setListResults([]);
       setHasSearched(false);
     };
   }, []);
@@ -130,11 +132,13 @@ const Search = () => {
         params.is_completed = filterCompleted;
       }
 
-      const response = await axios.get<NoteEntry[]>(`${API_URL}/api/search/`, { params });
-      setResults(response.data);
+      const response = await axios.get<{entries: NoteEntry[], lists: List[]}>(`${API_URL}/api/search/all`, { params });
+      setResults(response.data.entries);
+      setListResults(response.data.lists);
     } catch (error) {
       console.error('Search failed:', error);
       setResults([]);
+      setListResults([]);
     } finally {
       setLoading(false);
     }
@@ -161,6 +165,7 @@ const Search = () => {
     setFilterStarred(null);
     setFilterCompleted(null);
     setResults([]);
+    setListResults([]);
     setHasSearched(false);
   };
 
@@ -454,7 +459,7 @@ const Search = () => {
         {/* Search Info */}
         {hasSearched && (
           <div className="text-sm mb-4" style={{ color: 'var(--color-text-secondary)' }}>
-            Found {results.length} result{results.length !== 1 ? 's' : ''}
+            Found {results.length} entr{results.length !== 1 ? 'ies' : 'y'} and {listResults.length} list{listResults.length !== 1 ? 's' : ''}
             {searchQuery.trim() && ` for "${searchQuery}"`}
             {selectedLabels.length > 0 && ` with selected labels`}
             {selectedLists.length > 0 && ` in selected lists`}
@@ -467,13 +472,99 @@ const Search = () => {
 
       {/* Results */}
       {hasSearched && (
-        <div className="space-y-4 page-fade-in">
-          {results.length === 0 ? (
-            <div className="bg-white rounded-lg shadow-lg p-8 text-center text-gray-500 page-fade-in">
+        <div className="space-y-6 page-fade-in">
+          {results.length === 0 && listResults.length === 0 ? (
+            <div className="rounded-lg shadow-lg p-8 text-center page-fade-in" style={{ backgroundColor: 'var(--color-bg-primary)', color: 'var(--color-text-secondary)' }}>
               No results found. Try a different search query or labels.
             </div>
           ) : (
-            results.map((entry: any, index) => {
+            <>
+              {/* List Results */}
+              {listResults.length > 0 && (
+                <div>
+                  <h2 className="text-xl font-bold mb-4 flex items-center gap-2" style={{ color: 'var(--color-text-primary)' }}>
+                    <Columns className="h-5 w-5" />
+                    Lists ({listResults.length})
+                  </h2>
+                  <div className="space-y-4">
+                    {listResults.map((list, index) => (
+                      <div
+                        key={`list-${list.id}`}
+                        onClick={() => navigate(`/lists?list=${list.id}`)}
+                        className="rounded-xl shadow-lg p-6 hover:shadow-2xl transition-all duration-300 cursor-pointer"
+                        style={{
+                          backgroundColor: 'var(--color-card-bg)',
+                          border: `2px solid ${list.color}`,
+                          animation: `fadeIn 0.3s ease-in ${index * 0.05}s both`
+                        }}
+                      >
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex items-center gap-3 flex-1">
+                            <div
+                              className="w-2 h-12 rounded-full flex-shrink-0"
+                              style={{ backgroundColor: list.color }}
+                            />
+                            <div className="flex-1">
+                              <h3 className="text-2xl font-bold mb-2" style={{ color: 'var(--color-text-primary)' }}>
+                                {list.name}
+                              </h3>
+                              {list.description && (
+                                <p className="text-sm mb-3" style={{ color: 'var(--color-text-secondary)' }}>
+                                  {list.description}
+                                </p>
+                              )}
+                              <div className="flex items-center gap-3">
+                                <span
+                                  className="px-3 py-1 rounded-full text-sm font-semibold"
+                                  style={{
+                                    backgroundColor: list.color,
+                                    color: 'white',
+                                  }}
+                                >
+                                  {list.entry_count || 0} {list.entry_count === 1 ? 'entry' : 'entries'}
+                                </span>
+                                {list.is_archived && (
+                                  <span className="px-3 py-1 rounded-full text-sm font-medium" style={{ backgroundColor: 'var(--color-bg-tertiary)', color: 'var(--color-text-secondary)' }}>
+                                    Archived
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        {list.labels && list.labels.length > 0 && (
+                          <div className="flex flex-wrap gap-2 mt-4">
+                            {list.labels.map((label) => (
+                              <span
+                                key={label.id}
+                                className="inline-block px-3 py-1 rounded-full text-sm font-medium"
+                                style={{ 
+                                  backgroundColor: transparentLabels ? 'transparent' : label.color,
+                                  color: transparentLabels ? label.color : 'white',
+                                  border: transparentLabels ? `2px solid ${label.color}` : 'none'
+                                }}
+                              >
+                                {label.name}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Entry Results */}
+              {results.length > 0 && (
+                <div>
+                  {listResults.length > 0 && (
+                    <h2 className="text-xl font-bold mb-4" style={{ color: 'var(--color-text-primary)' }}>
+                      Entries ({results.length})
+                    </h2>
+                  )}
+                  <div className="space-y-4">
+                    {results.map((entry: any, index) => {
               // Extract date from the search result
               const date = entry.date || 'Unknown';
               const content = entry.content_type === 'code' 
@@ -485,35 +576,53 @@ const Search = () => {
                 <div
                   key={entry.id}
                   onClick={() => goToEntry(entry, date)}
-                  className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-all duration-300 cursor-pointer"
+                  className="rounded-xl shadow-lg p-8 hover:shadow-2xl transition-all duration-300 cursor-pointer"
                   style={{
+                    backgroundColor: 'var(--color-card-bg)',
+                    border: '1px solid var(--color-border-primary)',
                     animation: `fadeIn 0.3s ease-in ${index * 0.05}s both`
                   }}
                 >
-                  <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <span className="text-sm font-semibold text-blue-600">
+                      <div className="flex items-center gap-3 mb-3">
+                        <span className="text-lg font-bold px-3 py-1 rounded-lg" style={{ backgroundColor: 'var(--color-accent)', color: 'white' }}>
                           {date}
                         </span>
-                        <span className="text-sm text-gray-500">
+                        <span className="text-sm font-medium" style={{ color: 'var(--color-text-secondary)' }}>
                           {formatTimestamp(entry.created_at, timezone, 'h:mm a zzz')}
                         </span>
                         {entry.content_type === 'code' && (
-                          <span className="px-2 py-0.5 bg-gray-800 text-white text-xs rounded">
-                            Code
+                          <span className="px-3 py-1 text-sm font-medium rounded-lg" style={{ backgroundColor: 'var(--color-bg-tertiary)', color: 'var(--color-text-primary)' }}>
+                            💻 Code
+                          </span>
+                        )}
+                        {entry.is_important && (
+                          <Star className="w-5 h-5" style={{ color: '#FFD700', fill: '#FFD700' }} />
+                        )}
+                        {entry.is_completed && (
+                          <CheckCircle className="w-5 h-5" style={{ color: '#10B981', fill: '#10B981' }} />
+                        )}
+                        {entry.is_pinned && (
+                          <span className="px-3 py-1 text-sm font-medium rounded-lg" style={{ backgroundColor: 'var(--color-bg-tertiary)', color: 'var(--color-text-primary)' }}>
+                            📌 Pinned
                           </span>
                         )}
                       </div>
-                      <div className="flex flex-wrap gap-2 mb-3">
+                      {entry.title && (
+                        <h3 className="text-xl font-bold mb-3" style={{ color: 'var(--color-text-primary)' }}>
+                          {entry.title}
+                        </h3>
+                      )}
+                      <div className="flex flex-wrap gap-2 mb-4">
                         {entry.labels.map((label) => (
                           <span
                             key={label.id}
-                            className="inline-block px-2.5 py-0.5 rounded-full text-xs font-medium"
+                            className="inline-block px-3 py-1 rounded-full text-sm font-medium"
                             style={{ 
                               backgroundColor: transparentLabels ? 'transparent' : label.color,
                               color: transparentLabels ? label.color : 'white',
-                              border: transparentLabels ? `1px solid ${label.color}` : 'none'
+                              border: transparentLabels ? `2px solid ${label.color}` : 'none'
                             }}
                           >
                             {label.name}
@@ -522,23 +631,28 @@ const Search = () => {
                         {(entry as any).list_names && (entry as any).list_names.map((listName: string, idx: number) => (
                           <span
                             key={idx}
-                            className="inline-block px-2.5 py-0.5 rounded text-xs font-medium"
+                            className="inline-flex items-center gap-1 px-3 py-1 rounded-lg text-sm font-medium"
                             style={{ 
-                              backgroundColor: 'var(--color-background)',
+                              backgroundColor: 'var(--color-bg-tertiary)',
                               color: 'var(--color-text-primary)',
                               border: '1px solid var(--color-border)'
                             }}
                           >
-                            📋 {listName}
+                            <Columns className="w-3 h-3" />
+                            {listName}
                           </span>
                         ))}
                       </div>
                     </div>
                   </div>
-                  <p className="text-gray-700 whitespace-pre-wrap">{preview}</p>
+                  <p className="text-base leading-relaxed whitespace-pre-wrap" style={{ color: 'var(--color-text-primary)' }}>{preview}</p>
                 </div>
               );
-            })
+            })}
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
       )}

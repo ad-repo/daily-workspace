@@ -1,36 +1,86 @@
 #!/bin/bash
 # Run all tests: backend, frontend, and E2E using Docker
+# Usage: ./run_all_tests.sh [backend|frontend|e2e]
+# Examples:
+#   ./run_all_tests.sh           # Run all tests
+#   ./run_all_tests.sh backend   # Run only backend tests
+#   ./run_all_tests.sh frontend  # Run only frontend tests
+#   ./run_all_tests.sh e2e       # Run only E2E tests
 
 set -e
 
-echo "🚀 Running All Tests for Track the Thing"
+# Parse arguments
+RUN_BACKEND=false
+RUN_FRONTEND=false
+RUN_E2E=false
+
+if [ $# -eq 0 ]; then
+  # No arguments - run all tests
+  RUN_BACKEND=true
+  RUN_FRONTEND=true
+  RUN_E2E=true
+else
+  # Parse which tests to run
+  for arg in "$@"; do
+    case $arg in
+      backend)
+        RUN_BACKEND=true
+        ;;
+      frontend)
+        RUN_FRONTEND=true
+        ;;
+      e2e)
+        RUN_E2E=true
+        ;;
+      *)
+        echo "❌ Unknown test suite: $arg"
+        echo "Usage: $0 [backend|frontend|e2e]"
+        exit 1
+        ;;
+    esac
+  done
+fi
+
+echo "🚀 Running Tests for Track the Thing"
 echo "========================================"
 echo ""
 
 # Backend Tests
-echo "1️⃣  Backend Tests"
-echo "-------------------"
-echo "Running backend tests in Docker..."
-docker-compose run --rm backend-test
-echo ""
+if [ "$RUN_BACKEND" = true ]; then
+  echo "1️⃣  Backend Tests"
+  echo "-------------------"
+  echo "Running backend tests in Docker..."
+  docker-compose run --rm backend-test
+  echo ""
+fi
 
 # Frontend Tests
-echo "2️⃣  Frontend Tests"
-echo "-------------------"
-echo "Running frontend tests in Docker..."
-docker-compose run --rm frontend-test
-echo ""
+if [ "$RUN_FRONTEND" = true ]; then
+  echo "2️⃣  Frontend Tests"
+  echo "-------------------"
+  echo "Running frontend tests in Docker..."
+  docker-compose run --rm frontend-test
+  echo ""
+fi
 
 # E2E Tests
-echo "3️⃣  E2E Tests"
-echo "-------------------"
-echo "Running E2E tests in Docker..."
-docker-compose --profile e2e run --rm e2e npx playwright test --grep-invert "media-features"
-echo ""
+if [ "$RUN_E2E" = true ]; then
+  echo "3️⃣  E2E Tests"
+  echo "-------------------"
+  echo "Running E2E tests in Docker..."
+  docker-compose --profile e2e run --rm e2e npx playwright test --grep-invert "media-features"
+  echo ""
+fi
 
-echo "✅ All tests complete!"
+echo "✅ Tests complete!"
 echo "================================"
-echo "📊 Backend coverage: tests/backend/htmlcov/index.html"
-echo "📊 Frontend coverage: frontend/tests/coverage/index.html"
-echo "📊 E2E report: tests/e2e/playwright-report/index.html"
+if [ "$RUN_BACKEND" = true ]; then
+  echo "📊 Backend coverage: tests/backend/htmlcov/index.html"
+fi
+if [ "$RUN_FRONTEND" = true ]; then
+  echo "📊 Frontend coverage: frontend/tests/coverage/index.html"
+fi
+if [ "$RUN_E2E" = true ]; then
+  echo "📊 E2E report: tests/e2e/playwright-report/index.html"
+fi
 

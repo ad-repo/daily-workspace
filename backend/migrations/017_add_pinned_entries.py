@@ -20,8 +20,8 @@ Verified:
 - ✓ Creates index for query performance
 """
 
-import sqlite3
 import os
+import sqlite3
 from pathlib import Path
 
 
@@ -33,11 +33,11 @@ def get_db_path():
         Path.cwd() / "data" / "daily_notes.db",
         Path.cwd() / "daily_notes.db",
     ]
-    
+
     for path in possible_paths:
         if path.exists():
             return str(path)
-    
+
     # If no database exists, return the preferred location
     return str(possible_paths[0])
 
@@ -52,7 +52,7 @@ def column_exists(cursor, table_name, column_name):
 def index_exists(cursor, index_name):
     """Check if an index exists."""
     cursor.execute("""
-        SELECT name FROM sqlite_master 
+        SELECT name FROM sqlite_master
         WHERE type='index' AND name=?
     """, (index_name,))
     return cursor.fetchone() is not None
@@ -61,27 +61,27 @@ def index_exists(cursor, index_name):
 def migrate_up(db_path):
     """Apply the migration."""
     print(f"Connecting to database: {db_path}")
-    
+
     if not os.path.exists(db_path):
         print(f"Warning: Database not found at {db_path}")
         print("Migration will be applied when the database is created.")
         return True
-    
+
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
-    
+
     try:
         # Step 1: Add is_pinned column to note_entries
         if not column_exists(cursor, 'note_entries', 'is_pinned'):
             print("Adding is_pinned column to note_entries table...")
             cursor.execute("""
-                ALTER TABLE note_entries 
+                ALTER TABLE note_entries
                 ADD COLUMN is_pinned INTEGER DEFAULT 0
             """)
             print("✓ Added is_pinned column")
         else:
             print("✓ is_pinned column already exists")
-        
+
         # Step 2: Create index on is_pinned for efficient querying
         if not index_exists(cursor, 'idx_note_entries_pinned'):
             print("Creating index on note_entries.is_pinned...")
@@ -89,18 +89,18 @@ def migrate_up(db_path):
             print("✓ Created index idx_note_entries_pinned")
         else:
             print("✓ Index idx_note_entries_pinned already exists")
-        
+
         conn.commit()
         print("✓ Migration 017 completed successfully")
         return True
-        
+
     except Exception as e:
         print(f"✗ Migration failed: {e}")
         import traceback
         traceback.print_exc()
         conn.rollback()
         return False
-        
+
     finally:
         conn.close()
 
@@ -108,36 +108,36 @@ def migrate_up(db_path):
 def migrate_down(db_path):
     """Rollback the migration."""
     print(f"Connecting to database: {db_path}")
-    
+
     if not os.path.exists(db_path):
         print(f"Warning: Database not found at {db_path}")
         return True
-    
+
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
-    
+
     try:
         print("Rolling back pinned entries feature...")
-        
+
         # Drop index
         cursor.execute("DROP INDEX IF EXISTS idx_note_entries_pinned")
         print("✓ Dropped index idx_note_entries_pinned")
-        
+
         # Note: SQLite doesn't support DROP COLUMN directly
         # We would need to recreate the table to remove the column
         # For safety, we'll leave the column but document it as unused
         print("⚠ Note: is_pinned column remains in table (SQLite limitation)")
         print("   Column will be ignored by application")
-        
+
         conn.commit()
         print("✓ Migration 017 rollback completed")
         return True
-        
+
     except Exception as e:
         print(f"✗ Rollback failed: {e}")
         conn.rollback()
         return False
-        
+
     finally:
         conn.close()
 
@@ -145,14 +145,14 @@ def migrate_down(db_path):
 def main():
     """Run the migration manually."""
     import sys
-    
+
     db_path = get_db_path()
-    
+
     if len(sys.argv) > 1 and sys.argv[1] == "down":
         success = migrate_down(db_path)
     else:
         success = migrate_up(db_path)
-    
+
     if success:
         sys.exit(0)
     else:

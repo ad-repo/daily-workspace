@@ -170,30 +170,33 @@ const EntryListSelector = ({ entryId, currentLists, onUpdate, onOptimisticUpdate
 
   return (
     <div className="relative" ref={dropdownRef}>
-      {/* Current Lists Display */}
-      <div className="flex flex-wrap gap-2 items-center">
-        {localLists.map((list) => (
-          <button
-            key={list.id}
-            onClick={(e) => handleRemoveFromList(list.id, e)}
-            disabled={processing}
-            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium transition-all duration-200 hover:opacity-80 disabled:opacity-50"
-            style={{ 
-              backgroundColor: list.color,
-              color: 'white',
-            }}
-            title="Click to remove"
-          >
-            <Columns className="h-3 w-3" />
-            {list.name}
-            <X className="h-3 w-3" />
-          </button>
-        ))}
+      {/* Current Lists Display and Add Button */}
+      <div className="flex flex-wrap gap-2 items-center justify-between">
+        {/* Left: List Pills */}
+        <div className="flex flex-wrap gap-2 items-center">
+          {localLists.map((list) => (
+            <button
+              key={list.id}
+              onClick={(e) => handleRemoveFromList(list.id, e)}
+              disabled={processing}
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded text-sm font-medium transition-all duration-200 hover:opacity-80 disabled:opacity-50"
+              style={{ 
+                backgroundColor: list.color,
+                color: 'white',
+              }}
+              title="Click to remove"
+            >
+              <Columns className="h-3 w-3" />
+              {list.name}
+              <X className="h-3 w-3" />
+            </button>
+          ))}
+        </div>
 
-        {/* Add to List Button */}
+        {/* Right: Add to List Button */}
         <button
           onClick={() => setShowDropdown(!showDropdown)}
-          className="flex items-center gap-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          className="flex items-center gap-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors ml-auto"
         >
           <Plus className="h-4 w-4" />
           Add to list
@@ -203,7 +206,7 @@ const EntryListSelector = ({ entryId, currentLists, onUpdate, onOptimisticUpdate
       {/* Dropdown Menu */}
       {showDropdown && (
         <div
-          className="absolute top-full left-0 mt-2 rounded-lg shadow-xl z-[100] max-h-96 overflow-y-auto"
+          className="absolute top-full right-0 mt-2 rounded-lg shadow-xl z-[100] max-h-96 overflow-y-auto"
           style={{
             backgroundColor: 'var(--color-bg-primary)',
             border: '1px solid var(--color-border-primary)',

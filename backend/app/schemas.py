@@ -53,6 +53,7 @@ class ListResponse(ListBase):
     created_at: datetime
     updated_at: datetime
     entry_count: int = 0  # Calculated field
+    labels: list[Label] = []
 
     class Config:
         from_attributes = True
@@ -97,7 +98,6 @@ class NoteEntryUpdate(BaseModel):
     include_in_report: bool | None = None
     is_important: bool | None = None
     is_completed: bool | None = None
-    is_dev_null: bool | None = None
     is_pinned: bool | None = None
 
 
@@ -108,11 +108,10 @@ class NoteEntry(NoteEntryBase):
     created_at: datetime
     updated_at: datetime
     labels: list[Label] = []
-    lists: list['ListResponse'] = []
+    lists: list[ListResponse] = []
     include_in_report: bool = False
     is_important: bool = False
     is_completed: bool = False
-    is_dev_null: bool = False
     is_pinned: bool = False
 
     class Config:
@@ -175,7 +174,6 @@ class ReportEntry(BaseModel):
     labels: list[Label]
     entry_id: int
     is_completed: bool
-    is_dev_null: bool = False
 
 
 class WeeklyReport(BaseModel):
@@ -200,12 +198,11 @@ class SearchResult(NoteEntryBase):
     created_at: datetime
     updated_at: datetime
     labels: list[Label] = []
-    lists: list['ListResponse'] = []
+    lists: list[ListResponse] = []
     list_names: list[str] = []
     include_in_report: bool = False
     is_important: bool = False
     is_completed: bool = False
-    is_dev_null: bool = False
     is_pinned: bool = False
 
     class Config:

@@ -8,11 +8,12 @@ A modern, powerful daily workspace application for capturing and organizing your
 - **Entry Titles**: Add optional one-line titles to note entries for quick identification
 - **Daily View**: Focus on a single day with multiple content entries
 - **Rich Text Editor**: Modern WYSIWYG editor powered by TipTap with support for:
-  - Text formatting (bold, italic, strikethrough, inline code, headings, lists)
+  - Text formatting (bold, italic, underline, strikethrough, inline code, subscript, superscript)
+  - **Heading Picker**: Single dropdown for H1-H6 and Normal paragraph with visual previews
   - **Task Lists**: Interactive checklists with checkboxes (supports nesting)
   - **Text Color**: Pick any color for your text with color picker
-  - **Font Family**: Choose from 8 font options (Arial, Times, Courier, Georgia, Verdana, Comic Sans, Impact)
-  - **Font Size**: Select from multiple sizes (12px-48px)
+  - **Font Family**: Choose from 14 font options with visual previews (Arial, Times, Courier, Georgia, Verdana, Comic Sans, Impact, Trebuchet, Palatino, Garamond, Tahoma, Lucida, Helvetica, Monospace)
+  - **Font Size**: Select from 16 sizes (10px-72px) with visual previews
   - Code blocks with syntax highlighting (multi-line smart conversion)
   - Images and file uploads (with persistent storage)
   - **Voice Dictation**: Real-time speech-to-text with Web Speech API (Safari/Chrome)
@@ -22,6 +23,10 @@ A modern, powerful daily workspace application for capturing and organizing your
   - **Editable Previews**: Click any preview title or description to edit inline
   - Blockquotes and preformatted text
   - **Smart Code Handling**: Multi-line selections automatically become code blocks
+  - **Markdown Preview**: Toggle to view rendered markdown (converts editor content to formatted markdown)
+  - **JSON Formatter**: Prettify and validate JSON with one click (with error detection)
+  - **YAML Validator**: Validate YAML syntax with instant feedback
+  - **Organized Toolbar**: Buttons grouped by functionality (History, Text Formatting, Block Formatting, Lists, Code, Insert/Embed, Media Capture, Tools, View)
 - **Code Entries**: Dedicated code editor for multi-line code snippets
 - **Timeline Navigation**: Visual timeline on the left sidebar for quick entry navigation
 - **Entry States**: Mark entries as:
@@ -29,7 +34,6 @@ A modern, powerful daily workspace application for capturing and organizing your
   - ✓ Completed
   - 📌 Pinned (auto-copy to future days)
   - 📄 Add to Report (for weekly summaries)
-  - 💀 /dev/null (discarded/nothing)
 
 ### 🏷️ Organization
 - **Labels**: Add text or emoji labels to both days and individual entries
@@ -39,6 +43,10 @@ A modern, powerful daily workspace application for capturing and organizing your
 - **Transparent Mode**: Toggle between solid or transparent label backgrounds
 - **Lists**: Trello-style boards for organizing note entries
   - Create custom lists with names, descriptions, and colors
+  - Add labels to lists for categorization and filtering
+  - **Inline List Selector**: Add entries to lists with dropdown interface
+  - **Create Lists on the Fly**: Create new lists directly from the entry card
+  - **Visual List Pills**: See all associated lists with colored badges
   - Drag note entries between lists for organization
   - Entries can belong to multiple lists simultaneously
   - Archive/restore lists as needed
@@ -47,7 +55,8 @@ A modern, powerful daily workspace application for capturing and organizing your
   - Lists are independent of dates (persistent organization)
   - Navigate from list entries back to their daily note
   - Create new entries directly from list view
-  - Search and filter by lists
+  - Search and filter by lists and labels
+  - **Optimistic UI Updates**: Instant feedback when adding/removing from lists
 - **Pinned Entries**: Auto-copy important entries to future days
   - Pin any card to have it automatically appear on all future days
   - Perfect for recurring tasks, daily reminders, or ongoing work
@@ -89,7 +98,6 @@ A modern, powerful daily workspace application for capturing and organizing your
 
 ### 📅 Calendar & Visualization
 - **Calendar View**: Visual overview with animated indicators (multiple can show):
-  - 💀 Skull: Has /dev/null entries
   - ⭐ Yellow glowing star: Has important entries
   - ✓ Green bouncing checkmark: Has completed entries
   - • Blue dot: Has regular notes (only if no other states)
@@ -112,11 +120,13 @@ A modern, powerful daily workspace application for capturing and organizing your
 - **Markdown Export**: Export all data as markdown for LLM consumption
 
 ### 🔍 Search & Discovery
-- **Global Search**: Search entries by text content and/or labels
+- **Global Search**: Search both entries and lists by text content and/or labels
+- **Unified Results**: View entries and lists together in search results
 - **Status Filters**: Filter by starred, completed, or not completed entries
 - **Search History**: Unlimited search history (no duplicates)
-- **Label Filtering**: Find entries by specific labels
-- **Direct Navigation**: Click search results to jump to specific entries
+- **Label Filtering**: Find entries and lists by specific labels
+- **Direct Navigation**: Click search results to jump to specific entries or lists
+- **Rich Result Cards**: Large, detailed cards showing all relevant information
 
 ### 🛠️ Productivity Tools
 - **Multi-Select & Merge**: Select multiple entries and combine them into one
@@ -388,7 +398,6 @@ All tests must pass before merging.
 - Click the **star** to mark as important
 - Click the **checkmark** to mark as completed
 - Click the **file** icon to add to weekly report
-- Click the **skull** to mark as /dev/null (discarded)
 
 ### Using Labels
 - Type in the label field to add text labels

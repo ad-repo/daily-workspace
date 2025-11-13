@@ -31,7 +31,7 @@ export default function Lists() {
     const highlightEntryId = searchParams.get('highlight');
     const targetListId = searchParams.get('list');
 
-    if (highlightEntryId && targetListId) {
+    if (targetListId) {
       setTimeout(() => {
         // Find the list column
         const listColumn = document.querySelector(`[data-testid="list-column-${targetListId}"]`);
@@ -39,19 +39,21 @@ export default function Lists() {
           // Scroll horizontally to the list
           listColumn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
           
-          // Find and highlight the entry within that list
-          setTimeout(() => {
-            const entryCard = listColumn.querySelector(`[data-entry-id="${highlightEntryId}"]`);
-            if (entryCard) {
-              entryCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-              
-              // Add highlight animation
-              entryCard.classList.add('highlight-pulse');
-              setTimeout(() => {
-                entryCard.classList.remove('highlight-pulse');
-              }, 2000);
-            }
-          }, 300);
+          // If there's also a highlight entry, scroll to and highlight it
+          if (highlightEntryId) {
+            setTimeout(() => {
+              const entryCard = listColumn.querySelector(`[data-entry-id="${highlightEntryId}"]`);
+              if (entryCard) {
+                entryCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                // Add highlight animation
+                entryCard.classList.add('highlight-pulse');
+                setTimeout(() => {
+                  entryCard.classList.remove('highlight-pulse');
+                }, 2000);
+              }
+            }, 300);
+          }
         }
 
         // Clear query params after scrolling
@@ -262,7 +264,13 @@ export default function Lists() {
             </div>
           </div>
         ) : (
-          <div className="flex gap-6 px-8 py-6 h-full items-stretch">
+          <div 
+            className="flex gap-6 py-6 h-full items-stretch"
+            style={{
+              paddingLeft: lists.length <= 3 ? 'max(2rem, calc((100vw - (384px * 3) - 48px) / 2))' : '2rem',
+              paddingRight: lists.length <= 3 ? 'max(2rem, calc((100vw - (384px * 3) - 48px) / 2))' : '2rem',
+            }}
+          >
             {lists.map((list, index) => (
               <div
                 key={list.id}
@@ -273,8 +281,6 @@ export default function Lists() {
                   opacity: draggedListId === list.id ? 0.5 : 1,
                   transform: dragOverListId === list.id && draggedListId !== list.id ? 'scale(1.02)' : 'scale(1)',
                   transition: 'transform 0.2s ease, opacity 0.2s ease',
-                  paddingLeft: index === 0 ? '2rem' : '0',
-                  paddingRight: index === lists.length - 1 ? '2rem' : '0',
                 }}
               >
                 <ListColumn
@@ -342,15 +348,15 @@ export default function Lists() {
       {/* Floating Action Button */}
       <button
         onClick={() => setShowCreateModal(true)}
-        className="fixed bottom-8 right-8 w-20 h-20 rounded-full shadow-2xl transition-all hover:scale-110 hover:shadow-3xl flex items-center justify-center z-40"
+        className="fixed top-4 left-4 w-12 h-12 rounded-full shadow-lg transition-all hover:scale-110 hover:shadow-xl flex items-center justify-center z-40"
         style={{
           backgroundColor: 'var(--color-accent)',
           color: 'white',
-          boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3)',
+          boxShadow: '0 6px 16px -5px rgba(0, 0, 0, 0.3), 0 4px 6px -6px rgba(0, 0, 0, 0.3)',
         }}
         title="Create New List"
       >
-        <Plus className="w-10 h-10" strokeWidth={2.5} />
+        <Plus className="w-6 h-6" strokeWidth={2.5} />
       </button>
 
       {/* Create List Modal */}

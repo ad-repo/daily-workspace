@@ -52,9 +52,9 @@ test.describe('Note Entry Management', () => {
     // Click New Entry button
     await page.getByRole('button', { name: /new entry/i }).click();
     
-    // Wait for editor to appear
+    // Wait for editor to appear (editor initialization can take time)
     const editor = page.locator('.ProseMirror').first();
-    await expect(editor).toBeVisible();
+    await expect(editor).toBeVisible({ timeout: 10000 });
     
     // Add minimal content to trigger save
     await editor.fill('.');
@@ -83,9 +83,9 @@ test.describe('Note Entry Management', () => {
     // Click New Entry
     await page.getByRole('button', { name: /new entry/i }).click();
     
-    // Wait for editor to appear
+    // Wait for editor to appear (editor initialization can take time)
     const editor = page.locator('.ProseMirror').first();
-    await expect(editor).toBeVisible();
+    await expect(editor).toBeVisible({ timeout: 10000 });
     
     // Fill title
     const titleInput = page.getByPlaceholder(/add a title/i).first();

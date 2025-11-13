@@ -3,6 +3,7 @@ import { render, screen, waitFor, cleanup } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import Lists from '../../src/components/Lists';
 import * as api from '../../src/api';
+import { TransparentLabelsProvider } from '../../src/contexts/TransparentLabelsContext';
 
 // Mock the API
 vi.mock('../../src/api', () => ({
@@ -32,6 +33,7 @@ vi.mock('lucide-react', () => ({
   Search: () => <div>Search</div>,
   Clock: () => <div>Clock</div>,
   ExternalLink: () => <div>ExternalLink</div>,
+  Smile: () => <div>Smile</div>,
 }));
 
 // Mock child components to avoid their dependencies
@@ -103,7 +105,9 @@ describe('Lists Component', () => {
     it('should render lists in correct order', async () => {
       render(
         <BrowserRouter>
-          <Lists />
+          <TransparentLabelsProvider>
+            <Lists />
+          </TransparentLabelsProvider>
         </BrowserRouter>
       );
 
@@ -149,7 +153,9 @@ describe('Lists Component', () => {
     it('should render list headers with correct test IDs', async () => {
       render(
         <BrowserRouter>
-          <Lists />
+          <TransparentLabelsProvider>
+            <Lists />
+          </TransparentLabelsProvider>
         </BrowserRouter>
       );
 
@@ -169,7 +175,9 @@ describe('Lists Component', () => {
     it('should call getAll API on mount', async () => {
       render(
         <BrowserRouter>
-          <Lists />
+          <TransparentLabelsProvider>
+            <Lists />
+          </TransparentLabelsProvider>
         </BrowserRouter>
       );
 
@@ -181,7 +189,9 @@ describe('Lists Component', () => {
     it('should call getById for each list to fetch entries', async () => {
       render(
         <BrowserRouter>
-          <Lists />
+          <TransparentLabelsProvider>
+            <Lists />
+          </TransparentLabelsProvider>
         </BrowserRouter>
       );
 

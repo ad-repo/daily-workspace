@@ -23,10 +23,10 @@ Verified:
 - ✓ Foreign key integrity maintained
 """
 
-import sqlite3
 import os
-from pathlib import Path
+import sqlite3
 from datetime import datetime
+from pathlib import Path
 
 
 def get_db_path():
@@ -37,11 +37,11 @@ def get_db_path():
         Path.cwd() / "data" / "daily_notes.db",
         Path.cwd() / "daily_notes.db",
     ]
-    
+
     for path in possible_paths:
         if path.exists():
             return str(path)
-    
+
     # If no database exists, return the preferred location
     return str(possible_paths[0])
 
@@ -49,7 +49,7 @@ def get_db_path():
 def table_exists(cursor, table_name):
     """Check if a table exists."""
     cursor.execute("""
-        SELECT name FROM sqlite_master 
+        SELECT name FROM sqlite_master
         WHERE type='table' AND name=?
     """, (table_name,))
     return cursor.fetchone() is not None
@@ -65,15 +65,15 @@ def column_exists(cursor, table_name, column_name):
 def migrate_up(db_path):
     """Apply the migration."""
     print(f"Connecting to database: {db_path}")
-    
+
     if not os.path.exists(db_path):
         print(f"Warning: Database not found at {db_path}")
         print("Migration will be applied when the database is created.")
         return True
-    
+
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
-    
+
     try:
         # Step 1: Create sprint_goals table
         if not table_exists(cursor, 'sprint_goals'):
@@ -92,7 +92,7 @@ def migrate_up(db_path):
             print("✓ Created sprint_goals table")
         else:
             print("✓ sprint_goals table already exists")
-        
+
         # Step 2: Create quarterly_goals table
         if not table_exists(cursor, 'quarterly_goals'):
             print("Creating quarterly_goals table...")
@@ -110,11 +110,11 @@ def migrate_up(db_path):
             print("✓ Created quarterly_goals table")
         else:
             print("✓ quarterly_goals table already exists")
-        
+
         # Step 3: Migrate existing goals from app_settings if they exist
         if table_exists(cursor, 'app_settings'):
             print("Checking for existing goals in app_settings...")
-            
+
             # Check if date columns exist (added in migration 013)
             has_date_columns = (
                 column_exists(cursor, 'app_settings', 'sprint_start_date') and
@@ -122,7 +122,7 @@ def migrate_up(db_path):
                 column_exists(cursor, 'app_settings', 'quarterly_start_date') and
                 column_exists(cursor, 'app_settings', 'quarterly_end_date')
             )
-            
+
             if not has_date_columns:
                 print("✓ Date columns not found in app_settings (old version, skipping migration)")
             else:
@@ -133,10 +133,10 @@ def migrate_up(db_path):
                     WHERE id = 1
                 """)
                 settings = cursor.fetchone()
-                
+
                 if settings:
                     sprint_text, sprint_start, sprint_end, quarterly_text, quarterly_start, quarterly_end = settings
-                    
+
                     # Migrate sprint goal if it has dates
                     if sprint_start and sprint_end and sprint_text:
                         cursor.execute("""
@@ -151,7 +151,7 @@ def migrate_up(db_path):
                             print(f"✓ Migrated sprint goal: {sprint_start} to {sprint_end}")
                         else:
                             print("✓ Sprint goal already migrated")
-                    
+
                     # Migrate quarterly goal if it has dates
                     if quarterly_start and quarterly_end and quarterly_text:
                         cursor.execute("""
@@ -170,18 +170,18 @@ def migrate_up(db_path):
                     print("✓ No existing goals to migrate")
         else:
             print("✓ No app_settings table found (fresh install)")
-        
+
         conn.commit()
         print("✓ Migration 015 completed successfully")
         return True
-        
+
     except Exception as e:
         print(f"✗ Migration failed: {e}")
         import traceback
         traceback.print_exc()
         conn.rollback()
         return False
-        
+
     finally:
         conn.close()
 
@@ -189,32 +189,32 @@ def migrate_up(db_path):
 def migrate_down(db_path):
     """Rollback the migration."""
     print(f"Connecting to database: {db_path}")
-    
+
     if not os.path.exists(db_path):
         print(f"Warning: Database not found at {db_path}")
         return True
-    
+
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
-    
+
     try:
         print("Dropping sprint_goals and quarterly_goals tables...")
-        
+
         cursor.execute("DROP TABLE IF EXISTS sprint_goals")
         print("✓ Dropped sprint_goals table")
-        
+
         cursor.execute("DROP TABLE IF EXISTS quarterly_goals")
         print("✓ Dropped quarterly_goals table")
-        
+
         conn.commit()
         print("✓ Migration 015 rollback completed")
         return True
-        
+
     except Exception as e:
         print(f"✗ Rollback failed: {e}")
         conn.rollback()
         return False
-        
+
     finally:
         conn.close()
 
@@ -222,14 +222,14 @@ def migrate_down(db_path):
 def main():
     """Run the migration manually."""
     import sys
-    
+
     db_path = get_db_path()
-    
+
     if len(sys.argv) > 1 and sys.argv[1] == "down":
         success = migrate_down(db_path)
     else:
         success = migrate_up(db_path)
-    
+
     if success:
         sys.exit(0)
     else:

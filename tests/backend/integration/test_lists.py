@@ -1,15 +1,12 @@
 """
 Integration tests for Lists API endpoints
 """
-import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 import time
 import random
 
 from app.main import app
-from app import models
-from datetime import datetime
 
 
 client = TestClient(app)

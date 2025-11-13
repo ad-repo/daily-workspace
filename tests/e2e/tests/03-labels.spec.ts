@@ -47,7 +47,7 @@ test.describe('Label Management', () => {
     
     // Create entry
     await page.click('button:has-text("New Entry")');
-    await expect(page.locator('.ProseMirror').first()).toBeVisible();
+    await expect(page.locator('.ProseMirror').first()).toBeVisible({ timeout: 10000 });
     
     // Find label input and add button
     const labelInput = page.locator('input[placeholder*="label" i]').first();

@@ -1,5 +1,6 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 
+import sqlalchemy
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -21,7 +22,7 @@ def copy_pinned_entries_to_date(date: str, db: Session):
         db.add(note)
         db.commit()
         db.refresh(note)
-    
+
     # Get all pinned entries from before this date
     all_pinned = (
         db.query(models.NoteEntry)
@@ -30,29 +31,29 @@ def copy_pinned_entries_to_date(date: str, db: Session):
         .filter(models.DailyNote.date < date)
         .all()
     )
-    
+
     if not all_pinned:
         return
-    
+
     # Get existing entry IDs for this date to avoid duplicates
     existing_entries = (
         db.query(models.NoteEntry)
         .filter(models.NoteEntry.daily_note_id == note.id)
         .all()
     )
-    
+
     # Create a set of content hashes to check for duplicates
     # We'll consider an entry a duplicate if it has the same content and is_pinned
     existing_pinned_content = {
-        (entry.content, entry.title) 
-        for entry in existing_entries 
+        (entry.content, entry.title)
+        for entry in existing_entries
         if entry.is_pinned
     }
-    
+
     # Copy each pinned entry if it doesn't already exist for this date
     for pinned_entry in all_pinned:
         content_key = (pinned_entry.content, pinned_entry.title)
-        
+
         if content_key not in existing_pinned_content:
             # Create a copy of the pinned entry for this date
             new_entry = models.NoteEntry(
@@ -64,19 +65,35 @@ def copy_pinned_entries_to_date(date: str, db: Session):
                 include_in_report=pinned_entry.include_in_report,
                 is_important=pinned_entry.is_important,
                 is_completed=0,  # Reset completion status for new day
-                is_dev_null=pinned_entry.is_dev_null,
                 is_pinned=1,  # Keep it pinned
             )
             db.add(new_entry)
-            
-            # Copy labels
-            for label in pinned_entry.labels:
-                new_entry.labels.append(label)
-            
-            # Copy list associations
-            for list_obj in pinned_entry.lists:
-                new_entry.lists.append(list_obj)
-    
+            db.flush()  # Flush to assign ID
+
+            # Copy labels using direct SQL insert to avoid lazy loading
+            label_rows = db.execute(
+                sqlalchemy.text("SELECT label_id FROM entry_labels WHERE entry_id = :old_id"),
+                {"old_id": pinned_entry.id}
+            ).fetchall()
+
+            for row in label_rows:
+                db.execute(
+                    sqlalchemy.text("INSERT INTO entry_labels (entry_id, label_id) VALUES (:new_id, :label_id)"),
+                    {"new_id": new_entry.id, "label_id": row[0]}
+                )
+
+            # Copy list associations using direct SQL insert
+            list_rows = db.execute(
+                sqlalchemy.text("SELECT list_id FROM entry_lists WHERE entry_id = :old_id"),
+                {"old_id": pinned_entry.id}
+            ).fetchall()
+
+            for row in list_rows:
+                db.execute(
+                    sqlalchemy.text("INSERT INTO entry_lists (entry_id, list_id) VALUES (:new_id, :list_id)"),
+                    {"new_id": new_entry.id, "list_id": row[0]}
+                )
+
     db.commit()
 
 
@@ -85,7 +102,7 @@ def get_entries_for_date(date: str, db: Session = Depends(get_db)):
     """Get all entries for a specific date"""
     # First, copy any pinned entries from previous days
     copy_pinned_entries_to_date(date, db)
-    
+
     note = db.query(models.DailyNote).filter(models.DailyNote.date == date).first()
     if not note:
         raise HTTPException(status_code=404, detail='Note not found for this date')
@@ -130,7 +147,7 @@ def update_entry(entry_id: int, entry_update: schemas.NoteEntryUpdate, db: Sessi
     update_data = entry_update.model_dump(exclude_unset=True)
     for key, value in update_data.items():
         # Handle boolean to integer conversion for SQLite
-        if key in ['include_in_report', 'is_important', 'is_completed', 'is_dev_null', 'is_pinned']:
+        if key in ['include_in_report', 'is_important', 'is_completed', 'is_pinned']:
             setattr(db_entry, key, 1 if value else 0)
         else:
             setattr(db_entry, key, value)
@@ -244,7 +261,6 @@ def merge_entries(merge_request: schemas.MergeEntriesRequest, db: Session = Depe
     is_important = any(entry.is_important for entry in entries)
     is_completed = all(entry.is_completed for entry in entries)  # All must be completed
     include_in_report = any(entry.include_in_report for entry in entries)
-    is_dev_null = any(entry.is_dev_null for entry in entries)  # If any is dev_null, merged is dev_null
 
     # Create the merged entry
     merged_entry = models.NoteEntry(
@@ -255,7 +271,6 @@ def merge_entries(merge_request: schemas.MergeEntriesRequest, db: Session = Depe
         include_in_report=1 if include_in_report else 0,
         is_important=1 if is_important else 0,
         is_completed=1 if is_completed else 0,
-        is_dev_null=1 if is_dev_null else 0,
         created_at=entries[0].created_at,  # Use earliest created_at
     )
 

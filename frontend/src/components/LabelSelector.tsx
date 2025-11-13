@@ -255,10 +255,11 @@ const LabelSelector = ({ date, entryId, selectedLabels, onLabelsChange, onOptimi
           {/* Autocomplete suggestions */}
           {showSuggestions && (
             <div 
-              className="absolute z-10 w-full mt-1 rounded-lg shadow-lg max-h-48 overflow-y-auto"
+              className="absolute w-full mt-1 rounded-lg shadow-lg max-h-48 overflow-y-auto"
               style={{
                 backgroundColor: 'var(--color-card-bg)',
                 border: '1px solid var(--color-border-primary)',
+                zIndex: 1000,
               }}
             >
               {filteredSuggestions.map((label) => {

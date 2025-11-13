@@ -22,7 +22,7 @@ def search_entries(
     """
     # Start with base query that loads relationships
     query = db.query(models.NoteEntry).options(
-        joinedload(models.NoteEntry.labels), 
+        joinedload(models.NoteEntry.labels),
         joinedload(models.NoteEntry.lists),
         joinedload(models.NoteEntry.daily_note)
     )
@@ -84,9 +84,104 @@ def search_entries(
             'include_in_report': bool(entry.include_in_report),
             'is_important': bool(entry.is_important),
             'is_completed': bool(entry.is_completed),
-            'is_dev_null': bool(entry.is_dev_null),
             'date': entry.daily_note.date if entry.daily_note else 'Unknown',
         }
         search_results.append(result_dict)
 
     return search_results
+
+
+@router.get('/all')
+def search_all(
+    q: str | None = Query(None, description='Search query for content'),
+    label_ids: str | None = Query(None, description='Comma-separated label IDs to filter by'),
+    db: Session = Depends(get_db),
+):
+    """
+    Global search across entries AND lists.
+    Returns both entries and lists that match the search criteria.
+    """
+    results = {
+        'entries': [],
+        'lists': []
+    }
+
+    # Search entries (existing logic)
+    entry_query = db.query(models.NoteEntry).options(
+        joinedload(models.NoteEntry.labels),
+        joinedload(models.NoteEntry.lists),
+        joinedload(models.NoteEntry.daily_note)
+    )
+
+    if q and q.strip():
+        search_term = f'%{q.strip()}%'
+        entry_query = entry_query.filter(models.NoteEntry.content.ilike(search_term))
+
+    if label_ids and label_ids.strip():
+        try:
+            label_id_list = [int(lid.strip()) for lid in label_ids.split(',') if lid.strip()]
+            if label_id_list:
+                entry_query = entry_query.join(models.NoteEntry.labels).filter(models.Label.id.in_(label_id_list)).distinct()
+        except ValueError:
+            pass
+
+    entry_results = entry_query.order_by(models.NoteEntry.created_at.desc()).limit(100).all()
+
+    for entry in entry_results:
+        results['entries'].append({
+            'id': entry.id,
+            'daily_note_id': entry.daily_note_id,
+            'title': entry.title,
+            'content': entry.content,
+            'content_type': entry.content_type,
+            'order_index': entry.order_index,
+            'created_at': entry.created_at,
+            'updated_at': entry.updated_at,
+            'labels': entry.labels,
+            'lists': entry.lists,
+            'list_names': [lst.name for lst in entry.lists],
+            'include_in_report': bool(entry.include_in_report),
+            'is_important': bool(entry.is_important),
+            'is_completed': bool(entry.is_completed),
+            'is_pinned': bool(entry.is_pinned),
+            'date': entry.daily_note.date if entry.daily_note else 'Unknown',
+        })
+
+    # Search lists
+    list_query = db.query(models.List).options(
+        joinedload(models.List.labels),
+        joinedload(models.List.entries)
+    )
+
+    if q and q.strip():
+        search_term = f'%{q.strip()}%'
+        list_query = list_query.filter(
+            (models.List.name.ilike(search_term)) |
+            (models.List.description.ilike(search_term))
+        )
+
+    if label_ids and label_ids.strip():
+        try:
+            label_id_list = [int(lid.strip()) for lid in label_ids.split(',') if lid.strip()]
+            if label_id_list:
+                list_query = list_query.join(models.List.labels).filter(models.Label.id.in_(label_id_list)).distinct()
+        except ValueError:
+            pass
+
+    list_results = list_query.order_by(models.List.created_at.desc()).limit(50).all()
+
+    for lst in list_results:
+        results['lists'].append({
+            'id': lst.id,
+            'name': lst.name,
+            'description': lst.description,
+            'color': lst.color,
+            'order_index': lst.order_index,
+            'is_archived': bool(lst.is_archived),
+            'created_at': lst.created_at,
+            'updated_at': lst.updated_at,
+            'labels': lst.labels,
+            'entry_count': len(lst.entries) if lst.entries else 0,
+        })
+
+    return results

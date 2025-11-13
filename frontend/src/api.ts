@@ -183,6 +183,14 @@ export const listsApi = {
   reorderLists: async (lists: { id: number; order_index: number }[]): Promise<void> => {
     await api.put('/api/lists/reorder', { lists });
   },
+
+  addLabel: async (listId: number, labelId: number): Promise<void> => {
+    await api.post(`/api/lists/${listId}/labels/${labelId}`);
+  },
+
+  removeLabel: async (listId: number, labelId: number): Promise<void> => {
+    await api.delete(`/api/lists/${listId}/labels/${labelId}`);
+  },
 };
 
 export default api;

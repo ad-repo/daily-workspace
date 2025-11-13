@@ -23,7 +23,6 @@ class TestNoteEntryModel:
             order_index=5,
             is_important=1,
             is_completed=1,
-            is_dev_null=0,
             include_in_report=1,
         )
         db_session.add(entry)
@@ -49,7 +48,6 @@ class TestNoteEntryModel:
         assert entry.content_type == 'rich_text'  # Default
         assert entry.is_important == 0  # Default
         assert entry.is_completed == 0  # Default
-        assert entry.is_dev_null == 0  # Default
         assert entry.include_in_report == 0  # Default
 
     def test_entry_timestamps_auto_generated(self, db_session: Session, sample_daily_note: DailyNote):
@@ -111,10 +109,6 @@ class TestNoteEntryModel:
         entry2 = NoteEntry(daily_note_id=sample_daily_note.id, content='<p>Completed entry</p>', is_completed=1)
         db_session.add(entry2)
 
-        # Test is_dev_null
-        entry3 = NoteEntry(daily_note_id=sample_daily_note.id, content='<p>Dev null entry</p>', is_dev_null=1)
-        db_session.add(entry3)
-
         # Test include_in_report
         entry4 = NoteEntry(daily_note_id=sample_daily_note.id, content='<p>Report entry</p>', include_in_report=1)
         db_session.add(entry4)
@@ -123,7 +117,6 @@ class TestNoteEntryModel:
 
         assert entry1.is_important == 1
         assert entry2.is_completed == 1
-        assert entry3.is_dev_null == 1
         assert entry4.include_in_report == 1
 
     def test_entry_ordering(self, db_session: Session, sample_daily_note: DailyNote):

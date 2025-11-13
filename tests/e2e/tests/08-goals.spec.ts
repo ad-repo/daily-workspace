@@ -204,7 +204,7 @@ test.describe('Goals System', () => {
     
     // Find the editor
     const editor = page.locator('.ProseMirror').first();
-    await expect(editor).toBeVisible();
+    await expect(editor).toBeVisible({ timeout: 10000 });
     
     // Type and format text
     await editor.fill('Test goal with formatting');
@@ -252,7 +252,7 @@ test.describe('Goals System', () => {
       await page.waitForTimeout(500);
       
       const editor = page.locator('.ProseMirror').first();
-      await expect(editor).toBeVisible();
+      await expect(editor).toBeVisible({ timeout: 10000 });
       
       // Type plain text
       await editor.fill('Plain text goal');

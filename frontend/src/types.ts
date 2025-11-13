@@ -20,7 +20,6 @@ export interface NoteEntry {
   include_in_report: boolean;
   is_important: boolean;
   is_completed: boolean;
-  is_dev_null: boolean;
   is_pinned: boolean;
 }
 
@@ -113,6 +112,7 @@ export interface List {
   created_at: string;
   updated_at: string;
   entry_count?: number;
+  labels?: Label[];
 }
 
 export interface ListWithEntries extends List {
