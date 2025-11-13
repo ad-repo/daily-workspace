@@ -189,7 +189,7 @@ const CreateEntryModal = ({ list, onClose, onSuccess }: CreateEntryModalProps) =
                 <LabelSelector
                   entryId={0}
                   selectedLabels={selectedLabels}
-                  onLabelsChange={setSelectedLabels}
+                  onLabelsChange={() => {}}
                   onOptimisticUpdate={setSelectedLabels}
                 />
               </div>
