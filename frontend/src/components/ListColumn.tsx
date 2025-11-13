@@ -238,7 +238,7 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
             <div className="mt-3 px-3" style={{ pointerEvents: 'auto' }} onMouseDown={(e) => e.stopPropagation()}>
               <LabelSelector
                 selectedLabels={list.labels || []}
-                onLabelsChange={onUpdate}
+                onLabelsChange={() => {}}
                 onOptimisticUpdate={async (labels) => {
                   // Handle label changes
                   const currentLabelIds = (list.labels || []).map(l => l.id);
