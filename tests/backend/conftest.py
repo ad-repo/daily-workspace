@@ -44,9 +44,7 @@ def db_engine():
         connect_args={'check_same_thread': False},
         poolclass=StaticPool,
     )
-    # Import all models to ensure they're registered with Base.metadata
-    from app import models  # noqa
-
+    # Models are already imported at module level
     # Create all tables
     Base.metadata.create_all(bind=engine)
 
