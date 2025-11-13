@@ -50,11 +50,9 @@ def get_list(list_id: int, db: Session = Depends(get_db)):
     lst = (
         db.query(models.List)
         .options(
-            joinedload(models.List.entries)
-            .joinedload(models.NoteEntry.daily_note),
-            joinedload(models.List.entries)
-            .joinedload(models.NoteEntry.labels),
-            joinedload(models.List.labels)
+            joinedload(models.List.entries).joinedload(models.NoteEntry.daily_note),
+            joinedload(models.List.entries).joinedload(models.NoteEntry.labels),
+            joinedload(models.List.labels),
         )
         .filter(models.List.id == list_id)
         .first()
@@ -146,10 +144,10 @@ def create_list(list_data: schemas.ListCreate, db: Session = Depends(get_db)):
 @router.put('/reorder')
 def reorder_lists(reorder_data: schemas.ReorderListsRequest, db: Session = Depends(get_db)):
     """Update order_index for all lists."""
-    print(f"Received reorder request: {reorder_data}")
-    print(f"Lists: {reorder_data.lists}")
+    print(f'Received reorder request: {reorder_data}')
+    print(f'Lists: {reorder_data.lists}')
     for list_data in reorder_data.lists:
-        print(f"Processing list {list_data.id} with order_index {list_data.order_index}")
+        print(f'Processing list {list_data.id} with order_index {list_data.order_index}')
         lst = db.query(models.List).filter(models.List.id == list_data.id).first()
         if lst:
             lst.order_index = list_data.order_index
@@ -325,4 +323,3 @@ def remove_label_from_list(list_id: int, label_id: int, db: Session = Depends(ge
     db.commit()
 
     return {'message': 'Label removed from list successfully'}
-

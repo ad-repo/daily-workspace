@@ -35,9 +35,10 @@ def db_engine():
     """Create a shared test database engine."""
     # Use a file-based database with WAL mode to avoid locking issues
     import tempfile
+
     fd, db_path = tempfile.mkstemp(suffix='.db')
     os.close(fd)
-    
+
     engine = create_engine(
         f'sqlite:///{db_path}',
         connect_args={'check_same_thread': False},
@@ -48,17 +49,17 @@ def db_engine():
 
     # Create all tables
     Base.metadata.create_all(bind=engine)
-    
+
     # Enable WAL mode for better concurrency
     with engine.connect() as conn:
-        conn.execute(sqlalchemy.text("PRAGMA journal_mode=WAL"))
+        conn.execute(sqlalchemy.text('PRAGMA journal_mode=WAL'))
         conn.commit()
-    
+
     yield engine
-    
+
     Base.metadata.drop_all(bind=engine)
     engine.dispose()
-    
+
     # Clean up the temp file
     if os.path.exists(db_path):
         os.unlink(db_path)

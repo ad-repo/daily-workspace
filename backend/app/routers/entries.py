@@ -36,19 +36,11 @@ def copy_pinned_entries_to_date(date: str, db: Session):
         return
 
     # Get existing entry IDs for this date to avoid duplicates
-    existing_entries = (
-        db.query(models.NoteEntry)
-        .filter(models.NoteEntry.daily_note_id == note.id)
-        .all()
-    )
+    existing_entries = db.query(models.NoteEntry).filter(models.NoteEntry.daily_note_id == note.id).all()
 
     # Create a set of content hashes to check for duplicates
     # We'll consider an entry a duplicate if it has the same content and is_pinned
-    existing_pinned_content = {
-        (entry.content, entry.title)
-        for entry in existing_entries
-        if entry.is_pinned
-    }
+    existing_pinned_content = {(entry.content, entry.title) for entry in existing_entries if entry.is_pinned}
 
     # Copy each pinned entry if it doesn't already exist for this date
     for pinned_entry in all_pinned:
@@ -72,26 +64,25 @@ def copy_pinned_entries_to_date(date: str, db: Session):
 
             # Copy labels using direct SQL insert to avoid lazy loading
             label_rows = db.execute(
-                sqlalchemy.text("SELECT label_id FROM entry_labels WHERE entry_id = :old_id"),
-                {"old_id": pinned_entry.id}
+                sqlalchemy.text('SELECT label_id FROM entry_labels WHERE entry_id = :old_id'),
+                {'old_id': pinned_entry.id},
             ).fetchall()
 
             for row in label_rows:
                 db.execute(
-                    sqlalchemy.text("INSERT INTO entry_labels (entry_id, label_id) VALUES (:new_id, :label_id)"),
-                    {"new_id": new_entry.id, "label_id": row[0]}
+                    sqlalchemy.text('INSERT INTO entry_labels (entry_id, label_id) VALUES (:new_id, :label_id)'),
+                    {'new_id': new_entry.id, 'label_id': row[0]},
                 )
 
             # Copy list associations using direct SQL insert
             list_rows = db.execute(
-                sqlalchemy.text("SELECT list_id FROM entry_lists WHERE entry_id = :old_id"),
-                {"old_id": pinned_entry.id}
+                sqlalchemy.text('SELECT list_id FROM entry_lists WHERE entry_id = :old_id'), {'old_id': pinned_entry.id}
             ).fetchall()
 
             for row in list_rows:
                 db.execute(
-                    sqlalchemy.text("INSERT INTO entry_lists (entry_id, list_id) VALUES (:new_id, :list_id)"),
-                    {"new_id": new_entry.id, "list_id": row[0]}
+                    sqlalchemy.text('INSERT INTO entry_lists (entry_id, list_id) VALUES (:new_id, :list_id)'),
+                    {'new_id': new_entry.id, 'list_id': row[0]},
                 )
 
     db.commit()
