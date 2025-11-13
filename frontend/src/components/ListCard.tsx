@@ -13,7 +13,7 @@ interface ListCardProps {
   listId?: number;
 }
 
-const ListCard = ({ entry, onRemoveFromList, onUpdate, onLabelsUpdate, listId }: ListCardProps) => {
+const ListCard = ({ entry, onRemoveFromList, listId }: ListCardProps) => {
   const navigate = useNavigate();
   const { timezone } = useTimezone();
   const [isDragging, setIsDragging] = useState(false);

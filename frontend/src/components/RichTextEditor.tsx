@@ -18,7 +18,6 @@ import {
   Strikethrough,
   Code,
   Heading1,
-  Heading2,
   List,
   ListOrdered,
   Quote,

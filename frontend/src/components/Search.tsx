@@ -408,7 +408,6 @@ const Search = () => {
                   style={{
                     backgroundColor: list.color,
                     color: 'white',
-                    ringColor: list.color
                   }}
                 >
                   {list.name}

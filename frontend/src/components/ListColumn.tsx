@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Trash2, Edit2, Archive, Plus, PlusCircle } from 'lucide-react';
+import { Trash2, Archive, Plus, PlusCircle } from 'lucide-react';
 import type { List, NoteEntry } from '../types';
 import ListCard from './ListCard';
 import AddEntryToListModal from './AddEntryToListModal';
@@ -145,14 +145,14 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
             cursor: isDragging ? 'grabbing' : 'grab',
             userSelect: 'none',
             WebkitUserDrag: 'element',
-          }}
+          } as React.CSSProperties}
           draggable="true"
           onDragStart={(e) => {
             e.dataTransfer.setData('text/x-listid', list.id.toString());
             e.dataTransfer.effectAllowed = 'move';
             onDragStart?.();
           }}
-          onDragEnd={(e) => {
+          onDragEnd={() => {
             onDragEnd?.();
           }}
           onMouseDown={(e) => {
@@ -312,7 +312,7 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
                     listId={list.id}
                     onRemoveFromList={handleRemoveEntry}
                     onUpdate={onUpdate}
-                    onLabelsUpdate={(entryId, labels) => {
+                    onLabelsUpdate={() => {
                       // Refresh the list to get updated entry data
                       onUpdate();
                     }}

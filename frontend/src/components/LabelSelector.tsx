@@ -20,7 +20,7 @@ interface LabelSelectorProps {
   onOptimisticUpdate?: (labels: Label[]) => void;
 }
 
-const LabelSelector = ({ date, entryId, selectedLabels, onLabelsChange, onOptimisticUpdate }: LabelSelectorProps) => {
+const LabelSelector = ({ date, entryId, selectedLabels, onOptimisticUpdate }: LabelSelectorProps) => {
   const { transparentLabels } = useTransparentLabels();
   const [allLabels, setAllLabels] = useState<Label[]>([]);
   const [newLabelName, setNewLabelName] = useState('');

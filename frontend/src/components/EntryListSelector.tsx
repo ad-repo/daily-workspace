@@ -10,7 +10,7 @@ interface EntryListSelectorProps {
   onOptimisticUpdate?: (lists: List[]) => void;
 }
 
-const EntryListSelector = ({ entryId, currentLists, onUpdate, onOptimisticUpdate }: EntryListSelectorProps) => {
+const EntryListSelector = ({ entryId, currentLists, onOptimisticUpdate }: EntryListSelectorProps) => {
   const [allLists, setAllLists] = useState<List[]>([]);
   const [loading, setLoading] = useState(false);
   const [processing, setProcessing] = useState(false);

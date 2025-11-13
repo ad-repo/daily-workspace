@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { List, ListWithEntries } from '../types';
+import { ListWithEntries } from '../types';
 import { listsApi } from '../api';
 import ListColumn from './ListColumn';
 import { Plus } from 'lucide-react';
@@ -271,7 +271,7 @@ export default function Lists() {
               paddingRight: lists.length <= 3 ? 'max(2rem, calc((100vw - (384px * 3) - 48px) / 2))' : '2rem',
             }}
           >
-            {lists.map((list, index) => (
+            {lists.map((list) => (
               <div
                 key={list.id}
                 onDragOver={(e) => handleListDragOver(e, list.id)}

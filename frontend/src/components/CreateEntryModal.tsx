@@ -52,12 +52,11 @@ const CreateEntryModal = ({ list, onClose, onSuccess }: CreateEntryModalProps) =
       const today = format(new Date(), 'yyyy-MM-dd');
 
       // Get or create today's note
-      let note;
       try {
-        note = await notesApi.getByDate(today);
+        await notesApi.getByDate(today);
       } catch (err: any) {
         if (err?.response?.status === 404) {
-          note = await notesApi.create({ date: today });
+          await notesApi.create({ date: today });
         } else {
           throw err;
         }
@@ -67,6 +66,8 @@ const CreateEntryModal = ({ list, onClose, onSuccess }: CreateEntryModalProps) =
       const newEntry = await entriesApi.create(today, {
         title: title.trim() || undefined,
         content: content,
+        content_type: 'rich_text',
+        order_index: 0,
       });
 
       // Add to list if provided

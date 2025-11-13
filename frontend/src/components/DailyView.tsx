@@ -778,7 +778,7 @@ const DailyView = () => {
                                 setEditingSprintStartDate(sprintGoal.start_date);
                                 setEditingSprintEndDate(sprintGoal.end_date);
                                 // Reload the sprint goal to discard changes
-                                loadSprintGoal();
+                                if (date) loadGoalsForDate(date);
                               }}
                               className="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
                               style={{
@@ -1018,7 +1018,7 @@ const DailyView = () => {
                                 setEditingQuarterlyStartDate(quarterlyGoal.start_date);
                                 setEditingQuarterlyEndDate(quarterlyGoal.end_date);
                                 // Reload the quarterly goal to discard changes
-                                loadQuarterlyGoal();
+                                if (date) loadGoalsForDate(date);
                               }}
                               className="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
                               style={{
