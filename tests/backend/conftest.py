@@ -53,7 +53,10 @@ def db_engine():
         connect_args={'check_same_thread': False},
         poolclass=StaticPool,
     )
-    # Models are already imported at module level
+    # Import models inside fixture to ensure they're registered with Base.metadata
+    # The module-level imports might not have registered them yet
+    from app import models  # noqa: F401
+    
     # Create all tables
     Base.metadata.create_all(bind=engine)
 
