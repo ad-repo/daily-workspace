@@ -27,7 +27,16 @@ sys.path.insert(0, backend_path)
 
 from app.database import Base, get_db  # noqa: E402
 from app.main import app  # noqa: E402
-from app.models import AppSettings, DailyNote, Label, List, NoteEntry, QuarterlyGoal, SprintGoal  # noqa: E402, F401
+from app.models import (  # noqa: E402, F401
+    AppSettings,
+    DailyNote,
+    Label,
+    List,
+    NoteEntry,
+    QuarterlyGoal,
+    SearchHistory,
+    SprintGoal,
+)
 
 
 @pytest.fixture(scope='function')
