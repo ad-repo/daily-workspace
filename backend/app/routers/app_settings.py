@@ -25,6 +25,7 @@ def get_app_settings(db: Session = Depends(get_db)):
             sprint_end_date='',
             quarterly_start_date='',
             quarterly_end_date='',
+            emoji_library='emoji-picker-react',
         )
         db.add(settings)
         db.commit()
@@ -38,6 +39,7 @@ def get_app_settings(db: Session = Depends(get_db)):
         'sprint_end_date': settings.sprint_end_date or '',
         'quarterly_start_date': settings.quarterly_start_date or '',
         'quarterly_end_date': settings.quarterly_end_date or '',
+        'emoji_library': settings.emoji_library or 'emoji-picker-react',
         'created_at': settings.created_at.isoformat(),
         'updated_at': settings.updated_at.isoformat(),
     }
@@ -58,6 +60,7 @@ def update_app_settings(settings_update: schemas.AppSettingsUpdate, db: Session 
             sprint_end_date=settings_update.sprint_end_date or '',
             quarterly_start_date=settings_update.quarterly_start_date or '',
             quarterly_end_date=settings_update.quarterly_end_date or '',
+            emoji_library=settings_update.emoji_library or 'emoji-picker-react',
         )
         db.add(settings)
     else:
@@ -74,6 +77,8 @@ def update_app_settings(settings_update: schemas.AppSettingsUpdate, db: Session 
             settings.quarterly_start_date = settings_update.quarterly_start_date
         if settings_update.quarterly_end_date is not None:
             settings.quarterly_end_date = settings_update.quarterly_end_date
+        if settings_update.emoji_library is not None:
+            settings.emoji_library = settings_update.emoji_library
 
     db.commit()
     db.refresh(settings)
@@ -85,6 +90,7 @@ def update_app_settings(settings_update: schemas.AppSettingsUpdate, db: Session 
         'sprint_end_date': settings.sprint_end_date or '',
         'quarterly_start_date': settings.quarterly_start_date or '',
         'quarterly_end_date': settings.quarterly_end_date or '',
+        'emoji_library': settings.emoji_library or 'emoji-picker-react',
         'created_at': settings.created_at.isoformat(),
         'updated_at': settings.updated_at.isoformat(),
     }

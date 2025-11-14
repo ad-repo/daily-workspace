@@ -4,6 +4,8 @@ import type { NoteEntry } from '../types';
 import { useTimezone } from '../contexts/TimezoneContext';
 import { formatTimestamp } from '../utils/timezone';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
 interface EntryDropdownProps {
   entries: NoteEntry[];
 }
@@ -50,6 +52,11 @@ const EntryDropdown = ({ entries }: EntryDropdownProps) => {
   const isEmojiOnly = (str: string): boolean => {
     const emojiRegex = /^[\p{Emoji}\p{Emoji_Modifier}\p{Emoji_Component}\p{Emoji_Modifier_Base}\p{Emoji_Presentation}\s]+$/u;
     return emojiRegex.test(str.trim());
+  };
+
+  // Check if a label name is a custom emoji URL
+  const isCustomEmojiUrl = (str: string): boolean => {
+    return str.startsWith('/api/uploads/') || str.startsWith('http');
   };
 
   return (
@@ -127,6 +134,14 @@ const EntryDropdown = ({ entries }: EntryDropdownProps) => {
                         <Tag className="h-3 w-3 flex-shrink-0" style={{ color: 'var(--color-text-tertiary)' }} />
                         {entry.labels.slice(0, 3).map((label) => {
                           const isEmoji = isEmojiOnly(label.name);
+                          const isCustomEmoji = isCustomEmojiUrl(label.name);
+                          
+                          if (isCustomEmoji) {
+                            const imageUrl = label.name.startsWith('http') ? label.name : `${API_URL}${label.name}`;
+                            return (
+                              <img key={label.id} src={imageUrl} alt="emoji" className="inline-emoji" />
+                            );
+                          }
                           
                           if (isEmoji) {
                             return (

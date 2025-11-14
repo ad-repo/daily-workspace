@@ -221,6 +221,7 @@ class AppSettingsUpdate(BaseModel):
     sprint_end_date: str | None = None
     quarterly_start_date: str | None = None
     quarterly_end_date: str | None = None
+    emoji_library: str | None = None
 
 
 class AppSettingsResponse(BaseModel):
@@ -231,6 +232,7 @@ class AppSettingsResponse(BaseModel):
     sprint_end_date: str
     quarterly_start_date: str
     quarterly_end_date: str
+    emoji_library: str = 'emoji-picker-react'
     created_at: str
     updated_at: str
 
@@ -260,6 +262,36 @@ class GoalResponse(GoalBase):
     created_at: datetime
     updated_at: datetime
     days_remaining: int | None = None  # Calculated field, relative to queried date
+
+    class Config:
+        from_attributes = True
+
+
+# Custom Emoji Schemas
+class CustomEmojiBase(BaseModel):
+    name: str  # Shortcode like :custom_smile:
+    image_url: str
+    category: str = 'Custom'
+    keywords: str = ''
+
+
+class CustomEmojiCreate(BaseModel):
+    name: str
+    category: str = 'Custom'
+    keywords: str = ''
+
+
+class CustomEmojiUpdate(BaseModel):
+    name: str | None = None
+    category: str | None = None
+    keywords: str | None = None
+
+
+class CustomEmojiResponse(CustomEmojiBase):
+    id: int
+    is_deleted: bool = False
+    created_at: datetime
+    updated_at: datetime
 
     class Config:
         from_attributes = True

@@ -187,14 +187,15 @@ export default function Kanban() {
   }
 
   return (
-    <div className="h-screen flex flex-col page-fade-in" style={{ backgroundColor: 'var(--color-background)' }}>
-      {/* Kanban Board Container */}
-      <div 
-        ref={scrollContainerRef}
-        onScroll={handleScroll}
-        className="flex-1 overflow-x-auto overflow-y-hidden py-6" 
-        style={{ position: 'relative' }}
-      >
+    <>
+      <div className="min-h-screen flex flex-col page-fade-in" style={{ backgroundColor: 'var(--color-background)' }}>
+        {/* Kanban Board Container */}
+        <div 
+          ref={scrollContainerRef}
+          onScroll={handleScroll}
+          className="flex-1 overflow-x-auto py-6 pb-20" 
+          style={{ position: 'relative' }}
+        >
         {isRefreshing && (
           <div className="absolute top-2 right-2 z-10 px-3 py-1 rounded-full text-xs" style={{ backgroundColor: 'var(--color-accent)', color: 'white' }}>
             Updating...
@@ -231,7 +232,7 @@ export default function Kanban() {
           </div>
         ) : (
           <div 
-            className="flex gap-6 py-6 h-full items-stretch justify-center"
+            className="flex gap-6 py-6 items-start justify-center"
             style={{
               paddingLeft: '2rem',
               paddingRight: '2rem',
@@ -262,198 +263,199 @@ export default function Kanban() {
             ))}
           </div>
         )}
+        </div>
 
-        {/* Scroll Indicator */}
-        {boards.length > 0 && (
-          <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 z-50 pointer-events-none">
-            <div 
-              className="flex items-center gap-3 px-5 py-3 rounded-full shadow-2xl backdrop-blur-sm"
+        {/* Floating Action Button */}
+        <button
+          onClick={() => setShowCreateModal(true)}
+          className="fixed top-4 left-4 w-12 h-12 rounded-full shadow-lg transition-all hover:scale-110 hover:shadow-xl flex items-center justify-center z-40"
+          style={{
+            backgroundColor: 'var(--color-accent)',
+            color: 'white',
+            boxShadow: '0 6px 16px -5px rgba(0, 0, 0, 0.3), 0 4px 6px -6px rgba(0, 0, 0, 0.3)',
+          }}
+          title="Create New Column"
+        >
+          <Plus className="w-6 h-6" strokeWidth={2.5} />
+        </button>
+
+        {/* Create Column Modal */}
+        {showCreateModal && (
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            onClick={() => setShowCreateModal(false)}
+          >
+            <div
+              className="rounded-xl shadow-2xl p-6 w-full max-w-md"
               style={{
-                backgroundColor: 'var(--color-card-bg)' + 'f0',
-                border: '2px solid var(--color-border)',
+                backgroundColor: 'var(--color-card-bg)',
+                border: '1px solid var(--color-border)',
               }}
+              onClick={(e) => e.stopPropagation()}
             >
-              <span 
-                className="text-sm font-semibold"
+              <h2
+                className="text-2xl font-bold mb-6"
                 style={{ color: 'var(--color-text-primary)' }}
               >
-                {boards.length} {boards.length === 1 ? 'column' : 'columns'}
-              </span>
-              {boards.length > 1 && (
-                <>
-                  <div 
-                    className="w-px h-4" 
-                    style={{ backgroundColor: 'var(--color-border)' }}
-                  />
-                  <div className="flex gap-2">
-                    {boards.map((board, index) => {
-                      const boardProgress = index / Math.max(boards.length - 1, 1);
-                      const isActive = Math.abs(scrollProgress - boardProgress) < 0.35;
-                      
-                      return (
-                        <div
-                          key={board.id}
-                          className="w-2.5 h-2.5 rounded-full transition-all duration-200"
-                          style={{
-                            backgroundColor: isActive ? 'var(--color-accent)' : 'var(--color-border)',
-                            transform: isActive ? 'scale(1.4)' : 'scale(1)',
-                            boxShadow: isActive ? `0 0 8px ${board.color}` : 'none',
-                          }}
-                          title={board.name}
-                        />
-                      );
-                    })}
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
+                Create New Column
+              </h2>
 
-      {/* Floating Action Button */}
-      <button
-        onClick={() => setShowCreateModal(true)}
-        className="fixed top-4 left-4 w-12 h-12 rounded-full shadow-lg transition-all hover:scale-110 hover:shadow-xl flex items-center justify-center z-40"
-        style={{
-          backgroundColor: 'var(--color-accent)',
-          color: 'white',
-          boxShadow: '0 6px 16px -5px rgba(0, 0, 0, 0.3), 0 4px 6px -6px rgba(0, 0, 0, 0.3)',
-        }}
-        title="Create New Column"
-      >
-        <Plus className="w-6 h-6" strokeWidth={2.5} />
-      </button>
-
-      {/* Create Column Modal */}
-      {showCreateModal && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-          onClick={() => setShowCreateModal(false)}
-        >
-          <div
-            className="rounded-xl shadow-2xl p-6 w-full max-w-md"
-            style={{
-              backgroundColor: 'var(--color-card-bg)',
-              border: '1px solid var(--color-border)',
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2
-              className="text-2xl font-bold mb-6"
-              style={{ color: 'var(--color-text-primary)' }}
-            >
-              Create New Column
-            </h2>
-
-            <div className="space-y-5">
-              <div>
-                <label
-                  className="block text-sm font-semibold mb-2"
-                  style={{ color: 'var(--color-text-primary)' }}
-                >
-                  Column Name <span style={{ color: '#ef4444' }}>*</span>
-                </label>
-                <input
-                  type="text"
-                  value={newColumnName}
-                  onChange={(e) => setNewColumnName(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleCreateColumn()}
-                  className="w-full px-4 py-2.5 rounded-lg border-2 focus:outline-none focus:ring-2 transition-all"
-                  style={{
-                    backgroundColor: 'var(--color-background)',
-                    borderColor: 'var(--color-border)',
-                    color: 'var(--color-text-primary)',
-                  }}
-                  placeholder="e.g., Blocked, Review, Testing"
-                  autoFocus
-                />
-              </div>
-
-              <div>
-                <label
-                  className="block text-sm font-semibold mb-2"
-                  style={{ color: 'var(--color-text-primary)' }}
-                >
-                  Description
-                </label>
-                <textarea
-                  value={newColumnDescription}
-                  onChange={(e) => setNewColumnDescription(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-lg border-2 focus:outline-none focus:ring-2 transition-all resize-none"
-                  style={{
-                    backgroundColor: 'var(--color-background)',
-                    borderColor: 'var(--color-border)',
-                    color: 'var(--color-text-primary)',
-                  }}
-                  placeholder="Add a description (optional)"
-                  rows={3}
-                />
-              </div>
-
-              <div>
-                <label
-                  className="block text-sm font-semibold mb-2"
-                  style={{ color: 'var(--color-text-primary)' }}
-                >
-                  Color Theme
-                </label>
-                <div className="flex items-center gap-3">
+              <div className="space-y-5">
+                <div>
+                  <label
+                    className="block text-sm font-semibold mb-2"
+                    style={{ color: 'var(--color-text-primary)' }}
+                  >
+                    Column Name <span style={{ color: '#ef4444' }}>*</span>
+                  </label>
                   <input
-                    type="color"
-                    value={newColumnColor}
-                    onChange={(e) => setNewColumnColor(e.target.value)}
-                    className="w-16 h-12 rounded-lg border-2 cursor-pointer"
-                    style={{
-                      borderColor: 'var(--color-border)',
-                    }}
-                  />
-                  <div
-                    className="flex-1 px-4 py-2.5 rounded-lg border-2 font-mono text-sm"
+                    type="text"
+                    value={newColumnName}
+                    onChange={(e) => setNewColumnName(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleCreateColumn()}
+                    className="w-full px-4 py-2.5 rounded-lg border-2 focus:outline-none focus:ring-2 transition-all"
                     style={{
                       backgroundColor: 'var(--color-background)',
                       borderColor: 'var(--color-border)',
                       color: 'var(--color-text-primary)',
                     }}
+                    placeholder="e.g., Blocked, Review, Testing"
+                    autoFocus
+                  />
+                </div>
+
+                <div>
+                  <label
+                    className="block text-sm font-semibold mb-2"
+                    style={{ color: 'var(--color-text-primary)' }}
                   >
-                    {newColumnColor.toUpperCase()}
+                    Description
+                  </label>
+                  <textarea
+                    value={newColumnDescription}
+                    onChange={(e) => setNewColumnDescription(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-lg border-2 focus:outline-none focus:ring-2 transition-all resize-none"
+                    style={{
+                      backgroundColor: 'var(--color-background)',
+                      borderColor: 'var(--color-border)',
+                      color: 'var(--color-text-primary)',
+                    }}
+                    placeholder="Add a description (optional)"
+                    rows={3}
+                  />
+                </div>
+
+                <div>
+                  <label
+                    className="block text-sm font-semibold mb-2"
+                    style={{ color: 'var(--color-text-primary)' }}
+                  >
+                    Color Theme
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="color"
+                      value={newColumnColor}
+                      onChange={(e) => setNewColumnColor(e.target.value)}
+                      className="w-16 h-12 rounded-lg border-2 cursor-pointer"
+                      style={{
+                        borderColor: 'var(--color-border)',
+                      }}
+                    />
+                    <div
+                      className="flex-1 px-4 py-2.5 rounded-lg border-2 font-mono text-sm"
+                      style={{
+                        backgroundColor: 'var(--color-background)',
+                        borderColor: 'var(--color-border)',
+                        color: 'var(--color-text-primary)',
+                      }}
+                    >
+                      {newColumnColor.toUpperCase()}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <div className="flex gap-3 mt-8">
-              <button
-                onClick={handleCreateColumn}
-                className="flex-1 px-6 py-3 rounded-lg font-semibold transition-all hover:scale-105 hover:shadow-lg"
-                style={{
-                  backgroundColor: 'var(--color-accent)',
-                  color: 'white',
-                }}
-              >
-                Create Column
-              </button>
-              <button
-                onClick={() => {
-                  setShowCreateModal(false);
-                  setNewColumnName('');
-                  setNewColumnDescription('');
-                  setNewColumnColor('#3b82f6');
-                }}
-                className="px-6 py-3 rounded-lg font-semibold transition-all hover:bg-opacity-80 border-2"
-                style={{
-                  backgroundColor: 'var(--color-background)',
-                  borderColor: 'var(--color-border)',
-                  color: 'var(--color-text-primary)',
-                }}
-              >
-                Cancel
-              </button>
+              <div className="flex gap-3 mt-8">
+                <button
+                  onClick={handleCreateColumn}
+                  className="flex-1 px-6 py-3 rounded-lg font-semibold transition-all hover:scale-105 hover:shadow-lg"
+                  style={{
+                    backgroundColor: 'var(--color-accent)',
+                    color: 'white',
+                  }}
+                >
+                  Create Column
+                </button>
+                <button
+                  onClick={() => {
+                    setShowCreateModal(false);
+                    setNewColumnName('');
+                    setNewColumnDescription('');
+                    setNewColumnColor('#3b82f6');
+                  }}
+                  className="px-6 py-3 rounded-lg font-semibold transition-all hover:bg-opacity-80 border-2"
+                  style={{
+                    backgroundColor: 'var(--color-background)',
+                    borderColor: 'var(--color-border)',
+                    color: 'var(--color-text-primary)',
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
+          </div>
+        )}
+      </div>
+
+      {/* Scroll Indicator - Outside page-fade-in container */}
+      {boards.length > 0 && (
+        <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50 pointer-events-none">
+          <div 
+            className="flex items-center gap-3 px-5 py-3 rounded-full shadow-2xl backdrop-blur-sm"
+            style={{
+              backgroundColor: 'var(--color-card-bg)' + 'f0',
+              border: '2px solid var(--color-border)',
+            }}
+          >
+            <span 
+              className="text-sm font-semibold"
+              style={{ color: 'var(--color-text-primary)' }}
+            >
+              {boards.length} {boards.length === 1 ? 'column' : 'columns'}
+            </span>
+            {boards.length > 1 && (
+              <>
+                <div 
+                  className="w-px h-4" 
+                  style={{ backgroundColor: 'var(--color-border)' }}
+                />
+                <div className="flex gap-2">
+                  {boards.map((board, index) => {
+                    const boardProgress = index / Math.max(boards.length - 1, 1);
+                    const isActive = Math.abs(scrollProgress - boardProgress) < 0.35;
+                    
+                    return (
+                      <div
+                        key={board.id}
+                        className="w-2.5 h-2.5 rounded-full transition-all duration-200"
+                        style={{
+                          backgroundColor: isActive ? 'var(--color-accent)' : 'var(--color-border)',
+                          transform: isActive ? 'scale(1.4)' : 'scale(1)',
+                          boxShadow: isActive ? `0 0 8px ${board.color}` : 'none',
+                        }}
+                        title={board.name}
+                      />
+                    );
+                  })}
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
 

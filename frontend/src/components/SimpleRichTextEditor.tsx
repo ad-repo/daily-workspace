@@ -2,6 +2,7 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import { useEffect } from 'react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
+import Image from '@tiptap/extension-image';
 import Underline from '@tiptap/extension-underline';
 import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
@@ -22,6 +23,9 @@ import {
   Minus,
   CheckSquare,
 } from 'lucide-react';
+import EmojiPicker from './EmojiPicker';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 interface SimpleRichTextEditorProps {
   content: string;
@@ -43,6 +47,38 @@ const SimpleRichTextEditor = ({ content, onChange, placeholder = 'Start writing.
           class: 'text-blue-600 underline cursor-pointer hover:text-blue-800',
           target: '_blank',
           rel: 'noopener noreferrer',
+        },
+      }),
+      Image.extend({
+        addAttributes() {
+          return {
+            ...this.parent?.(),
+            'data-emoji': {
+              default: null,
+            },
+          };
+        },
+        renderHTML({ HTMLAttributes }) {
+          // Convert relative API URLs to absolute URLs for src
+          let src = HTMLAttributes.src;
+          if (src && src.startsWith('/api/')) {
+            src = `${API_BASE_URL}${src}`;
+          }
+
+          // If it's a custom emoji, use inline emoji styles
+          if (HTMLAttributes['data-emoji']) {
+            return ['img', {
+              ...HTMLAttributes,
+              src,
+              class: 'inline-emoji',
+            }];
+          }
+          // Otherwise use default image styles
+          return ['img', {
+            ...HTMLAttributes,
+            src,
+            class: 'w-full h-auto rounded-lg',
+          }];
         },
       }),
       Underline,
@@ -80,6 +116,22 @@ const SimpleRichTextEditor = ({ content, onChange, placeholder = 'Start writing.
     const url = window.prompt('Enter URL:');
     if (url) {
       editor.chain().focus().setLink({ href: url }).run();
+    }
+  };
+
+  const handleEmojiSelect = (emoji: string, isCustom?: boolean, imageUrl?: string) => {
+    if (!editor) return;
+
+    if (isCustom && imageUrl) {
+      // Convert relative URL to absolute URL for the editor
+      const absoluteUrl = imageUrl.startsWith('http') ? imageUrl : `http://localhost:8000${imageUrl}`;
+      
+      // Insert custom emoji as raw HTML with data-emoji attribute
+      const imgHtml = `<img src="${absoluteUrl}" alt="${emoji}" data-emoji="true" class="inline-emoji" /> `;
+      editor.chain().focus().insertContent(imgHtml).run();
+    } else {
+      // Insert Unicode emoji as text
+      editor.chain().focus().insertContent(emoji + ' ').run();
     }
   };
 
@@ -383,6 +435,9 @@ const SimpleRichTextEditor = ({ content, onChange, placeholder = 'Start writing.
             margin: '0 4px',
           }}
         />
+
+        {/* Emoji Picker */}
+        <EmojiPicker onEmojiSelect={handleEmojiSelect} />
 
         {/* Link */}
         <button

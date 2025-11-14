@@ -1,16 +1,17 @@
 import { useState, useEffect } from 'react';
-import { Trash2, Clock, FileText, Star, Check, Copy, CheckCheck, ArrowRight, ArrowUp, FileDown, Pin } from 'lucide-react';
+import { Trash2, Clock, FileText, Star, Check, Copy, CheckCheck, ArrowRight, ArrowUp, FileDown, Pin, Trello } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import axios from 'axios';
 import TurndownService from 'turndown';
-import type { NoteEntry } from '../types';
+import type { NoteEntry, List } from '../types';
 import RichTextEditor from './RichTextEditor';
 import CodeEditor from './CodeEditor';
 import LabelSelector from './LabelSelector';
 import EntryListSelector from './EntryListSelector';
 import { useTimezone } from '../contexts/TimezoneContext';
 import { formatTimestamp } from '../utils/timezone';
+import { kanbanApi, listsApi } from '../api';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -54,6 +55,9 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onListsUpdat
   const [copiedJira, setCopiedJira] = useState(false);
   const [isContinuing, setIsContinuing] = useState(false);
   const [isMoving, setIsMoving] = useState(false);
+  const [showKanbanModal, setShowKanbanModal] = useState(false);
+  const [kanbanColumns, setKanbanColumns] = useState<List[]>([]);
+  const [isChangingKanban, setIsChangingKanban] = useState(false);
   const isCodeEntry = entry.content_type === 'code';
   const today = format(new Date(), 'yyyy-MM-dd');
   const isFromPastDay = currentDate && currentDate !== today;
@@ -67,6 +71,57 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onListsUpdat
     setIsCompleted(entry.is_completed || false);
     setIsPinned(entry.is_pinned || false);
   }, [entry]);
+
+  // Load Kanban columns when modal opens
+  useEffect(() => {
+    if (showKanbanModal) {
+      loadKanbanColumns();
+    }
+  }, [showKanbanModal]);
+
+  const loadKanbanColumns = async () => {
+    try {
+      const boards = await kanbanApi.getBoards();
+      setKanbanColumns(boards);
+    } catch (error) {
+      console.error('Failed to load Kanban columns:', error);
+    }
+  };
+
+  const handleKanbanStatusClick = () => {
+    setShowKanbanModal(true);
+  };
+
+  const handleChangeKanbanStatus = async (newColumnId: number) => {
+    setIsChangingKanban(true);
+    try {
+      // Get current Kanban columns this entry is in
+      const currentKanbanLists = entry.lists?.filter(list => list.is_kanban) || [];
+      
+      // Remove from all current Kanban columns
+      for (const kanbanList of currentKanbanLists) {
+        await listsApi.removeEntry(kanbanList.id, entry.id);
+      }
+      
+      // Add to new Kanban column
+      await listsApi.addEntry(newColumnId, entry.id, 0);
+      
+      // Close modal first to prevent layout shift
+      setShowKanbanModal(false);
+      
+      // Small delay before triggering refresh to allow modal to fully close
+      setTimeout(() => {
+        if (onListsUpdate) {
+          onListsUpdate();
+        }
+      }, 100);
+    } catch (error) {
+      console.error('Failed to change Kanban status:', error);
+      setShowKanbanModal(false);
+    } finally {
+      setIsChangingKanban(false);
+    }
+  };
 
   const handleTitleChange = async (newTitle: string) => {
     setTitle(newTitle);
@@ -407,18 +462,20 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onListsUpdat
               
               {/* Kanban State Badge - show if entry is in any Kanban list */}
               {entry.lists && entry.lists.filter(list => list.is_kanban).map(kanbanList => (
-                <span
+                <button
                   key={kanbanList.id}
-                  className="px-2.5 py-1 rounded-md text-xs font-semibold whitespace-nowrap"
+                  onClick={handleKanbanStatusClick}
+                  className="px-2.5 py-1 rounded-md text-xs font-semibold whitespace-nowrap transition-all hover:scale-105 hover:shadow-md cursor-pointer inline-flex items-center gap-1.5"
                   style={{
                     backgroundColor: kanbanList.color,
                     color: '#ffffff',
                     boxShadow: '0 1px 2px rgba(0,0,0,0.15)',
                   }}
-                  title={`Kanban State: ${kanbanList.name}`}
+                  title="Click to change Kanban status"
                 >
+                  <Trello className="w-3 h-3" />
                   {kanbanList.name}
-                </span>
+                </button>
               ))}
             </div>
           </div>
@@ -677,6 +734,86 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onListsUpdat
           />
         )}
       </div>
+
+      {/* Kanban Status Change Modal */}
+      {showKanbanModal && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto min-h-full transition-opacity duration-200"
+          onClick={() => setShowKanbanModal(false)}
+        >
+          <div
+            className="rounded-xl shadow-2xl p-6 max-w-md w-full transition-transform duration-200"
+            style={{ backgroundColor: 'var(--color-bg-primary)' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-3 mb-6">
+              <Trello className="w-6 h-6" style={{ color: 'var(--color-accent)' }} />
+              <h2
+                className="text-2xl font-bold"
+                style={{ color: 'var(--color-text-primary)' }}
+              >
+                Change Kanban Status
+              </h2>
+            </div>
+
+            {kanbanColumns.length === 0 ? (
+              <p
+                className="text-center py-8"
+                style={{ color: 'var(--color-text-secondary)' }}
+              >
+                No Kanban columns available
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {kanbanColumns.map((column) => {
+                  const isCurrentColumn = entry.lists?.some(
+                    list => list.is_kanban && list.id === column.id
+                  );
+                  
+                  return (
+                    <button
+                      key={column.id}
+                      onClick={() => handleChangeKanbanStatus(column.id)}
+                      disabled={isChangingKanban || isCurrentColumn}
+                      className="w-full px-4 py-3 rounded-lg font-semibold transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-3"
+                      style={{
+                        backgroundColor: isCurrentColumn ? 'var(--color-bg-tertiary)' : column.color,
+                        color: isCurrentColumn ? 'var(--color-text-primary)' : '#ffffff',
+                        border: isCurrentColumn ? '2px solid var(--color-border)' : 'none',
+                      }}
+                    >
+                      {isChangingKanban ? (
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <Trello className="w-4 h-4" />
+                      )}
+                      <span className="flex-1 text-left">{column.name}</span>
+                      {isCurrentColumn && !isChangingKanban && (
+                        <CheckCheck className="w-4 h-4" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setShowKanbanModal(false)}
+                disabled={isChangingKanban}
+                className="flex-1 px-6 py-3 rounded-lg font-semibold transition-all hover:bg-opacity-80 border-2"
+                style={{
+                  backgroundColor: 'var(--color-background)',
+                  borderColor: 'var(--color-border)',
+                  color: 'var(--color-text-primary)',
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
