@@ -506,22 +506,19 @@ const Reports = () => {
           disabled={clearingFlags || clearedFlags}
           className="flex items-center gap-2 px-6 py-3 rounded-lg shadow-lg disabled:cursor-not-allowed"
           style={{
-            backgroundColor: clearedFlags 
-              ? 'var(--color-success, #22c55e)' 
-              : 'var(--color-danger, #ef4444)',
+            backgroundColor: 'var(--color-danger, #ef4444)',
             color: 'white',
-            opacity: clearingFlags ? 0.7 : 1,
-            transform: clearedFlags ? 'scale(1.05)' : 'scale(1)',
-            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+            opacity: clearingFlags ? 0.6 : clearedFlags ? 1 : 1,
+            transition: 'opacity 0.2s ease'
           }}
           onMouseEnter={(e) => {
             if (!clearingFlags && !clearedFlags) {
-              e.currentTarget.style.transform = 'scale(1.02)';
+              e.currentTarget.style.opacity = '0.9';
             }
           }}
           onMouseLeave={(e) => {
             if (!clearingFlags && !clearedFlags) {
-              e.currentTarget.style.transform = 'scale(1)';
+              e.currentTarget.style.opacity = '1';
             }
           }}
         >
