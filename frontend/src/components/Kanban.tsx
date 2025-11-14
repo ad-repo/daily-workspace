@@ -246,7 +246,7 @@ export default function Kanban() {
                 onDrop={(e) => handleListDrop(e, board.id)}
                 style={{
                   opacity: draggedListId === board.id ? 0.5 : 1,
-                  transform: dragOverListId === board.id && draggedListId !== board.id ? 'scale(1.02)' : 'scale(1)',
+                  ...(dragOverListId === board.id && draggedListId !== board.id && { transform: 'scale(1.02)' }),
                   transition: 'transform 0.2s ease, opacity 0.2s ease',
                 }}
               >
