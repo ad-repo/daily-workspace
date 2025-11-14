@@ -229,4 +229,3 @@ def test_move_entry_between_kanban_columns(client: TestClient, db_session: Sessi
     response = client.get(f'/api/lists/{todo_id}')
     data = response.json()
     assert len(data['entries']) == 1
-

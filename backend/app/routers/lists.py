@@ -55,9 +55,7 @@ def initialize_kanban(db: Session = Depends(get_db)):
     """
     existing_kanban = db.query(models.List).filter(models.List.is_kanban == 1).first()
     if existing_kanban:
-        raise HTTPException(
-            status_code=400, detail='Kanban board already initialized'
-        )
+        raise HTTPException(status_code=400, detail='Kanban board already initialized')
 
     default_columns = [
         {
@@ -113,9 +111,7 @@ def initialize_kanban(db: Session = Depends(get_db)):
 
 
 @router.put('/kanban/reorder')
-def reorder_kanban_columns(
-    request: schemas.ReorderListsRequest, db: Session = Depends(get_db)
-):
+def reorder_kanban_columns(request: schemas.ReorderListsRequest, db: Session = Depends(get_db)):
     """
     Reorder Kanban columns by updating their kanban_order.
     Expects a list of {id, order_index} where order_index is the new kanban_order.
@@ -125,9 +121,7 @@ def reorder_kanban_columns(
         if not lst:
             raise HTTPException(status_code=404, detail=f'List {item.id} not found')
         if not lst.is_kanban:
-            raise HTTPException(
-                status_code=400, detail=f'List {item.id} is not a Kanban column'
-            )
+            raise HTTPException(status_code=400, detail=f'List {item.id} is not a Kanban column')
         lst.kanban_order = item.order_index
         lst.updated_at = datetime.utcnow()
     db.commit()
