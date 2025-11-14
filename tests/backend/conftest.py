@@ -38,6 +38,10 @@ from app.models import (  # noqa: E402
     QuarterlyGoal,
     SearchHistory,
     SprintGoal,
+    entry_labels,
+    entry_lists,
+    list_labels,
+    note_labels,
 )
 
 
@@ -55,6 +59,9 @@ def db_engine():
         connect_args={'check_same_thread': False},
         poolclass=StaticPool,
     )
+
+    # Explicitly reference association tables to ensure they're registered
+    _ = (entry_labels, entry_lists, list_labels, note_labels)
 
     # Create all tables (models module is imported above, ensuring all tables are registered)
     Base.metadata.create_all(bind=engine)
