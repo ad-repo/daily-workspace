@@ -503,21 +503,26 @@ const Reports = () => {
       <div className="flex justify-end mb-4">
         <button
           onClick={clearAllReportFlags}
-          disabled={clearingFlags}
-          className="flex items-center gap-2 px-6 py-3 rounded-lg transition-all duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={clearingFlags || clearedFlags}
+          className="flex items-center gap-2 px-6 py-3 rounded-lg shadow-lg disabled:cursor-not-allowed"
           style={{
             backgroundColor: clearedFlags 
               ? 'var(--color-success, #22c55e)' 
-              : clearingFlags 
-                ? 'var(--color-bg-tertiary)' 
-                : 'var(--color-danger, #ef4444)',
-            color: clearingFlags ? 'var(--color-text-tertiary)' : 'white'
+              : 'var(--color-danger, #ef4444)',
+            color: 'white',
+            opacity: clearingFlags ? 0.7 : 1,
+            transform: clearedFlags ? 'scale(1.05)' : 'scale(1)',
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
           }}
           onMouseEnter={(e) => {
-            if (!clearingFlags && !clearedFlags) e.currentTarget.style.opacity = '0.9';
+            if (!clearingFlags && !clearedFlags) {
+              e.currentTarget.style.transform = 'scale(1.02)';
+            }
           }}
           onMouseLeave={(e) => {
-            if (!clearingFlags && !clearedFlags) e.currentTarget.style.opacity = '1';
+            if (!clearingFlags && !clearedFlags) {
+              e.currentTarget.style.transform = 'scale(1)';
+            }
           }}
         >
           {clearingFlags && <Loader2 className="h-5 w-5 animate-spin" />}
