@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Trash2, Calendar, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import type { NoteEntry } from '../types';
+import type { NoteEntry, List } from '../types';
 import { useTimezone } from '../contexts/TimezoneContext';
 import { formatTimestamp } from '../utils/timezone';
 
@@ -11,9 +11,10 @@ interface ListCardProps {
   onUpdate: () => void;
   onLabelsUpdate: (entryId: number, labels: any[]) => void;
   listId?: number;
+  list?: List;
 }
 
-const ListCard = ({ entry, onRemoveFromList, listId }: ListCardProps) => {
+const ListCard = ({ entry, onRemoveFromList, listId, list }: ListCardProps) => {
   const navigate = useNavigate();
   const { timezone } = useTimezone();
   const [isDragging, setIsDragging] = useState(false);
@@ -111,12 +112,29 @@ const ListCard = ({ entry, onRemoveFromList, listId }: ListCardProps) => {
           }}
         >
           <div className="p-6">
-            {/* Timestamp */}
-            <div className="flex items-center gap-2 text-sm mb-4" style={{ color: 'var(--color-text-tertiary)' }}>
-              <Clock className="h-4 w-4" />
-              <span>
-                {formatTimestamp(entry.created_at, timezone, 'h:mm a zzz')}
-              </span>
+            {/* Timestamp and Kanban State */}
+            <div className="flex items-center justify-between gap-3 text-sm mb-4">
+              <div className="flex items-center gap-2" style={{ color: 'var(--color-text-tertiary)' }}>
+                <Clock className="h-4 w-4" />
+                <span>
+                  {formatTimestamp(entry.created_at, timezone, 'h:mm a zzz')}
+                </span>
+              </div>
+              
+              {/* Kanban State Badge - only show if this is a Kanban list */}
+              {list?.is_kanban && (
+                <span
+                  className="px-2.5 py-1 rounded-md text-xs font-semibold whitespace-nowrap"
+                  style={{
+                    backgroundColor: list.color,
+                    color: '#ffffff',
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.15)',
+                  }}
+                  title={`Kanban State: ${list.name}`}
+                >
+                  {list.name}
+                </span>
+              )}
             </div>
 
             {/* Title (read-only) */}

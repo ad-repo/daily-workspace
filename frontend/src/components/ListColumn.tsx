@@ -310,6 +310,7 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
                     key={entry.id}
                     entry={entry}
                     listId={list.id}
+                    list={list}
                     onRemoveFromList={handleRemoveEntry}
                     onUpdate={onUpdate}
                     onLabelsUpdate={() => {
