@@ -115,11 +115,7 @@ const AddEntryToListModal = ({ list, onClose, onUpdate }: AddEntryToListModalPro
 
   return (
     <div
-      className="fixed inset-0 flex items-center justify-center z-50 p-4"
-      style={{
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        backdropFilter: 'blur(2px)',
-      }}
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
       onClick={onClose}
     >
       <div
@@ -202,7 +198,7 @@ const AddEntryToListModal = ({ list, onClose, onUpdate }: AddEntryToListModalPro
                 return (
                   <div
                     key={entry.id}
-                    className="rounded-lg border-2 p-4 transition-all"
+                    className="rounded-lg border-2 p-4 transition-all overflow-hidden"
                     style={{
                       backgroundColor: inList ? `${list.color}10` : 'var(--color-background)',
                       borderColor: inList ? list.color : 'var(--color-border)',
@@ -210,7 +206,7 @@ const AddEntryToListModal = ({ list, onClose, onUpdate }: AddEntryToListModalPro
                     }}
                   >
                     <div className="flex justify-between items-start gap-4">
-                      <div className="flex-1 min-w-0">
+                      <div className="flex-1 min-w-0 overflow-hidden">
                         {/* Title */}
                         {entry.title && (
                           <h3
@@ -223,7 +219,7 @@ const AddEntryToListModal = ({ list, onClose, onUpdate }: AddEntryToListModalPro
 
                         {/* Content preview */}
                         <p
-                          className="text-sm mb-2"
+                          className="text-sm mb-2 break-words"
                           style={{ color: 'var(--color-text-secondary)' }}
                         >
                           {getTextPreview(entry.content)}
