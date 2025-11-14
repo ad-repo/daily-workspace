@@ -1489,7 +1489,12 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
 
         {/* Tools Group */}
         <ToolbarButton
-          onClick={() => setShowMarkdownPreview(!showMarkdownPreview)}
+          onClick={() => {
+            const isEmpty = !editor?.getText().trim();
+            if (!isEmpty) {
+              setShowMarkdownPreview(!showMarkdownPreview);
+            }
+          }}
           active={showMarkdownPreview}
           title={showMarkdownPreview ? "Hide Markdown Preview" : "Show Markdown Preview"}
         >
@@ -1533,6 +1538,7 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
               backgroundColor: 'var(--color-bg-secondary)',
               borderColor: 'var(--color-border-primary)',
               color: 'var(--color-text-primary)',
+              minHeight: '200px',
               maxHeight: '500px',
               overflowY: 'auto'
             }}
@@ -1551,7 +1557,9 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
             }}
           />
         ) : (
-          <EditorContent editor={editor} className="prose max-w-none" />
+          <div style={{ minHeight: '200px', maxHeight: '500px', overflowY: 'auto' }}>
+            <EditorContent editor={editor} className="prose max-w-none" />
+          </div>
         )}
       </div>
 
