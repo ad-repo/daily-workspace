@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Trash2, Clock, FileText, Star, Check, Copy, CheckCheck, ArrowRight, Skull, ArrowUp, FileDown } from 'lucide-react';
+import { Trash2, Clock, FileText, Star, Check, Copy, CheckCheck, ArrowRight, ArrowUp, FileDown, Pin } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import axios from 'axios';
@@ -8,6 +8,7 @@ import type { NoteEntry } from '../types';
 import RichTextEditor from './RichTextEditor';
 import CodeEditor from './CodeEditor';
 import LabelSelector from './LabelSelector';
+import EntryListSelector from './EntryListSelector';
 import { useTimezone } from '../contexts/TimezoneContext';
 import { formatTimestamp } from '../utils/timezone';
 
@@ -30,6 +31,7 @@ interface NoteEntryCardProps {
   onUpdate: (id: number, content: string) => void;
   onDelete: (id: number) => void;
   onLabelsUpdate: (entryId: number, labels: any[]) => void;
+  onListsUpdate?: () => void;
   onMoveToTop?: (id: number) => void;
   isSelected?: boolean;
   onSelectionChange?: (id: number, selected: boolean) => void;
@@ -37,7 +39,7 @@ interface NoteEntryCardProps {
   currentDate?: string; // YYYY-MM-DD format
 }
 
-const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onMoveToTop, isSelected = false, onSelectionChange, selectionMode = false, currentDate }: NoteEntryCardProps) => {
+const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onListsUpdate, onMoveToTop, isSelected = false, onSelectionChange, selectionMode = false, currentDate }: NoteEntryCardProps) => {
   const { timezone } = useTimezone();
   const navigate = useNavigate();
   const [title, setTitle] = useState(entry.title || '');
@@ -46,7 +48,7 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onMoveToTop,
   const [includeInReport, setIncludeInReport] = useState(entry.include_in_report || false);
   const [isImportant, setIsImportant] = useState(entry.is_important || false);
   const [isCompleted, setIsCompleted] = useState(entry.is_completed || false);
-  const [isDevNull, setIsDevNull] = useState(entry.is_dev_null || false);
+  const [isPinned, setIsPinned] = useState(entry.is_pinned || false);
   const [copied, setCopied] = useState(false);
   const [copiedMarkdown, setCopiedMarkdown] = useState(false);
   const [copiedJira, setCopiedJira] = useState(false);
@@ -63,7 +65,7 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onMoveToTop,
     setIncludeInReport(entry.include_in_report || false);
     setIsImportant(entry.is_important || false);
     setIsCompleted(entry.is_completed || false);
-    setIsDevNull(entry.is_dev_null || false);
+    setIsPinned(entry.is_pinned || false);
   }, [entry]);
 
   const handleTitleChange = async (newTitle: string) => {
@@ -145,32 +147,45 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onMoveToTop,
     }
   };
 
-  const handleDevNullToggle = async () => {
-    const newValue = !isDevNull;
-    setIsDevNull(newValue);
+  const handlePinToggle = async () => {
+    const newValue = !isPinned;
+    setIsPinned(newValue);
     
     try {
-      await axios.patch(`${API_URL}/api/entries/${entry.id}`, {
-        is_dev_null: newValue
-      });
+      await axios.post(`${API_URL}/api/entries/${entry.id}/toggle-pin`);
     } catch (error) {
-      console.error('Failed to update dev_null status:', error);
-      setIsDevNull(!newValue); // Revert on error
+      console.error('Failed to toggle pin status:', error);
+      setIsPinned(!newValue); // Revert on error
     }
   };
 
   const handleCopy = async () => {
     try {
       let textToCopy = content;
+      let htmlToCopy = content;
       
-      // Strip HTML for rich text entries
+      // For rich text entries, prepare both plain text and HTML versions
       if (!isCodeEntry) {
         const tmp = document.createElement('div');
         tmp.innerHTML = content;
         textToCopy = tmp.textContent || tmp.innerText || '';
+        htmlToCopy = content;
       }
       
-      await navigator.clipboard.writeText(textToCopy);
+      // Use the modern clipboard API to write both text and HTML
+      if (navigator.clipboard && window.ClipboardItem) {
+        const blob = new Blob([htmlToCopy], { type: 'text/html' });
+        const textBlob = new Blob([textToCopy], { type: 'text/plain' });
+        const clipboardItem = new ClipboardItem({
+          'text/html': blob,
+          'text/plain': textBlob
+        });
+        await navigator.clipboard.write([clipboardItem]);
+      } else {
+        // Fallback to plain text only
+        await navigator.clipboard.writeText(textToCopy);
+      }
+      
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
@@ -438,15 +453,27 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onMoveToTop,
             </button>
             
             <button
-              onClick={handleDevNullToggle}
-              className={`p-2 rounded transition-colors ${isDevNull ? 'devnull-active' : ''}`}
+              onClick={handlePinToggle}
+              className="p-2 rounded transition-colors"
               style={{ 
-                color: isDevNull ? 'var(--color-text-primary)' : 'var(--color-text-tertiary)',
-                backgroundColor: isDevNull ? 'rgba(107, 114, 128, 0.1)' : 'transparent'
+                color: isPinned ? 'var(--color-accent)' : 'var(--color-text-tertiary)',
+                backgroundColor: isPinned ? 'rgba(59, 130, 246, 0.1)' : 'transparent'
               }}
-              title={isDevNull ? "Remove from /dev/null" : "Mark as /dev/null"}
+              onMouseEnter={(e) => {
+                if (!isPinned) {
+                  e.currentTarget.style.backgroundColor = 'rgba(59, 130, 246, 0.1)';
+                  e.currentTarget.style.color = 'var(--color-accent)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isPinned) {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = 'var(--color-text-tertiary)';
+                }
+              }}
+              title={isPinned ? "Unpin (stop copying to future days)" : "Pin (copy to future days)"}
             >
-              <Skull className={`h-5 w-5 ${isDevNull ? 'stroke-[2.5]' : ''}`} />
+              <Pin className={`h-5 w-5 ${isPinned ? 'fill-current' : ''}`} />
             </button>
             
             <button
@@ -603,6 +630,19 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onMoveToTop,
             selectedLabels={entry.labels || []}
             onLabelsChange={() => {}}
             onOptimisticUpdate={(labels) => onLabelsUpdate(entry.id, labels)}
+          />
+        </div>
+
+        {/* Entry Lists */}
+        <div className="mb-4 pb-4" style={{ borderBottom: '1px solid var(--color-border-primary)' }}>
+          <EntryListSelector
+            entryId={entry.id}
+            currentLists={entry.lists || []}
+            onUpdate={() => {
+              if (onListsUpdate) {
+                onListsUpdate();
+              }
+            }}
           />
         </div>
 

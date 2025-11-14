@@ -62,7 +62,10 @@ backend/data/
 # Test artifacts
 tests/backend/htmlcov/
 frontend/tests/coverage/
+frontend/coverage/
 tests/e2e/playwright-report/
 tests/e2e/test-results/
 .coverage
 .pytest_cache/
+test_output.log
+test_results.txt

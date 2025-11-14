@@ -21,6 +21,24 @@ entry_labels = Table(
     Column('label_id', Integer, ForeignKey('labels.id', ondelete='CASCADE')),
 )
 
+# Association table for many-to-many relationship between entries and lists
+entry_lists = Table(
+    'entry_lists',
+    Base.metadata,
+    Column('entry_id', Integer, ForeignKey('note_entries.id', ondelete='CASCADE')),
+    Column('list_id', Integer, ForeignKey('lists.id', ondelete='CASCADE')),
+    Column('order_index', Integer, default=0),  # For ordering entries within a list
+    Column('created_at', DateTime, default=datetime.utcnow),
+)
+
+# Association table for many-to-many relationship between lists and labels
+list_labels = Table(
+    'list_labels',
+    Base.metadata,
+    Column('list_id', Integer, ForeignKey('lists.id', ondelete='CASCADE')),
+    Column('label_id', Integer, ForeignKey('labels.id', ondelete='CASCADE')),
+)
+
 
 class Label(Base):
     """Model for labels"""
@@ -35,6 +53,26 @@ class Label(Base):
     # Relationships
     notes = relationship('DailyNote', secondary=note_labels, back_populates='labels')
     entries = relationship('NoteEntry', secondary=entry_labels, back_populates='labels')
+    lists = relationship('List', secondary=list_labels, back_populates='labels')
+
+
+class List(Base):
+    """Model for lists - Trello-style boards for organizing note entries"""
+
+    __tablename__ = 'lists'
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False, index=True)
+    description = Column(Text, default='')
+    color = Column(String, default='#3b82f6')  # Hex color code
+    order_index = Column(Integer, default=0)  # For ordering lists
+    is_archived = Column(Integer, default=0)  # 0 = false, 1 = true (for SQLite compatibility)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationships
+    entries = relationship('NoteEntry', secondary=entry_lists, back_populates='lists')
+    labels = relationship('Label', secondary=list_labels, back_populates='lists')
 
 
 class AppSettings(Base):
@@ -116,12 +154,14 @@ class NoteEntry(Base):
     is_important = Column(Integer, default=0)  # 0 = false, 1 = true (starred/important)
     is_completed = Column(Integer, default=0)  # 0 = false, 1 = true (completed checkbox)
     is_dev_null = Column(Integer, default=0)  # 0 = false, 1 = true (marked as /dev/null - discarded)
+    is_pinned = Column(Integer, default=0)  # 0 = false, 1 = true (pinned - auto-copy to next day)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
     daily_note = relationship('DailyNote', back_populates='entries')
     labels = relationship('Label', secondary=entry_labels, back_populates='entries')
+    lists = relationship('List', secondary=entry_lists, back_populates='entries')
 
 
 class SearchHistory(Base):

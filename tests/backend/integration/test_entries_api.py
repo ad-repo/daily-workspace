@@ -22,7 +22,6 @@ class TestEntriesAPI:
                 'content_type': 'rich_text',
                 'is_important': 0,
                 'is_completed': 0,
-                'is_dev_null': 0,
                 'include_in_report': 0,
             },
         )
@@ -84,14 +83,6 @@ class TestEntriesAPI:
         assert response.status_code == 200
         data = response.json()
         assert data['is_completed'] == 1
-
-    def test_update_entry_toggle_dev_null(self, client: TestClient, sample_note_entry: NoteEntry):
-        """Test updating is_dev_null flag."""
-        response = client.put(f'/api/entries/{sample_note_entry.id}', json={'is_dev_null': 1})
-
-        assert response.status_code == 200
-        data = response.json()
-        assert data['is_dev_null'] == 1
 
     def test_update_entry_toggle_report(self, client: TestClient, sample_note_entry: NoteEntry):
         """Test updating include_in_report flag."""
@@ -208,17 +199,11 @@ class TestEntriesAPI:
         assert response.status_code == 200
         assert response.json()['is_completed'] == 1
 
-        # Toggle dev_null
-        response = client.put(f'/api/entries/{entry_id}', json={'is_dev_null': 1})
-        assert response.status_code == 200
-        assert response.json()['is_dev_null'] == 1
-
         # Verify all states are set
         response = client.get(f'/api/entries/{entry_id}')
         data = response.json()
         assert data['is_important'] == 1
         assert data['is_completed'] == 1
-        assert data['is_dev_null'] == 1
 
     def test_entry_timestamps_updated(self, client: TestClient, sample_note_entry: NoteEntry):
         """Test that updated_at changes when entry is modified."""

@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app import models, schemas
 from app.database import get_db
+from app.routers.entries import copy_pinned_entries_to_date
 
 router = APIRouter()
 
@@ -19,6 +20,9 @@ def get_all_notes(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)
 @router.get('/{date}', response_model=schemas.DailyNote)
 def get_note_by_date(date: str, db: Session = Depends(get_db)):
     """Get a specific daily note by date (YYYY-MM-DD)"""
+    # First, copy any pinned entries from previous days
+    copy_pinned_entries_to_date(date, db)
+
     note = db.query(models.DailyNote).filter(models.DailyNote.date == date).first()
     if not note:
         raise HTTPException(status_code=404, detail='Note not found for this date')

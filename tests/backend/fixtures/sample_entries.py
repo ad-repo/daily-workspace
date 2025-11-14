@@ -20,7 +20,6 @@ def get_sample_entries_data():
             'content_type': 'rich_text',
             'is_important': 1 if i % 3 == 0 else 0,
             'is_completed': 1 if i % 4 == 0 else 0,
-            'is_dev_null': 1 if i % 7 == 0 else 0,
             'include_in_report': 1 if i % 5 == 0 else 0,
             'order_index': i % 4,
         }
@@ -40,7 +39,6 @@ def get_code_entry_data():
         'content_type': 'rich_text',
         'is_important': 0,
         'is_completed': 0,
-        'is_dev_null': 0,
         'include_in_report': 0,
         'order_index': 0,
     }
@@ -61,7 +59,6 @@ def get_markdown_entry_data():
         'content_type': 'rich_text',
         'is_important': 1,
         'is_completed': 0,
-        'is_dev_null': 0,
         'include_in_report': 1,
         'order_index': 1,
     }

@@ -607,3 +607,18 @@ ul[data-type="taskList"] li[data-checked="true"] > div {
   opacity: 0.6;
 }
 
+
+/* Entry highlight animation for navigation from lists */
+@keyframes highlight-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(59, 130, 246, 0.4);
+  }
+}
+
+.highlight-pulse {
+  animation: highlight-pulse 1s ease-in-out 2;
+  border: 2px solid var(--color-accent) !important;
+}

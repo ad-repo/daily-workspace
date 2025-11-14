@@ -288,7 +288,6 @@ class TestSearchAPI:
             content='<p>Test</p>',
             is_important=1,
             is_completed=1,
-            is_dev_null=1,
             include_in_report=1,
         )
         db_session.add(entry)
@@ -302,7 +301,6 @@ class TestSearchAPI:
         result = data[0]
         assert result['is_important'] is True
         assert result['is_completed'] is True
-        assert result['is_dev_null'] is True
         assert result['include_in_report'] is True
 
     def test_search_empty_query_string(self, client: TestClient, db_session: Session):

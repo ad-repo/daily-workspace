@@ -8,6 +8,7 @@ export interface Label {
 export interface NoteEntry {
   id: number;
   daily_note_id: number;
+  daily_note_date?: string; // YYYY-MM-DD format for navigation
   title: string;
   content: string;
   content_type: 'rich_text' | 'code' | 'markdown';
@@ -15,10 +16,11 @@ export interface NoteEntry {
   created_at: string;
   updated_at: string;
   labels: Label[];
+  lists?: List[];
   include_in_report: boolean;
   is_important: boolean;
   is_completed: boolean;
-  is_dev_null: boolean;
+  is_pinned: boolean;
 }
 
 export interface DailyNote {
@@ -98,5 +100,44 @@ export interface GoalUpdate {
   text?: string;
   start_date?: string;
   end_date?: string;
+}
+
+export interface List {
+  id: number;
+  name: string;
+  description: string;
+  color: string;
+  order_index: number;
+  is_archived: boolean;
+  created_at: string;
+  updated_at: string;
+  entry_count?: number;
+  labels?: Label[];
+}
+
+export interface ListWithEntries extends List {
+  entries: NoteEntry[];
+}
+
+export interface ListCreate {
+  name: string;
+  description?: string;
+  color?: string;
+  order_index?: number;
+  is_archived?: boolean;
+}
+
+export interface ListUpdate {
+  name?: string;
+  description?: string;
+  color?: string;
+  order_index?: number;
+  is_archived?: boolean;
+}
+
+export interface EntryListAssociation {
+  entry_id: number;
+  list_id: number;
+  order_index: number;
 }
 

@@ -61,7 +61,7 @@ const SimpleRichTextEditor = ({ content, onChange, placeholder = 'Start writing.
     editorProps: {
       attributes: {
         class: 'prose prose-sm max-w-none focus:outline-none',
-        style: 'min-height: 80px; max-height: 600px; color: var(--color-text-primary);',
+        style: 'min-height: 80px; max-height: 400px; color: var(--color-text-primary);',
       },
     },
   });
@@ -91,7 +91,7 @@ const SimpleRichTextEditor = ({ content, onChange, placeholder = 'Start writing.
         borderColor: 'var(--color-accent)',
         boxShadow: `0 0 0 3px ${getComputedStyle(document.documentElement).getPropertyValue('--color-accent')}20`,
         minHeight: '80px',
-        maxHeight: '600px',
+        maxHeight: '400px',
         minWidth: '200px',
         resize: 'both',
       }}

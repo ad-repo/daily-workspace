@@ -22,18 +22,32 @@ async def export_data(db: Session = Depends(get_db)):
     # Get all notes with entries and labels
     notes = db.query(models.DailyNote).all()
     labels = db.query(models.Label).all()
+    lists = db.query(models.List).all()
     search_history = db.query(models.SearchHistory).order_by(models.SearchHistory.created_at.desc()).all()
     app_settings = db.query(models.AppSettings).filter(models.AppSettings.id == 1).first()
     sprint_goals = db.query(models.SprintGoal).all()
     quarterly_goals = db.query(models.QuarterlyGoal).all()
 
     export_data = {
-        'version': '5.0',
+        'version': '6.0',
         'exported_at': datetime.utcnow().isoformat(),
         'search_history': [{'query': item.query, 'created_at': item.created_at.isoformat()} for item in search_history],
         'labels': [
             {'id': label.id, 'name': label.name, 'color': label.color, 'created_at': label.created_at.isoformat()}
             for label in labels
+        ],
+        'lists': [
+            {
+                'id': lst.id,
+                'name': lst.name,
+                'description': lst.description,
+                'color': lst.color,
+                'order_index': lst.order_index,
+                'is_archived': bool(lst.is_archived),
+                'created_at': lst.created_at.isoformat(),
+                'updated_at': lst.updated_at.isoformat(),
+            }
+            for lst in lists
         ],
         'app_settings': {
             'sprint_goals': app_settings.sprint_goals if app_settings else '',
@@ -84,10 +98,11 @@ async def export_data(db: Session = Depends(get_db)):
                         'include_in_report': bool(entry.include_in_report),
                         'is_important': bool(entry.is_important),
                         'is_completed': bool(entry.is_completed),
-                        'is_dev_null': bool(entry.is_dev_null),
+                        'is_pinned': bool(entry.is_pinned),
                         'created_at': entry.created_at.isoformat(),
                         'updated_at': entry.updated_at.isoformat(),
                         'labels': [label.id for label in entry.labels],
+                        'lists': [lst.id for lst in entry.lists],
                     }
                     for entry in note.entries
                 ],
@@ -253,10 +268,10 @@ async def export_markdown(db: Session = Depends(get_db)):
                     metadata.append('⭐ Important')
                 if entry.is_completed:
                     metadata.append('✓ Completed')
+                if entry.is_pinned:
+                    metadata.append('📌 Pinned')
                 if entry.include_in_report:
                     metadata.append('📄 In Report')
-                if entry.is_dev_null:
-                    metadata.append('💀 /dev/null')
 
                 if metadata:
                     markdown_lines.append(f"**Status:** {' | '.join(metadata)}\n")
@@ -303,9 +318,11 @@ async def import_data(file: UploadFile = File(...), replace: bool = False, db: S
 
         stats = {
             'labels_imported': 0,
+            'lists_imported': 0,
             'notes_imported': 0,
             'entries_imported': 0,
             'labels_skipped': 0,
+            'lists_skipped': 0,
             'notes_skipped': 0,
             'search_history_imported': 0,
             'sprint_goals_imported': 0,
@@ -445,6 +462,35 @@ async def import_data(file: UploadFile = File(...), replace: bool = False, db: S
 
         db.commit()
 
+        # Import lists
+        list_id_mapping = {}
+        lists_data = data.get('lists', [])
+        for list_data in lists_data:
+            existing_list = db.query(models.List).filter(models.List.name == list_data['name']).first()
+            if existing_list:
+                list_id_mapping[list_data['id']] = existing_list.id
+                stats['lists_skipped'] += 1
+            else:
+                new_list = models.List(
+                    name=list_data['name'],
+                    description=list_data.get('description', ''),
+                    color=list_data.get('color', '#3b82f6'),
+                    order_index=list_data.get('order_index', 0),
+                    is_archived=1 if list_data.get('is_archived', False) else 0,
+                    created_at=datetime.fromisoformat(list_data['created_at'])
+                    if 'created_at' in list_data
+                    else datetime.utcnow(),
+                    updated_at=datetime.fromisoformat(list_data['updated_at'])
+                    if 'updated_at' in list_data
+                    else datetime.utcnow(),
+                )
+                db.add(new_list)
+                db.flush()
+                list_id_mapping[list_data['id']] = new_list.id
+                stats['lists_imported'] += 1
+
+        db.commit()
+
         # Import notes
         for note_data in data['notes']:
             existing_note = db.query(models.DailyNote).filter(models.DailyNote.date == note_data['date']).first()
@@ -493,7 +539,7 @@ async def import_data(file: UploadFile = File(...), replace: bool = False, db: S
                     include_in_report=1 if entry_data.get('include_in_report', False) else 0,
                     is_important=1 if entry_data.get('is_important', False) else 0,
                     is_completed=1 if entry_data.get('is_completed', False) else 0,
-                    is_dev_null=1 if entry_data.get('is_dev_null', False) else 0,
+                    is_pinned=1 if entry_data.get('is_pinned', False) else 0,
                     created_at=datetime.fromisoformat(entry_data['created_at'])
                     if 'created_at' in entry_data
                     else datetime.utcnow(),
@@ -510,6 +556,13 @@ async def import_data(file: UploadFile = File(...), replace: bool = False, db: S
                         label = db.query(models.Label).filter(models.Label.id == label_id_mapping[old_label_id]).first()
                         if label and label not in entry.labels:
                             entry.labels.append(label)
+
+                # Add entry to lists
+                for old_list_id in entry_data.get('lists', []):
+                    if old_list_id in list_id_mapping:
+                        lst = db.query(models.List).filter(models.List.id == list_id_mapping[old_list_id]).first()
+                        if lst and lst not in entry.lists:
+                            entry.lists.append(lst)
 
                 stats['entries_imported'] += 1
 
@@ -751,7 +804,7 @@ async def full_restore(
                     include_in_report=1 if entry_data.get('include_in_report', False) else 0,
                     is_important=1 if entry_data.get('is_important', False) else 0,
                     is_completed=1 if entry_data.get('is_completed', False) else 0,
-                    is_dev_null=1 if entry_data.get('is_dev_null', False) else 0,
+                    is_pinned=1 if entry_data.get('is_pinned', False) else 0,
                     created_at=datetime.fromisoformat(entry_data['created_at'])
                     if 'created_at' in entry_data
                     else datetime.utcnow(),
