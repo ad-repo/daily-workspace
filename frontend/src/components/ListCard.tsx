@@ -112,29 +112,12 @@ const ListCard = ({ entry, onRemoveFromList, listId, list }: ListCardProps) => {
           }}
         >
           <div className="p-6">
-            {/* Timestamp and Kanban State */}
-            <div className="flex items-center justify-between gap-3 text-sm mb-4">
-              <div className="flex items-center gap-2" style={{ color: 'var(--color-text-tertiary)' }}>
-                <Clock className="h-4 w-4" />
-                <span>
-                  {formatTimestamp(entry.created_at, timezone, 'h:mm a zzz')}
-                </span>
-              </div>
-              
-              {/* Kanban State Badge - only show if this is a Kanban list */}
-              {list?.is_kanban && (
-                <span
-                  className="px-2.5 py-1 rounded-md text-xs font-semibold whitespace-nowrap"
-                  style={{
-                    backgroundColor: list.color,
-                    color: '#ffffff',
-                    boxShadow: '0 1px 2px rgba(0,0,0,0.15)',
-                  }}
-                  title={`Kanban State: ${list.name}`}
-                >
-                  {list.name}
-                </span>
-              )}
+            {/* Timestamp */}
+            <div className="flex items-center gap-2 text-sm mb-4" style={{ color: 'var(--color-text-tertiary)' }}>
+              <Clock className="h-4 w-4" />
+              <span>
+                {formatTimestamp(entry.created_at, timezone, 'h:mm a zzz')}
+              </span>
             </div>
 
             {/* Title (read-only) */}
