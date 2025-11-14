@@ -130,11 +130,11 @@ const CustomEmojiManager = ({ isOpen, onClose, onEmojiAdded }: CustomEmojiManage
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[60]"
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[60] overflow-y-auto"
       onClick={onClose}
     >
       <div
-        className="rounded-xl shadow-2xl p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+        className="rounded-xl shadow-2xl p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto my-auto"
         style={{ backgroundColor: 'var(--color-bg-primary)' }}
         onClick={(e) => e.stopPropagation()}
       >
