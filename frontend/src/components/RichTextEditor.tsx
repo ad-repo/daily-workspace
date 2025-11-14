@@ -157,44 +157,30 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
         addAttributes() {
           return {
             ...this.parent?.(),
-            src: {
-              default: null,
-              renderHTML: attributes => {
-                // Convert relative API URLs to absolute URLs
-                if (attributes.src && attributes.src.startsWith('/api/')) {
-                  return {
-                    src: `${API_BASE_URL}${attributes.src}`,
-                  };
-                }
-                return {
-                  src: attributes.src,
-                };
-              },
-            },
             'data-emoji': {
               default: null,
-              renderHTML: attributes => {
-                if (attributes['data-emoji']) {
-                  return {
-                    'data-emoji': attributes['data-emoji'],
-                  };
-                }
-                return {};
-              },
             },
           };
         },
         renderHTML({ HTMLAttributes }) {
+          // Convert relative API URLs to absolute URLs for src
+          let src = HTMLAttributes.src;
+          if (src && src.startsWith('/api/')) {
+            src = `${API_BASE_URL}${src}`;
+          }
+
           // If it's a custom emoji, use inline emoji styles
           if (HTMLAttributes['data-emoji']) {
             return ['img', {
               ...HTMLAttributes,
-              style: 'display: inline-block; height: 1.2em; width: 1.2em; vertical-align: -0.2em; margin: 0 0.1em; object-fit: contain;',
+              src,
+              class: 'inline-emoji',
             }];
           }
           // Otherwise use default image styles
           return ['img', {
             ...HTMLAttributes,
+            src,
             class: 'w-full h-auto rounded-lg',
           }];
         },
@@ -726,11 +712,12 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
     if (!editor) return;
 
     if (isCustom && imageUrl) {
-      console.log('Inserting custom emoji:', { emoji, imageUrl });
-      // Insert custom emoji as an image using TipTap's setImage command with data-emoji attribute
-      editor.chain().focus().setImage({ src: imageUrl, alt: emoji, 'data-emoji': 'true' }).run();
-      // Add a space after the image
-      editor.chain().focus().insertContent(' ').run();
+      // Convert relative URL to absolute URL for the editor
+      const absoluteUrl = imageUrl.startsWith('http') ? imageUrl : `http://localhost:8000${imageUrl}`;
+      
+      // Insert custom emoji as raw HTML with data-emoji attribute
+      const imgHtml = `<img src="${absoluteUrl}" alt="${emoji}" data-emoji="true" class="inline-emoji" /> `;
+      editor.chain().focus().insertContent(imgHtml).run();
     } else {
       // Insert Unicode emoji as text
       editor.chain().focus().insertContent(emoji + ' ').run();

@@ -67,6 +67,16 @@ def search_entries(
     # Build search results with date from daily_note and lists
     search_results = []
     for entry in results:
+        # Separate regular lists and kanban columns
+        regular_lists = [
+            {'id': lst.id, 'name': lst.name, 'is_kanban': bool(lst.is_kanban)}
+            for lst in entry.lists
+            if not lst.is_kanban
+        ]
+        kanban_columns = [
+            {'id': lst.id, 'name': lst.name, 'is_kanban': bool(lst.is_kanban)} for lst in entry.lists if lst.is_kanban
+        ]
+
         result_dict = {
             'id': entry.id,
             'daily_note_id': entry.daily_note_id,
@@ -79,6 +89,8 @@ def search_entries(
             'labels': entry.labels,
             'lists': entry.lists,
             'list_names': [lst.name for lst in entry.lists],
+            'regular_lists': regular_lists,
+            'kanban_columns': kanban_columns,
             'include_in_report': bool(entry.include_in_report),
             'is_important': bool(entry.is_important),
             'is_completed': bool(entry.is_completed),
@@ -123,6 +135,16 @@ def search_all(
     entry_results = entry_query.order_by(models.NoteEntry.created_at.desc()).limit(100).all()
 
     for entry in entry_results:
+        # Separate regular lists and kanban columns
+        regular_lists = [
+            {'id': lst.id, 'name': lst.name, 'is_kanban': bool(lst.is_kanban)}
+            for lst in entry.lists
+            if not lst.is_kanban
+        ]
+        kanban_columns = [
+            {'id': lst.id, 'name': lst.name, 'is_kanban': bool(lst.is_kanban)} for lst in entry.lists if lst.is_kanban
+        ]
+
         results['entries'].append(
             {
                 'id': entry.id,
@@ -136,6 +158,8 @@ def search_all(
                 'labels': entry.labels,
                 'lists': entry.lists,
                 'list_names': [lst.name for lst in entry.lists],
+                'regular_lists': regular_lists,
+                'kanban_columns': kanban_columns,
                 'include_in_report': bool(entry.include_in_report),
                 'is_important': bool(entry.is_important),
                 'is_completed': bool(entry.is_completed),

@@ -231,14 +231,15 @@ export default function Lists() {
   }
 
   return (
-    <div className="h-screen flex flex-col page-fade-in" style={{ backgroundColor: 'var(--color-background)' }}>
-      {/* Lists Container */}
-      <div 
-        ref={scrollContainerRef}
-        onScroll={handleScroll}
-        className="flex-1 overflow-x-auto overflow-y-hidden py-6" 
-        style={{ position: 'relative' }}
-      >
+    <>
+      <div className="min-h-screen flex flex-col page-fade-in" style={{ backgroundColor: 'var(--color-background)' }}>
+        {/* Lists Container */}
+        <div 
+          ref={scrollContainerRef}
+          onScroll={handleScroll}
+          className="flex-1 overflow-x-auto py-6 pb-20" 
+          style={{ position: 'relative' }}
+        >
         {isRefreshing && (
           <div className="absolute top-2 right-2 z-10 px-3 py-1 rounded-full text-xs" style={{ backgroundColor: 'var(--color-accent)', color: 'white' }}>
             Updating...
@@ -265,7 +266,7 @@ export default function Lists() {
           </div>
         ) : (
           <div 
-            className="flex gap-6 py-6 h-full items-stretch"
+            className="flex gap-6 py-6 items-start"
             style={{
               paddingLeft: lists.length <= 3 ? 'max(2rem, calc((100vw - (384px * 3) - 48px) / 2))' : '2rem',
               paddingRight: lists.length <= 3 ? 'max(2rem, calc((100vw - (384px * 3) - 48px) / 2))' : '2rem',
@@ -296,198 +297,199 @@ export default function Lists() {
             ))}
           </div>
         )}
+        </div>
 
-        {/* Scroll Indicator */}
-        {lists.length > 0 && (
-          <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 z-50 pointer-events-none">
-            <div 
-              className="flex items-center gap-3 px-5 py-3 rounded-full shadow-2xl backdrop-blur-sm"
+        {/* Floating Action Button */}
+        <button
+          onClick={() => setShowCreateModal(true)}
+          className="fixed top-4 left-4 w-12 h-12 rounded-full shadow-lg transition-all hover:scale-110 hover:shadow-xl flex items-center justify-center z-40"
+          style={{
+            backgroundColor: 'var(--color-accent)',
+            color: 'white',
+            boxShadow: '0 6px 16px -5px rgba(0, 0, 0, 0.3), 0 4px 6px -6px rgba(0, 0, 0, 0.3)',
+          }}
+          title="Create New List"
+        >
+          <Plus className="w-6 h-6" strokeWidth={2.5} />
+        </button>
+
+        {/* Create List Modal */}
+        {showCreateModal && (
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            onClick={() => setShowCreateModal(false)}
+          >
+            <div
+              className="rounded-xl shadow-2xl p-6 w-full max-w-md"
               style={{
-                backgroundColor: 'var(--color-card-bg)' + 'f0',
-                border: '2px solid var(--color-border)',
+                backgroundColor: 'var(--color-card-bg)',
+                border: '1px solid var(--color-border)',
               }}
+              onClick={(e) => e.stopPropagation()}
             >
-              <span 
-                className="text-sm font-semibold"
+              <h2
+                className="text-2xl font-bold mb-6"
                 style={{ color: 'var(--color-text-primary)' }}
               >
-                {lists.length} {lists.length === 1 ? 'list' : 'lists'}
-              </span>
-              {lists.length > 1 && (
-                <>
-                  <div 
-                    className="w-px h-4" 
-                    style={{ backgroundColor: 'var(--color-border)' }}
-                  />
-                  <div className="flex gap-2">
-                    {lists.map((list, index) => {
-                      const listProgress = index / Math.max(lists.length - 1, 1);
-                      const isActive = Math.abs(scrollProgress - listProgress) < 0.35;
-                      
-                      return (
-                        <div
-                          key={list.id}
-                          className="w-2.5 h-2.5 rounded-full transition-all duration-200"
-                          style={{
-                            backgroundColor: isActive ? 'var(--color-accent)' : 'var(--color-border)',
-                            transform: isActive ? 'scale(1.4)' : 'scale(1)',
-                            boxShadow: isActive ? `0 0 8px ${list.color}` : 'none',
-                          }}
-                          title={list.name}
-                        />
-                      );
-                    })}
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
+                Create New List
+              </h2>
 
-      {/* Floating Action Button */}
-      <button
-        onClick={() => setShowCreateModal(true)}
-        className="fixed top-4 left-4 w-12 h-12 rounded-full shadow-lg transition-all hover:scale-110 hover:shadow-xl flex items-center justify-center z-40"
-        style={{
-          backgroundColor: 'var(--color-accent)',
-          color: 'white',
-          boxShadow: '0 6px 16px -5px rgba(0, 0, 0, 0.3), 0 4px 6px -6px rgba(0, 0, 0, 0.3)',
-        }}
-        title="Create New List"
-      >
-        <Plus className="w-6 h-6" strokeWidth={2.5} />
-      </button>
-
-      {/* Create List Modal */}
-      {showCreateModal && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-          onClick={() => setShowCreateModal(false)}
-        >
-          <div
-            className="rounded-xl shadow-2xl p-6 w-full max-w-md"
-            style={{
-              backgroundColor: 'var(--color-card-bg)',
-              border: '1px solid var(--color-border)',
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2
-              className="text-2xl font-bold mb-6"
-              style={{ color: 'var(--color-text-primary)' }}
-            >
-              Create New List
-            </h2>
-
-            <div className="space-y-5">
-              <div>
-                <label
-                  className="block text-sm font-semibold mb-2"
-                  style={{ color: 'var(--color-text-primary)' }}
-                >
-                  List Name <span style={{ color: '#ef4444' }}>*</span>
-                </label>
-                <input
-                  type="text"
-                  value={newListName}
-                  onChange={(e) => setNewListName(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleCreateList()}
-                  className="w-full px-4 py-2.5 rounded-lg border-2 focus:outline-none focus:ring-2 transition-all"
-                  style={{
-                    backgroundColor: 'var(--color-background)',
-                    borderColor: 'var(--color-border)',
-                    color: 'var(--color-text-primary)',
-                  }}
-                  placeholder="e.g., In Progress, To Do, Done"
-                  autoFocus
-                />
-              </div>
-
-              <div>
-                <label
-                  className="block text-sm font-semibold mb-2"
-                  style={{ color: 'var(--color-text-primary)' }}
-                >
-                  Description
-                </label>
-                <textarea
-                  value={newListDescription}
-                  onChange={(e) => setNewListDescription(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-lg border-2 focus:outline-none focus:ring-2 transition-all resize-none"
-                  style={{
-                    backgroundColor: 'var(--color-background)',
-                    borderColor: 'var(--color-border)',
-                    color: 'var(--color-text-primary)',
-                  }}
-                  placeholder="Add a description (optional)"
-                  rows={3}
-                />
-              </div>
-
-              <div>
-                <label
-                  className="block text-sm font-semibold mb-2"
-                  style={{ color: 'var(--color-text-primary)' }}
-                >
-                  Color Theme
-                </label>
-                <div className="flex items-center gap-3">
+              <div className="space-y-5">
+                <div>
+                  <label
+                    className="block text-sm font-semibold mb-2"
+                    style={{ color: 'var(--color-text-primary)' }}
+                  >
+                    List Name <span style={{ color: '#ef4444' }}>*</span>
+                  </label>
                   <input
-                    type="color"
-                    value={newListColor}
-                    onChange={(e) => setNewListColor(e.target.value)}
-                    className="w-16 h-12 rounded-lg border-2 cursor-pointer"
-                    style={{
-                      borderColor: 'var(--color-border)',
-                    }}
-                  />
-                  <div
-                    className="flex-1 px-4 py-2.5 rounded-lg border-2 font-mono text-sm"
+                    type="text"
+                    value={newListName}
+                    onChange={(e) => setNewListName(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleCreateList()}
+                    className="w-full px-4 py-2.5 rounded-lg border-2 focus:outline-none focus:ring-2 transition-all"
                     style={{
                       backgroundColor: 'var(--color-background)',
                       borderColor: 'var(--color-border)',
                       color: 'var(--color-text-primary)',
                     }}
+                    placeholder="e.g., In Progress, To Do, Done"
+                    autoFocus
+                  />
+                </div>
+
+                <div>
+                  <label
+                    className="block text-sm font-semibold mb-2"
+                    style={{ color: 'var(--color-text-primary)' }}
                   >
-                    {newListColor.toUpperCase()}
+                    Description
+                  </label>
+                  <textarea
+                    value={newListDescription}
+                    onChange={(e) => setNewListDescription(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-lg border-2 focus:outline-none focus:ring-2 transition-all resize-none"
+                    style={{
+                      backgroundColor: 'var(--color-background)',
+                      borderColor: 'var(--color-border)',
+                      color: 'var(--color-text-primary)',
+                    }}
+                    placeholder="Add a description (optional)"
+                    rows={3}
+                  />
+                </div>
+
+                <div>
+                  <label
+                    className="block text-sm font-semibold mb-2"
+                    style={{ color: 'var(--color-text-primary)' }}
+                  >
+                    Color Theme
+                  </label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="color"
+                      value={newListColor}
+                      onChange={(e) => setNewListColor(e.target.value)}
+                      className="w-16 h-12 rounded-lg border-2 cursor-pointer"
+                      style={{
+                        borderColor: 'var(--color-border)',
+                      }}
+                    />
+                    <div
+                      className="flex-1 px-4 py-2.5 rounded-lg border-2 font-mono text-sm"
+                      style={{
+                        backgroundColor: 'var(--color-background)',
+                        borderColor: 'var(--color-border)',
+                        color: 'var(--color-text-primary)',
+                      }}
+                    >
+                      {newListColor.toUpperCase()}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <div className="flex gap-3 mt-8">
-              <button
-                onClick={handleCreateList}
-                className="flex-1 px-6 py-3 rounded-lg font-semibold transition-all hover:scale-105 hover:shadow-lg"
-                style={{
-                  backgroundColor: 'var(--color-accent)',
-                  color: 'white',
-                }}
-              >
-                Create List
-              </button>
-              <button
-                onClick={() => {
-                  setShowCreateModal(false);
-                  setNewListName('');
-                  setNewListDescription('');
-                  setNewListColor('#3b82f6');
-                }}
-                className="px-6 py-3 rounded-lg font-semibold transition-all hover:bg-opacity-80 border-2"
-                style={{
-                  backgroundColor: 'var(--color-background)',
-                  borderColor: 'var(--color-border)',
-                  color: 'var(--color-text-primary)',
-                }}
-              >
-                Cancel
-              </button>
+              <div className="flex gap-3 mt-8">
+                <button
+                  onClick={handleCreateList}
+                  className="flex-1 px-6 py-3 rounded-lg font-semibold transition-all hover:scale-105 hover:shadow-lg"
+                  style={{
+                    backgroundColor: 'var(--color-accent)',
+                    color: 'white',
+                  }}
+                >
+                  Create List
+                </button>
+                <button
+                  onClick={() => {
+                    setShowCreateModal(false);
+                    setNewListName('');
+                    setNewListDescription('');
+                    setNewListColor('#3b82f6');
+                  }}
+                  className="px-6 py-3 rounded-lg font-semibold transition-all hover:bg-opacity-80 border-2"
+                  style={{
+                    backgroundColor: 'var(--color-background)',
+                    borderColor: 'var(--color-border)',
+                    color: 'var(--color-text-primary)',
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
+          </div>
+        )}
+      </div>
+
+      {/* Scroll Indicator - Outside page-fade-in container */}
+      {lists.length > 0 && (
+        <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50 pointer-events-none">
+          <div 
+            className="flex items-center gap-3 px-5 py-3 rounded-full shadow-2xl backdrop-blur-sm"
+            style={{
+              backgroundColor: 'var(--color-card-bg)' + 'f0',
+              border: '2px solid var(--color-border)',
+            }}
+          >
+            <span 
+              className="text-sm font-semibold"
+              style={{ color: 'var(--color-text-primary)' }}
+            >
+              {lists.length} {lists.length === 1 ? 'list' : 'lists'}
+            </span>
+            {lists.length > 1 && (
+              <>
+                <div 
+                  className="w-px h-4" 
+                  style={{ backgroundColor: 'var(--color-border)' }}
+                />
+                <div className="flex gap-2">
+                  {lists.map((list, index) => {
+                    const listProgress = index / Math.max(lists.length - 1, 1);
+                    const isActive = Math.abs(scrollProgress - listProgress) < 0.35;
+                    
+                    return (
+                      <div
+                        key={list.id}
+                        className="w-2.5 h-2.5 rounded-full transition-all duration-200"
+                        style={{
+                          backgroundColor: isActive ? 'var(--color-accent)' : 'var(--color-border)',
+                          transform: isActive ? 'scale(1.4)' : 'scale(1)',
+                          boxShadow: isActive ? `0 0 8px ${list.color}` : 'none',
+                        }}
+                        title={list.name}
+                      />
+                    );
+                  })}
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
 

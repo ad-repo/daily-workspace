@@ -5,6 +5,8 @@ import type { NoteEntry, List } from '../types';
 import { useTimezone } from '../contexts/TimezoneContext';
 import { formatTimestamp } from '../utils/timezone';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
 interface ListCardProps {
   entry: NoteEntry;
   onRemoveFromList?: (entryId: number) => void;
@@ -18,6 +20,11 @@ const ListCard = ({ entry, onRemoveFromList, listId, list }: ListCardProps) => {
   const navigate = useNavigate();
   const { timezone } = useTimezone();
   const [isDragging, setIsDragging] = useState(false);
+
+  // Check if a label name is a custom emoji URL
+  const isCustomEmojiUrl = (str: string): boolean => {
+    return str.startsWith('/api/uploads/') || str.startsWith('http');
+  };
 
   const handleDragStart = (e: React.DragEvent) => {
     e.stopPropagation();
@@ -94,43 +101,54 @@ const ListCard = ({ entry, onRemoveFromList, listId, list }: ListCardProps) => {
         )}
       </div>
 
-      {/* Read-only card preview - scrollable in both directions */}
+      {/* Read-only card preview */}
       <div 
-        className="custom-scrollbar"
-        style={{ 
-          maxHeight: '600px',
-          maxWidth: '100%',
-          overflow: 'auto',
-          position: 'relative',
+        className="rounded-2xl shadow-lg transition-all duration-300 hover:shadow-xl"
+        style={{
+          backgroundColor: 'var(--color-card-bg)',
+          border: '2px solid var(--color-border-primary)',
+          maxHeight: '500px',
+          overflow: 'hidden',
+          display: 'flex',
+          flexDirection: 'column',
         }}
       >
-        <div 
-          className="rounded-2xl shadow-lg transition-all duration-300 hover:shadow-xl"
-          style={{
-            backgroundColor: 'var(--color-card-bg)',
-            minWidth: 'min-content',
-          }}
-        >
-          <div className="p-6">
-            {/* Timestamp */}
-            <div className="flex items-center gap-2 text-sm mb-4" style={{ color: 'var(--color-text-tertiary)' }}>
-              <Clock className="h-4 w-4" />
-              <span>
-                {formatTimestamp(entry.created_at, timezone, 'h:mm a zzz')}
-              </span>
+        <div className="p-6 flex-shrink-0">
+          {/* Timestamp */}
+          <div className="flex items-center gap-2 text-sm mb-3" style={{ color: 'var(--color-text-tertiary)' }}>
+            <Clock className="h-4 w-4" />
+            <span>
+              {formatTimestamp(entry.created_at, timezone, 'h:mm a zzz')}
+            </span>
+          </div>
+
+          {/* Title (read-only) */}
+          {entry.title && (
+            <div className="mb-3 text-xl font-bold" style={{ color: 'var(--color-text-primary)' }}>
+              {entry.title}
             </div>
+          )}
 
-            {/* Title (read-only) */}
-            {entry.title && (
-              <div className="mb-4 text-lg font-semibold" style={{ color: 'var(--color-text-primary)' }}>
-                {entry.title}
-              </div>
-            )}
-
-            {/* Labels (read-only) */}
-            {entry.labels && entry.labels.length > 0 && (
-              <div className="mb-4 pb-4 flex flex-wrap gap-2" style={{ borderBottom: '1px solid var(--color-border-primary)' }}>
-                {entry.labels.map((label) => (
+          {/* Labels (read-only) */}
+          {entry.labels && entry.labels.length > 0 && (
+            <div className="mb-3 pb-3 flex flex-wrap gap-2" style={{ borderBottom: '1px solid var(--color-border-primary)' }}>
+              {entry.labels.map((label) => {
+                const isCustomEmoji = isCustomEmojiUrl(label.name);
+                
+                if (isCustomEmoji) {
+                  const imageUrl = label.name.startsWith('http') ? label.name : `${API_URL}${label.name}`;
+                  return (
+                    <img 
+                      key={label.id}
+                      src={imageUrl} 
+                      alt="emoji" 
+                      className="inline-emoji"
+                      style={{ width: '1.5rem', height: '1.5rem' }}
+                    />
+                  );
+                }
+                
+                return (
                   <span
                     key={label.id}
                     className="px-3 py-1 rounded-full text-sm font-medium"
@@ -142,27 +160,34 @@ const ListCard = ({ entry, onRemoveFromList, listId, list }: ListCardProps) => {
                   >
                     {label.name}
                   </span>
-                ))}
-              </div>
-            )}
+                );
+              })}
+            </div>
+          )}
+        </div>
 
-            {/* Content (read-only, HTML rendered, links clickable) */}
-            <div 
-              className="prose prose-sm max-w-none"
-              style={{ 
-                color: 'var(--color-text-primary)',
-                pointerEvents: 'auto', // Allow link clicks
-              }}
-              dangerouslySetInnerHTML={{ __html: entry.content }}
-              onClick={(e) => {
-                // Only allow link clicks, prevent other interactions
-                const target = e.target as HTMLElement;
-                if (target.tagName !== 'A') {
-                  e.preventDefault();
-                }
-              }}
-            />
-          </div>
+        {/* Content (read-only, HTML rendered, links clickable, scrollable) */}
+        <div 
+          className="px-6 pb-6 overflow-y-auto custom-scrollbar flex-1"
+          style={{ 
+            minHeight: 0,
+          }}
+        >
+          <div 
+            className="prose prose-sm max-w-none"
+            style={{ 
+              color: 'var(--color-text-primary)',
+              pointerEvents: 'auto',
+            }}
+            dangerouslySetInnerHTML={{ __html: entry.content }}
+            onClick={(e) => {
+              // Only allow link clicks, prevent other interactions
+              const target = e.target as HTMLElement;
+              if (target.tagName !== 'A') {
+                e.preventDefault();
+              }
+            }}
+          />
         </div>
       </div>
     </div>
