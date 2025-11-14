@@ -92,17 +92,12 @@ const Reports = () => {
   };
 
   const clearAllReportFlags = async () => {
-    if (!confirm('Remove report flag from ALL entries in the system? This cannot be undone.')) {
-      return;
-    }
-
     try {
       // Get all entries with report flag
       const response = await axios.get(`${API_URL}/api/reports/all-entries`);
       const entries = response.data.entries;
       
       if (entries.length === 0) {
-        alert('No entries have the report flag set');
         return;
       }
 
@@ -119,11 +114,8 @@ const Reports = () => {
       if (allEntriesReport) {
         await generateAllEntriesReport();
       }
-      
-      alert(`Report flag cleared from ${entries.length} entries`);
     } catch (error) {
       console.error('Failed to clear report flags:', error);
-      alert('Failed to clear report flags');
     }
   };
 
