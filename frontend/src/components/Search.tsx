@@ -566,20 +566,17 @@ const Search = () => {
                     {results.map((entry: any, index) => {
               // Extract date from the search result
               const date = entry.date || 'Unknown';
-              const content = entry.content_type === 'code' 
-                ? entry.content 
-                : stripHtml(entry.content);
-              const preview = content.slice(0, 200) + (content.length > 200 ? '...' : '');
 
               return (
                 <div
                   key={entry.id}
                   onClick={() => goToEntry(entry, date)}
-                  className="rounded-xl shadow-lg p-8 hover:shadow-2xl transition-all duration-300 cursor-pointer"
+                  className="rounded-xl shadow-lg p-6 hover:shadow-2xl transition-all duration-300 cursor-pointer"
                   style={{
                     backgroundColor: 'var(--color-card-bg)',
-                    border: '1px solid var(--color-border-primary)',
-                    animation: `fadeIn 0.3s ease-in ${index * 0.05}s both`
+                    border: '2px solid var(--color-border-primary)',
+                    animation: `fadeIn 0.3s ease-in ${index * 0.05}s both`,
+                    minHeight: '200px'
                   }}
                 >
                   <div className="flex items-start justify-between mb-4">
@@ -678,7 +675,19 @@ const Search = () => {
                       </div>
                     </div>
                   </div>
-                  <p className="text-base leading-relaxed whitespace-pre-wrap" style={{ color: 'var(--color-text-primary)' }}>{preview}</p>
+                  <div 
+                    className="prose max-w-none text-base leading-relaxed"
+                    style={{ 
+                      color: 'var(--color-text-primary)',
+                      maxHeight: '300px',
+                      overflowY: 'auto'
+                    }}
+                    dangerouslySetInnerHTML={{ 
+                      __html: entry.content_type === 'code' 
+                        ? `<pre><code>${entry.content}</code></pre>` 
+                        : entry.content 
+                    }}
+                  />
                 </div>
               );
             })}
