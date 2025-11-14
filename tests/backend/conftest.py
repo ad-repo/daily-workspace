@@ -27,7 +27,9 @@ sys.path.insert(0, backend_path)
 
 from app.database import Base, get_db  # noqa: E402
 from app.main import app  # noqa: E402
-from app.models import (  # noqa: E402, F401
+# Import the entire models module to ensure all tables (including association tables) are registered
+from app import models  # noqa: E402, F401
+from app.models import (  # noqa: E402
     AppSettings,
     DailyNote,
     Label,
@@ -53,11 +55,8 @@ def db_engine():
         connect_args={'check_same_thread': False},
         poolclass=StaticPool,
     )
-    # Explicitly reference all model classes to ensure they're registered with Base.metadata
-    # This triggers the SQLAlchemy metaclass to add them to Base.metadata.tables
-    _ = (AppSettings, DailyNote, Label, List, NoteEntry, QuarterlyGoal, SearchHistory, SprintGoal)
 
-    # Create all tables
+    # Create all tables (models module is imported above, ensuring all tables are registered)
     Base.metadata.create_all(bind=engine)
 
     # Enable WAL mode for better concurrency
