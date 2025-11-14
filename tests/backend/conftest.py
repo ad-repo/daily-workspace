@@ -25,18 +25,16 @@ backend_path = os.getenv(
 )
 sys.path.insert(0, backend_path)
 
-from app.database import Base, get_db  # noqa: E402
-from app.main import app  # noqa: E402
 # Import the entire models module to ensure all tables (including association tables) are registered
 from app import models  # noqa: E402, F401
+from app.database import Base, get_db  # noqa: E402
+from app.main import app  # noqa: E402
 from app.models import (  # noqa: E402
     AppSettings,
     DailyNote,
     Label,
-    List,
     NoteEntry,
     QuarterlyGoal,
-    SearchHistory,
     SprintGoal,
     entry_labels,
     entry_lists,
