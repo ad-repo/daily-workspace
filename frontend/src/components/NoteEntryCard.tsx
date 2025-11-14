@@ -394,14 +394,32 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onListsUpdat
                 className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
               />
             )}
-            <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--color-text-tertiary)' }}>
-              <Clock className="h-4 w-4" />
-              <span>
-                {formatTimestamp(entry.created_at, timezone, 'h:mm a zzz')}
-              </span>
-              {isSaving && (
-                <span className="text-blue-600 ml-2">Saving...</span>
-              )}
+            <div className="flex items-center gap-3 text-sm">
+              <div className="flex items-center gap-2" style={{ color: 'var(--color-text-tertiary)' }}>
+                <Clock className="h-4 w-4" />
+                <span>
+                  {formatTimestamp(entry.created_at, timezone, 'h:mm a zzz')}
+                </span>
+                {isSaving && (
+                  <span className="text-blue-600 ml-2">Saving...</span>
+                )}
+              </div>
+              
+              {/* Kanban State Badge - show if entry is in any Kanban list */}
+              {entry.lists && entry.lists.filter(list => list.is_kanban).map(kanbanList => (
+                <span
+                  key={kanbanList.id}
+                  className="px-2.5 py-1 rounded-md text-xs font-semibold whitespace-nowrap"
+                  style={{
+                    backgroundColor: kanbanList.color,
+                    color: '#ffffff',
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.15)',
+                  }}
+                  title={`Kanban State: ${kanbanList.name}`}
+                >
+                  {kanbanList.name}
+                </span>
+              ))}
             </div>
           </div>
 
@@ -637,7 +655,7 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onListsUpdat
         <div className="mb-4 pb-4" style={{ borderBottom: '1px solid var(--color-border-primary)' }}>
           <EntryListSelector
             entryId={entry.id}
-            currentLists={entry.lists || []}
+            currentLists={(entry.lists || []).filter(list => !list.is_kanban)}
             onUpdate={() => {
               if (onListsUpdate) {
                 onListsUpdate();
