@@ -3,6 +3,8 @@ import { X, Upload, Trash2 } from 'lucide-react';
 import { customEmojisApi } from '../api';
 import type { CustomEmoji } from '../types';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
 interface CustomEmojiManagerProps {
   isOpen: boolean;
   onClose: () => void;
@@ -300,7 +302,7 @@ const CustomEmojiManager = ({ isOpen, onClose, onEmojiAdded }: CustomEmojiManage
                   }}
                 >
                   <img
-                    src={emoji.image_url}
+                    src={`${API_URL}${emoji.image_url}`}
                     alt={emoji.name}
                     className="w-16 h-16 mx-auto object-contain mb-2"
                   />
