@@ -19,8 +19,11 @@ router = APIRouter(prefix='/api/lists', tags=['lists'])
 
 @router.get('', response_model=list[schemas.ListResponse])
 def get_all_lists(include_archived: bool = False, db: Session = Depends(get_db)):
-    """Get all lists with entry counts and labels."""
+    """Get all lists with entry counts and labels. Excludes Kanban columns."""
     query = db.query(models.List).options(joinedload(models.List.labels))
+
+    # Exclude Kanban columns from regular lists
+    query = query.filter(models.List.is_kanban == 0)
 
     if not include_archived:
         query = query.filter(models.List.is_archived == 0)
@@ -35,6 +38,8 @@ def get_all_lists(include_archived: bool = False, db: Session = Depends(get_db))
             'color': lst.color,
             'order_index': lst.order_index,
             'is_archived': bool(lst.is_archived),
+            'is_kanban': bool(lst.is_kanban),
+            'kanban_order': lst.kanban_order,
             'created_at': lst.created_at,
             'updated_at': lst.updated_at,
             'entry_count': len(lst.entries),
@@ -68,6 +73,8 @@ def get_list(list_id: int, db: Session = Depends(get_db)):
         'color': lst.color,
         'order_index': lst.order_index,
         'is_archived': bool(lst.is_archived),
+        'is_kanban': bool(lst.is_kanban),
+        'kanban_order': lst.kanban_order,
         'created_at': lst.created_at,
         'updated_at': lst.updated_at,
         'entry_count': len(lst.entries),
@@ -323,3 +330,130 @@ def remove_label_from_list(list_id: int, label_id: int, db: Session = Depends(ge
     db.commit()
 
     return {'message': 'Label removed from list successfully'}
+
+
+# ===========================
+# Kanban Board Endpoints
+# ===========================
+
+
+@router.get('/kanban', response_model=list[schemas.ListResponse])
+def get_kanban_boards(db: Session = Depends(get_db)):
+    """Get all Kanban board columns (lists with is_kanban=1)."""
+    kanban_lists = (
+        db.query(models.List)
+        .options(joinedload(models.List.labels))
+        .filter(models.List.is_kanban == 1)
+        .filter(models.List.is_archived == 0)
+        .order_by(models.List.kanban_order, models.List.created_at)
+        .all()
+    )
+
+    return [
+        {
+            'id': lst.id,
+            'name': lst.name,
+            'description': lst.description,
+            'color': lst.color,
+            'order_index': lst.order_index,
+            'is_archived': bool(lst.is_archived),
+            'is_kanban': bool(lst.is_kanban),
+            'kanban_order': lst.kanban_order,
+            'created_at': lst.created_at,
+            'updated_at': lst.updated_at,
+            'entry_count': len(lst.entries),
+            'labels': lst.labels,
+        }
+        for lst in kanban_lists
+    ]
+
+
+@router.post('/kanban/initialize')
+def initialize_kanban(db: Session = Depends(get_db)):
+    """
+    Initialize Kanban board with default columns if none exist.
+    Creates: To Do, In Progress, Done.
+    """
+    # Check if Kanban columns already exist
+    existing_kanban = db.query(models.List).filter(models.List.is_kanban == 1).first()
+    if existing_kanban:
+        raise HTTPException(status_code=400, detail='Kanban board already initialized')
+
+    # Create default Kanban columns
+    default_columns = [
+        {
+            'name': 'To Do',
+            'description': 'Tasks to be started',
+            'color': '#3b82f6',  # Blue
+            'kanban_order': 0,
+        },
+        {
+            'name': 'In Progress',
+            'description': 'Tasks currently being worked on',
+            'color': '#f59e0b',  # Amber
+            'kanban_order': 1,
+        },
+        {
+            'name': 'Done',
+            'description': 'Completed tasks',
+            'color': '#10b981',  # Green
+            'kanban_order': 2,
+        },
+    ]
+
+    created_columns = []
+    for col_data in default_columns:
+        new_column = models.List(
+            name=col_data['name'],
+            description=col_data['description'],
+            color=col_data['color'],
+            is_kanban=1,
+            kanban_order=col_data['kanban_order'],
+            order_index=0,
+            is_archived=0,
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow(),
+        )
+        db.add(new_column)
+        created_columns.append(new_column)
+
+    db.commit()
+
+    # Refresh to get IDs
+    for col in created_columns:
+        db.refresh(col)
+
+    return {
+        'message': 'Kanban board initialized successfully',
+        'columns': [
+            {
+                'id': col.id,
+                'name': col.name,
+                'description': col.description,
+                'color': col.color,
+                'kanban_order': col.kanban_order,
+            }
+            for col in created_columns
+        ],
+    }
+
+
+@router.put('/kanban/reorder')
+def reorder_kanban_columns(request: schemas.ReorderListsRequest, db: Session = Depends(get_db)):
+    """
+    Reorder Kanban columns by updating their kanban_order.
+    Expects a list of {id, order_index} where order_index is the new kanban_order.
+    """
+    for item in request.lists:
+        lst = db.query(models.List).filter(models.List.id == item.id).first()
+        if not lst:
+            raise HTTPException(status_code=404, detail=f'List {item.id} not found')
+
+        if not lst.is_kanban:
+            raise HTTPException(status_code=400, detail=f'List {item.id} is not a Kanban column')
+
+        lst.kanban_order = item.order_index
+        lst.updated_at = datetime.utcnow()
+
+    db.commit()
+    return {'message': 'Kanban columns reordered successfully'}

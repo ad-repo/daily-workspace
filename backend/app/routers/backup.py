@@ -44,6 +44,8 @@ async def export_data(db: Session = Depends(get_db)):
                 'color': lst.color,
                 'order_index': lst.order_index,
                 'is_archived': bool(lst.is_archived),
+                'is_kanban': bool(lst.is_kanban),
+                'kanban_order': lst.kanban_order,
                 'created_at': lst.created_at.isoformat(),
                 'updated_at': lst.updated_at.isoformat(),
             }
@@ -477,6 +479,8 @@ async def import_data(file: UploadFile = File(...), replace: bool = False, db: S
                     color=list_data.get('color', '#3b82f6'),
                     order_index=list_data.get('order_index', 0),
                     is_archived=1 if list_data.get('is_archived', False) else 0,
+                    is_kanban=1 if list_data.get('is_kanban', False) else 0,
+                    kanban_order=list_data.get('kanban_order', 0),
                     created_at=datetime.fromisoformat(list_data['created_at'])
                     if 'created_at' in list_data
                     else datetime.utcnow(),

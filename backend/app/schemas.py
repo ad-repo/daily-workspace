@@ -34,6 +34,8 @@ class ListBase(BaseModel):
     color: str = '#3b82f6'
     order_index: int = 0
     is_archived: bool = False
+    is_kanban: bool = False
+    kanban_order: int = 0
 
 
 class ListCreate(ListBase):
@@ -46,6 +48,8 @@ class ListUpdate(BaseModel):
     color: str | None = None
     order_index: int | None = None
     is_archived: bool | None = None
+    is_kanban: bool | None = None
+    kanban_order: int | None = None
 
 
 class ListResponse(ListBase):
