@@ -1,6 +1,8 @@
 """
 Integration tests for emoji_library setting in app_settings.
 """
+import json
+
 from fastapi.testclient import TestClient
 
 
@@ -85,7 +87,11 @@ class TestEmojiLibrarySetting:
             'custom_emojis': [],
         }
 
-        response = client.post('/api/backup/import', json=backup_data)
+        # Convert to JSON string and send as file upload
+        json_str = json.dumps(backup_data)
+        files = {'file': ('backup.json', json_str, 'application/json')}
+
+        response = client.post('/api/backup/import', files=files)
         assert response.status_code == 200
 
         # Verify emoji library was restored
