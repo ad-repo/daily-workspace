@@ -109,6 +109,8 @@ export interface List {
   color: string;
   order_index: number;
   is_archived: boolean;
+  is_kanban?: boolean;
+  kanban_order?: number;
   created_at: string;
   updated_at: string;
   entry_count?: number;
@@ -125,6 +127,8 @@ export interface ListCreate {
   color?: string;
   order_index?: number;
   is_archived?: boolean;
+  is_kanban?: boolean;
+  kanban_order?: number;
 }
 
 export interface ListUpdate {
@@ -133,6 +137,8 @@ export interface ListUpdate {
   color?: string;
   order_index?: number;
   is_archived?: boolean;
+  is_kanban?: boolean;
+  kanban_order?: number;
 }
 
 export interface EntryListAssociation {

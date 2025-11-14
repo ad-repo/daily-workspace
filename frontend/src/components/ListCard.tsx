@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Trash2, Calendar, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import type { NoteEntry } from '../types';
+import type { NoteEntry, List } from '../types';
 import { useTimezone } from '../contexts/TimezoneContext';
 import { formatTimestamp } from '../utils/timezone';
 
@@ -11,9 +11,10 @@ interface ListCardProps {
   onUpdate: () => void;
   onLabelsUpdate: (entryId: number, labels: any[]) => void;
   listId?: number;
+  list?: List;
 }
 
-const ListCard = ({ entry, onRemoveFromList, listId }: ListCardProps) => {
+const ListCard = ({ entry, onRemoveFromList, listId, list }: ListCardProps) => {
   const navigate = useNavigate();
   const { timezone } = useTimezone();
   const [isDragging, setIsDragging] = useState(false);
