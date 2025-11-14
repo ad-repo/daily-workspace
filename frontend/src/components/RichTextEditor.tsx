@@ -171,11 +171,32 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
                 };
               },
             },
+            'data-emoji': {
+              default: null,
+              renderHTML: attributes => {
+                if (attributes['data-emoji']) {
+                  return {
+                    'data-emoji': attributes['data-emoji'],
+                  };
+                }
+                return {};
+              },
+            },
           };
         },
-      }).configure({
-        HTMLAttributes: {
-          class: 'w-full h-auto rounded-lg',
+        renderHTML({ HTMLAttributes }) {
+          // If it's a custom emoji, use inline emoji styles
+          if (HTMLAttributes['data-emoji']) {
+            return ['img', {
+              ...HTMLAttributes,
+              style: 'display: inline-block; height: 1.2em; width: 1.2em; vertical-align: -0.2em; margin: 0 0.1em; object-fit: contain;',
+            }];
+          }
+          // Otherwise use default image styles
+          return ['img', {
+            ...HTMLAttributes,
+            class: 'w-full h-auto rounded-lg',
+          }];
         },
       }),
       // Add custom node for video tags
@@ -705,8 +726,8 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
     if (!editor) return;
 
     if (isCustom && imageUrl) {
-      // Insert custom emoji as an image using TipTap's setImage command
-      editor.chain().focus().setImage({ src: imageUrl, alt: emoji }).run();
+      // Insert custom emoji as an image using TipTap's setImage command with data-emoji attribute
+      editor.chain().focus().setImage({ src: imageUrl, alt: emoji, 'data-emoji': 'true' }).run();
       // Add a space after the image
       editor.chain().focus().insertContent(' ').run();
     } else {
