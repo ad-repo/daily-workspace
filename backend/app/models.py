@@ -67,6 +67,8 @@ class List(Base):
     color = Column(String, default='#3b82f6')  # Hex color code
     order_index = Column(Integer, default=0)  # For ordering lists
     is_archived = Column(Integer, default=0)  # 0 = false, 1 = true (for SQLite compatibility)
+    is_kanban = Column(Integer, default=0)  # 0 = false, 1 = true (Kanban board column)
+    kanban_order = Column(Integer, default=0)  # For ordering Kanban columns
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
