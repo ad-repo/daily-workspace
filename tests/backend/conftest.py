@@ -53,9 +53,9 @@ def db_engine():
         connect_args={'check_same_thread': False},
         poolclass=StaticPool,
     )
-    # Import models inside fixture to ensure they're registered with Base.metadata
-    # The module-level imports might not have registered them yet
-    from app import models  # noqa: F401
+    # Explicitly reference all model classes to ensure they're registered with Base.metadata
+    # This triggers the SQLAlchemy metaclass to add them to Base.metadata.tables
+    _ = (AppSettings, DailyNote, Label, List, NoteEntry, QuarterlyGoal, SearchHistory, SprintGoal)
 
     # Create all tables
     Base.metadata.create_all(bind=engine)
