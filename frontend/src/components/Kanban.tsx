@@ -231,10 +231,10 @@ export default function Kanban() {
           </div>
         ) : (
           <div 
-            className="flex gap-6 py-6 h-full items-stretch"
+            className="flex gap-6 py-6 h-full items-stretch justify-center"
             style={{
-              paddingLeft: boards.length <= 3 ? `max(2rem, calc((100vw - (384px * ${boards.length}) - ${(boards.length - 1) * 24}px) / 2))` : '2rem',
-              paddingRight: boards.length <= 3 ? `max(2rem, calc((100vw - (384px * ${boards.length}) - ${(boards.length - 1) * 24}px) / 2))` : '2rem',
+              paddingLeft: '2rem',
+              paddingRight: '2rem',
             }}
           >
             {boards.map((board) => (
