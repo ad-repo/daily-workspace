@@ -64,18 +64,14 @@ async def create_custom_emoji(
     allowed_extensions = {'.png', '.gif', '.webp', '.jpg', '.jpeg'}
     file_extension = os.path.splitext(file.filename or '')[1].lower()
     if file_extension not in allowed_extensions:
-        raise HTTPException(
-            status_code=400, detail=f'File must be one of: {", ".join(allowed_extensions)}'
-        )
+        raise HTTPException(status_code=400, detail=f'File must be one of: {", ".join(allowed_extensions)}')
 
     # Read file contents
     contents = await file.read()
 
     # Validate file size
     if len(contents) > MAX_FILE_SIZE:
-        raise HTTPException(
-            status_code=400, detail=f'File size must be less than {MAX_FILE_SIZE // 1024}KB'
-        )
+        raise HTTPException(status_code=400, detail=f'File size must be less than {MAX_FILE_SIZE // 1024}KB')
 
     # Check if emoji name already exists
     existing_emoji = db.query(models.CustomEmoji).filter(models.CustomEmoji.name == name).first()
@@ -119,9 +115,7 @@ async def create_custom_emoji(
 
 
 @router.patch('/{emoji_id}', response_model=schemas.CustomEmojiResponse)
-def update_custom_emoji(
-    emoji_id: int, emoji_update: schemas.CustomEmojiUpdate, db: Session = Depends(get_db)
-):
+def update_custom_emoji(emoji_id: int, emoji_update: schemas.CustomEmojiUpdate, db: Session = Depends(get_db)):
     """Update custom emoji metadata (name, category, keywords)"""
     emoji = db.query(models.CustomEmoji).filter(models.CustomEmoji.id == emoji_id).first()
 
@@ -130,9 +124,7 @@ def update_custom_emoji(
 
     # Check if new name conflicts with existing emoji
     if emoji_update.name and emoji_update.name != emoji.name:
-        existing_emoji = (
-            db.query(models.CustomEmoji).filter(models.CustomEmoji.name == emoji_update.name).first()
-        )
+        existing_emoji = db.query(models.CustomEmoji).filter(models.CustomEmoji.name == emoji_update.name).first()
         if existing_emoji:
             raise HTTPException(status_code=400, detail='Emoji with this name already exists')
         emoji.name = emoji_update.name
@@ -192,4 +184,3 @@ def delete_custom_emoji(emoji_id: int, permanent: bool = False, db: Session = De
         db.commit()
 
         return {'message': 'Custom emoji deleted', 'id': emoji_id}
-
