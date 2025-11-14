@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import CalendarView from './components/CalendarView';
 import DailyView from './components/DailyView';
 import Lists from './components/Lists';
+import Kanban from './components/Kanban';
 import Navigation from './components/Navigation';
 import Settings from './components/Settings';
 import Reports from './components/Reports';
@@ -54,6 +55,10 @@ const AppContent = () => {
             <Route
               path="/lists"
               element={<Lists />}
+            />
+            <Route
+              path="/kanban"
+              element={<Kanban />}
             />
             <Route
               path="/reports"
