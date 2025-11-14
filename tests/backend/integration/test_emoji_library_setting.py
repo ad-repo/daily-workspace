@@ -24,7 +24,7 @@ class TestEmojiLibrarySetting:
         assert response.status_code == 200
         data = response.json()
         assert data['emoji_library'] == 'emoji-mart'
-        
+
         # Verify it persists
         get_response = client.get('/api/settings')
         assert get_response.json()['emoji_library'] == 'emoji-mart'
@@ -33,7 +33,7 @@ class TestEmojiLibrarySetting:
         """Test updating emoji library preference to emoji-picker-react."""
         # First set to emoji-mart
         client.patch('/api/settings', json={'emoji_library': 'emoji-mart'})
-        
+
         # Then change to emoji-picker-react
         response = client.patch(
             '/api/settings',
@@ -47,10 +47,10 @@ class TestEmojiLibrarySetting:
         """Test that emoji library setting persists when other settings are updated."""
         # Set emoji library
         client.patch('/api/settings', json={'emoji_library': 'emoji-mart'})
-        
+
         # Update a different setting (e.g., timezone)
         client.patch('/api/settings', json={'timezone': 'America/New_York'})
-        
+
         # Verify emoji library is unchanged
         response = client.get('/api/settings')
         assert response.json()['emoji_library'] == 'emoji-mart'
@@ -59,12 +59,12 @@ class TestEmojiLibrarySetting:
         """Test that emoji library setting is included in backup export."""
         # Set emoji library
         client.patch('/api/settings', json={'emoji_library': 'emoji-mart'})
-        
+
         # Export backup
         response = client.get('/api/backup/export')
         assert response.status_code == 200
         data = response.json()
-        
+
         assert 'app_settings' in data
         assert data['app_settings']['emoji_library'] == 'emoji-mart'
 
@@ -84,11 +84,10 @@ class TestEmojiLibrarySetting:
             'search_history': [],
             'custom_emojis': [],
         }
-        
+
         response = client.post('/api/backup/import', json=backup_data)
         assert response.status_code == 200
-        
+
         # Verify emoji library was restored
         settings_response = client.get('/api/settings')
         assert settings_response.json()['emoji_library'] == 'emoji-mart'
-
