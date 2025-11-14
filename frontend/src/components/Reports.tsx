@@ -91,6 +91,32 @@ const Reports = () => {
     }
   };
 
+  const clearAllReportFlags = async () => {
+    if (!allEntriesReport || allEntriesReport.entries.length === 0) return;
+    
+    if (!confirm(`Remove report flag from all ${allEntriesReport.entries.length} entries?`)) {
+      return;
+    }
+
+    try {
+      // Clear report flag from all entries
+      await Promise.all(
+        allEntriesReport.entries.map((entry: ReportEntry) =>
+          axios.patch(`${API_URL}/api/entries/${entry.entry_id}`, {
+            include_in_report: false
+          })
+        )
+      );
+      
+      // Refresh the report to show it's now empty
+      await generateAllEntriesReport();
+      alert('All report flags cleared successfully');
+    } catch (error) {
+      console.error('Failed to clear report flags:', error);
+      alert('Failed to clear some report flags');
+    }
+  };
+
   const exportAllEntriesReport = () => {
     if (!allEntriesReport) return;
 
@@ -825,6 +851,23 @@ const Reports = () => {
                       Copy
                     </>
                   )}
+                </button>
+                <button
+                  onClick={clearAllReportFlags}
+                  disabled={allEntriesReport.entries.length === 0}
+                  className="px-6 py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{
+                    backgroundColor: 'var(--color-danger, #ef4444)',
+                    color: 'white'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (allEntriesReport.entries.length > 0) e.currentTarget.style.opacity = '0.9';
+                  }}
+                  onMouseLeave={(e) => {
+                    if (allEntriesReport.entries.length > 0) e.currentTarget.style.opacity = '1';
+                  }}
+                >
+                  Clear All
                 </button>
                 <button
                   onClick={exportAllEntriesReport}
