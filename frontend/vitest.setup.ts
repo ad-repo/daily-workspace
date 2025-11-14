@@ -200,8 +200,7 @@ vi.mock('./src/contexts/EmojiLibraryContext', () => ({
 
 // Mock EmojiPicker component
 vi.mock('./src/components/EmojiPicker', () => ({
-  default: ({ onEmojiSelect }: { onEmojiSelect?: (emoji: string, isCustom?: boolean, imageUrl?: string) => void }) => (
-    <button onClick={() => onEmojiSelect?.('🔥', false, undefined)}>Mock Emoji Picker</button>
-  ),
+  default: ({ onEmojiSelect }: { onEmojiSelect?: (emoji: string, isCustom?: boolean, imageUrl?: string) => void }) =>
+    React.createElement('button', { onClick: () => onEmojiSelect?.('🔥', false, undefined) }, 'Mock Emoji Picker'),
 }));
 
