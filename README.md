@@ -57,6 +57,18 @@ A modern, powerful daily workspace application for capturing and organizing your
   - Create new entries directly from list view
   - Search and filter by lists and labels
   - **Optimistic UI Updates**: Instant feedback when adding/removing from lists
+- **Kanban Board**: Workflow state management with visual columns
+  - **One-Click Initialize**: Create default columns (To Do, In Progress, Done)
+  - **Custom Columns**: Add your own workflow states with custom names and colors
+  - **Drag-and-Drop**: Reorder columns to match your workflow
+  - **State Badges**: Cards show their Kanban state when viewed on the board
+  - **Horizontal Scrolling**: Navigate between columns with smooth scrolling
+  - **Mini-Map Navigation**: Quick jump to any column with visual indicators
+  - **Reuses Existing Infrastructure**: Kanban columns are special lists (is_kanban flag)
+  - **Separate from Lists**: Regular lists and Kanban boards are kept separate
+  - **Full Entry Support**: All entry features work in Kanban (labels, completion, etc.)
+  - **Create Entries**: Add new tasks directly from any Kanban column
+  - **Multi-Board Support**: Entries can be in both Kanban and regular lists
 - **Pinned Entries**: Auto-copy important entries to future days
   - Pin any card to have it automatically appear on all future days
   - Perfect for recurring tasks, daily reminders, or ongoing work
