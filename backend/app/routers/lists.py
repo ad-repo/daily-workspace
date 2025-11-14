@@ -237,6 +237,8 @@ def create_list(list_data: schemas.ListCreate, db: Session = Depends(get_db)):
         color=list_data.color,
         order_index=list_data.order_index,
         is_archived=1 if list_data.is_archived else 0,
+        is_kanban=1 if list_data.is_kanban else 0,
+        kanban_order=list_data.kanban_order,
         created_at=datetime.utcnow(),
         updated_at=datetime.utcnow(),
     )
@@ -251,6 +253,8 @@ def create_list(list_data: schemas.ListCreate, db: Session = Depends(get_db)):
         'color': new_list.color,
         'order_index': new_list.order_index,
         'is_archived': bool(new_list.is_archived),
+        'is_kanban': bool(new_list.is_kanban),
+        'kanban_order': new_list.kanban_order,
         'created_at': new_list.created_at,
         'updated_at': new_list.updated_at,
         'entry_count': 0,
@@ -302,6 +306,10 @@ def update_list(list_id: int, list_data: schemas.ListUpdate, db: Session = Depen
         lst.order_index = list_data.order_index
     if list_data.is_archived is not None:
         lst.is_archived = 1 if list_data.is_archived else 0
+    if list_data.is_kanban is not None:
+        lst.is_kanban = 1 if list_data.is_kanban else 0
+    if list_data.kanban_order is not None:
+        lst.kanban_order = list_data.kanban_order
 
     lst.updated_at = datetime.utcnow()
     db.commit()
@@ -314,6 +322,8 @@ def update_list(list_id: int, list_data: schemas.ListUpdate, db: Session = Depen
         'color': lst.color,
         'order_index': lst.order_index,
         'is_archived': bool(lst.is_archived),
+        'is_kanban': bool(lst.is_kanban),
+        'kanban_order': lst.kanban_order,
         'created_at': lst.created_at,
         'updated_at': lst.updated_at,
         'entry_count': len(lst.entries),
