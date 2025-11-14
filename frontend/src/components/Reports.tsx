@@ -92,28 +92,38 @@ const Reports = () => {
   };
 
   const clearAllReportFlags = async () => {
-    if (!allEntriesReport || allEntriesReport.entries.length === 0) return;
-    
-    if (!confirm(`Remove report flag from all ${allEntriesReport.entries.length} entries?`)) {
+    if (!confirm('Remove report flag from ALL entries in the system? This cannot be undone.')) {
       return;
     }
 
     try {
+      // Get all entries with report flag
+      const response = await axios.get(`${API_URL}/api/reports/all-entries`);
+      const entries = response.data.entries;
+      
+      if (entries.length === 0) {
+        alert('No entries have the report flag set');
+        return;
+      }
+
       // Clear report flag from all entries
       await Promise.all(
-        allEntriesReport.entries.map((entry: ReportEntry) =>
+        entries.map((entry: ReportEntry) =>
           axios.patch(`${API_URL}/api/entries/${entry.entry_id}`, {
             include_in_report: false
           })
         )
       );
       
-      // Refresh the report to show it's now empty
-      await generateAllEntriesReport();
-      alert('All report flags cleared successfully');
+      // Refresh the report if it was loaded
+      if (allEntriesReport) {
+        await generateAllEntriesReport();
+      }
+      
+      alert(`Report flag cleared from ${entries.length} entries`);
     } catch (error) {
       console.error('Failed to clear report flags:', error);
-      alert('Failed to clear some report flags');
+      alert('Failed to clear report flags');
     }
   };
 
@@ -494,8 +504,24 @@ const Reports = () => {
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <FileText className="h-8 w-8" style={{ color: 'var(--color-accent)' }} />
-            <h1 className="text-3xl font-bold" style={{ color: 'var(--color-text-primary)' }}>Weekly Report</h1>
+            <h1 className="text-3xl font-bold" style={{ color: 'var(--color-text-primary)' }}>Reports</h1>
           </div>
+          <button
+            onClick={clearAllReportFlags}
+            className="px-6 py-3 rounded-lg transition-colors"
+            style={{
+              backgroundColor: 'var(--color-danger, #ef4444)',
+              color: 'white'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.opacity = '0.9';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.opacity = '1';
+            }}
+          >
+            Clear All Report Flags
+          </button>
         </div>
 
         <div className="mb-6">
