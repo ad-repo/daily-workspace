@@ -259,15 +259,7 @@ export default function Kanban() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold" style={{ color: 'var(--color-text-primary)' }}>
-            Kanban Board
-          </h1>
-          <p className="text-sm mt-1" style={{ color: 'var(--color-text-secondary)' }}>
-            Organize your tasks by workflow state
-          </p>
-        </div>
+      <div className="flex items-center justify-end">
         <div className="flex gap-3">
           <button
             onClick={() => loadBoards(true)}
