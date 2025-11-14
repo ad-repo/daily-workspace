@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Trash2, Calendar, Clock } from 'lucide-react';
+import { Trash2, BookOpen, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import type { NoteEntry, List } from '../types';
 import { useTimezone } from '../contexts/TimezoneContext';
@@ -81,7 +81,7 @@ const ListCard = ({ entry, onRemoveFromList, listId, list }: ListCardProps) => {
             }}
             title="View in daily notes"
           >
-            <Calendar className="w-4 h-4" />
+            <BookOpen className="w-4 h-4" />
           </button>
         )}
         {onRemoveFromList && listId && (
