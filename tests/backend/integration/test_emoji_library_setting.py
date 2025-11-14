@@ -76,7 +76,7 @@ class TestEmojiLibrarySetting:
                 'timezone': 'UTC',
                 'emoji_library': 'emoji-mart',
             },
-            'daily_notes': [],
+            'notes': [],
             'labels': [],
             'lists': [],
             'sprint_goals': [],

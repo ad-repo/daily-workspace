@@ -35,7 +35,7 @@ def get_custom_emojis(include_deleted: bool = False, db: Session = Depends(get_d
     if not include_deleted:
         query = query.filter(models.CustomEmoji.is_deleted == 0)
 
-    emojis = query.order_by(models.CustomEmoji.created_at.desc()).all()
+    emojis = query.order_by(models.CustomEmoji.name).all()
 
     return [
         {
@@ -50,6 +50,26 @@ def get_custom_emojis(include_deleted: bool = False, db: Session = Depends(get_d
         }
         for emoji in emojis
     ]
+
+
+@router.get('/{emoji_id}', response_model=schemas.CustomEmojiResponse)
+def get_custom_emoji(emoji_id: int, db: Session = Depends(get_db)):
+    """Get a single custom emoji by ID"""
+    emoji = db.query(models.CustomEmoji).filter(models.CustomEmoji.id == emoji_id).first()
+
+    if not emoji:
+        raise HTTPException(status_code=404, detail='Custom emoji not found')
+
+    return {
+        'id': emoji.id,
+        'name': emoji.name,
+        'image_url': emoji.image_url,
+        'category': emoji.category,
+        'keywords': emoji.keywords,
+        'is_deleted': bool(emoji.is_deleted),
+        'created_at': emoji.created_at,
+        'updated_at': emoji.updated_at,
+    }
 
 
 @router.post('', response_model=schemas.CustomEmojiResponse)
@@ -201,4 +221,4 @@ def delete_custom_emoji(emoji_id: int, permanent: bool = False, db: Session = De
         emoji.updated_at = datetime.utcnow()
         db.commit()
 
-        return {'message': 'Custom emoji deleted', 'id': emoji_id}
+        return {'message': 'Custom emoji soft-deleted', 'id': emoji_id}
