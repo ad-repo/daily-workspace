@@ -359,91 +359,122 @@ export default function Kanban() {
       {/* Create Column Modal */}
       {showCreateModal && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
           onClick={() => setShowCreateModal(false)}
         >
           <div
-            className="rounded-lg p-6 w-full max-w-md"
-            style={{ backgroundColor: 'var(--color-card-bg)' }}
+            className="rounded-xl shadow-2xl p-6 w-full max-w-md"
+            style={{
+              backgroundColor: 'var(--color-card-bg)',
+              border: '1px solid var(--color-border)',
+            }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="text-2xl font-bold mb-4" style={{ color: 'var(--color-text-primary)' }}>
+            <h2
+              className="text-2xl font-bold mb-6"
+              style={{ color: 'var(--color-text-primary)' }}
+            >
               Create New Column
             </h2>
 
-            <div className="space-y-4">
+            <div className="space-y-5">
               <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>
-                  Column Name
+                <label
+                  className="block text-sm font-semibold mb-2"
+                  style={{ color: 'var(--color-text-primary)' }}
+                >
+                  Column Name <span style={{ color: '#ef4444' }}>*</span>
                 </label>
                 <input
                   type="text"
                   value={newColumnName}
                   onChange={(e) => setNewColumnName(e.target.value)}
-                  placeholder="e.g., Review, Testing, Blocked"
-                  className="w-full px-4 py-2 rounded-lg"
+                  onKeyPress={(e) => e.key === 'Enter' && handleCreateColumn()}
+                  className="w-full px-4 py-2.5 rounded-lg border-2 focus:outline-none focus:ring-2 transition-all"
                   style={{
-                    backgroundColor: 'var(--color-bg-secondary)',
+                    backgroundColor: 'var(--color-background)',
+                    borderColor: 'var(--color-border)',
                     color: 'var(--color-text-primary)',
-                    border: '1px solid var(--color-border-primary)',
                   }}
+                  placeholder="e.g., Review, Testing, Blocked"
                   autoFocus
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>
-                  Description (optional)
+                <label
+                  className="block text-sm font-semibold mb-2"
+                  style={{ color: 'var(--color-text-primary)' }}
+                >
+                  Description
                 </label>
-                <input
-                  type="text"
+                <textarea
                   value={newColumnDescription}
                   onChange={(e) => setNewColumnDescription(e.target.value)}
-                  placeholder="Brief description"
-                  className="w-full px-4 py-2 rounded-lg"
+                  className="w-full px-4 py-2.5 rounded-lg border-2 focus:outline-none focus:ring-2 transition-all resize-none"
                   style={{
-                    backgroundColor: 'var(--color-bg-secondary)',
+                    backgroundColor: 'var(--color-background)',
+                    borderColor: 'var(--color-border)',
                     color: 'var(--color-text-primary)',
-                    border: '1px solid var(--color-border-primary)',
                   }}
+                  placeholder="Add a description (optional)"
+                  rows={3}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>
-                  Color
+                <label
+                  className="block text-sm font-semibold mb-2"
+                  style={{ color: 'var(--color-text-primary)' }}
+                >
+                  Color Theme
                 </label>
-                <input
-                  type="color"
-                  value={newColumnColor}
-                  onChange={(e) => setNewColumnColor(e.target.value)}
-                  className="w-full h-12 rounded-lg cursor-pointer"
-                />
+                <div className="flex items-center gap-3">
+                  <input
+                    type="color"
+                    value={newColumnColor}
+                    onChange={(e) => setNewColumnColor(e.target.value)}
+                    className="w-16 h-12 rounded-lg border-2 cursor-pointer"
+                    style={{
+                      borderColor: 'var(--color-border)',
+                    }}
+                  />
+                  <div
+                    className="flex-1 px-4 py-2.5 rounded-lg border-2 font-mono text-sm"
+                    style={{
+                      backgroundColor: 'var(--color-background)',
+                      borderColor: 'var(--color-border)',
+                      color: 'var(--color-text-primary)',
+                    }}
+                  >
+                    {newColumnColor.toUpperCase()}
+                  </div>
+                </div>
               </div>
+            </div>
 
-              <div className="flex gap-3 pt-4">
-                <button
-                  onClick={() => setShowCreateModal(false)}
-                  className="flex-1 px-4 py-2 rounded-lg font-medium transition-all"
-                  style={{
-                    backgroundColor: 'var(--color-bg-secondary)',
-                    color: 'var(--color-text-primary)',
-                    border: '1px solid var(--color-border-primary)',
-                  }}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleCreateColumn}
-                  className="flex-1 px-4 py-2 rounded-lg font-medium transition-all hover:scale-105"
-                  style={{
-                    backgroundColor: 'var(--color-accent)',
-                    color: 'var(--color-accent-text)',
-                  }}
-                >
-                  Create Column
-                </button>
-              </div>
+            <div className="flex gap-3 mt-8">
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="flex-1 px-4 py-3 rounded-lg font-semibold transition-all hover:opacity-80"
+                style={{
+                  backgroundColor: 'var(--color-background)',
+                  color: 'var(--color-text-primary)',
+                  border: '2px solid var(--color-border)',
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCreateColumn}
+                className="flex-1 px-4 py-3 rounded-lg font-semibold transition-all hover:scale-105 shadow-lg"
+                style={{
+                  backgroundColor: 'var(--color-accent)',
+                  color: 'var(--color-accent-text)',
+                }}
+              >
+                Create Column
+              </button>
             </div>
           </div>
         </div>
