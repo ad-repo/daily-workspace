@@ -51,12 +51,19 @@ const Search = () => {
 
   // Auto-search when labels, lists, or filters change
   useEffect(() => {
-    if (selectedLabels.length > 0 || selectedLists.length > 0 || filterStarred !== null || filterCompleted !== null) {
+    if (hasSearched) {
+      // If we've already searched, re-search when filters change
+      if (selectedLabels.length > 0 || selectedLists.length > 0 || filterStarred !== null || filterCompleted !== null || searchQuery.trim()) {
+        handleSearch();
+      } else {
+        // Clear results if no filters and no query
+        setResults([]);
+        setListResults([]);
+        setHasSearched(false);
+      }
+    } else if (selectedLabels.length > 0 || selectedLists.length > 0 || filterStarred !== null || filterCompleted !== null) {
+      // Initial search when filters are applied
       handleSearch();
-    } else if (hasSearched && !searchQuery.trim()) {
-      // Clear results if no filters and no query
-      setResults([]);
-      setHasSearched(false);
     }
   }, [selectedLabels, selectedLists, filterStarred, filterCompleted]);
 
