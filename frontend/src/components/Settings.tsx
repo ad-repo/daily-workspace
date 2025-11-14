@@ -9,8 +9,10 @@ import { useDailyGoals } from '../contexts/DailyGoalsContext';
 import { useSprintGoals } from '../contexts/SprintGoalsContext';
 import { useQuarterlyGoals } from '../contexts/QuarterlyGoalsContext';
 import { useDayLabels } from '../contexts/DayLabelsContext';
+import { useEmojiLibrary } from '../contexts/EmojiLibraryContext';
 import CustomThemeCreator from './CustomThemeCreator';
 import CustomBackgroundSettings from './CustomBackgroundSettings';
+import CustomEmojiManager from './CustomEmojiManager';
 
 interface Label {
   id: number;
@@ -50,8 +52,10 @@ const Settings = () => {
   const { showSprintGoals, setShowSprintGoals } = useSprintGoals();
   const { showQuarterlyGoals, setShowQuarterlyGoals } = useQuarterlyGoals();
   const { showDayLabels, setShowDayLabels } = useDayLabels();
+  const { emojiLibrary, setEmojiLibrary } = useEmojiLibrary();
   
   const [labels, setLabels] = useState<Label[]>([]);
+  const [showEmojiManager, setShowEmojiManager] = useState(false);
   const [deletingLabelId, setDeletingLabelId] = useState<number | null>(null);
   const [labelSearchQuery, setLabelSearchQuery] = useState('');
   const [isUploadingCustomBgImage, setIsUploadingCustomBgImage] = useState(false);
@@ -526,6 +530,60 @@ const Settings = () => {
                     }}
                   />
                 </button>
+              </div>
+            </div>
+
+            {/* Emoji Library Selection */}
+            <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--color-bg-secondary)', border: '1px solid var(--color-border-primary)' }}>
+              <div className="flex flex-col gap-4">
+                <div>
+                  <h3 className="font-medium mb-1" style={{ color: 'var(--color-text-primary)' }}>
+                    Emoji Picker Library
+                  </h3>
+                  <p className="text-sm mb-3" style={{ color: 'var(--color-text-secondary)' }}>
+                    Choose which emoji picker library to use throughout the app.
+                  </p>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setEmojiLibrary('emoji-picker-react')}
+                      className={`px-4 py-2 rounded-lg transition-colors ${
+                        emojiLibrary === 'emoji-picker-react' ? 'font-medium' : ''
+                      }`}
+                      style={{
+                        backgroundColor: emojiLibrary === 'emoji-picker-react' ? 'var(--color-accent)' : 'var(--color-bg-primary)',
+                        color: emojiLibrary === 'emoji-picker-react' ? 'var(--color-accent-text)' : 'var(--color-text-primary)',
+                        border: '1px solid var(--color-border-primary)',
+                      }}
+                    >
+                      Emoji Picker React
+                    </button>
+                    <button
+                      onClick={() => setEmojiLibrary('emoji-mart')}
+                      className={`px-4 py-2 rounded-lg transition-colors ${
+                        emojiLibrary === 'emoji-mart' ? 'font-medium' : ''
+                      }`}
+                      style={{
+                        backgroundColor: emojiLibrary === 'emoji-mart' ? 'var(--color-accent)' : 'var(--color-bg-primary)',
+                        color: emojiLibrary === 'emoji-mart' ? 'var(--color-accent-text)' : 'var(--color-text-primary)',
+                        border: '1px solid var(--color-border-primary)',
+                      }}
+                    >
+                      Emoji Mart
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <button
+                    onClick={() => setShowEmojiManager(true)}
+                    className="px-4 py-2 rounded-lg font-medium transition-colors"
+                    style={{
+                      backgroundColor: 'var(--color-accent)',
+                      color: 'var(--color-accent-text)',
+                    }}
+                  >
+                    Manage Custom Emojis
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -1367,6 +1425,12 @@ const Settings = () => {
           onClose={handleCloseThemeCreator}
         />
       )}
+
+      {/* Custom Emoji Manager Modal */}
+      <CustomEmojiManager
+        isOpen={showEmojiManager}
+        onClose={() => setShowEmojiManager(false)}
+      />
     </div>
   );
 };

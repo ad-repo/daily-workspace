@@ -1,89 +1,194 @@
-import { useState } from 'react';
-import { Smile, X } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Smile, X, Settings } from 'lucide-react';
+import Picker from 'emoji-picker-react';
+import data from '@emoji-mart/data';
+import { Picker as EmojiMartPicker } from '@emoji-mart/react';
+import { useEmojiLibrary } from '../contexts/EmojiLibraryContext';
+import { customEmojisApi } from '../api';
+import type { CustomEmoji } from '../types';
+import CustomEmojiManager from './CustomEmojiManager';
 
 interface EmojiPickerProps {
-  onEmojiSelect: (emoji: string) => void;
+  onEmojiSelect: (emoji: string, isCustom?: boolean, imageUrl?: string) => void;
 }
 
 const EmojiPicker = ({ onEmojiSelect }: EmojiPickerProps) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [customEmojis, setCustomEmojis] = useState<CustomEmoji[]>([]);
+  const [showManager, setShowManager] = useState(false);
+  const { emojiLibrary, isLoading } = useEmojiLibrary();
 
-  const emojiCategories = {
-    'Faces & Emotions': ['😀', '😃', '😄', '😁', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩', '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '😣', '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓'],
-    'Gestures': ['👋', '🤚', '🖐', '✋', '🖖', '👌', '🤌', '🤏', '✌️', '🤞', '🤟', '🤘', '🤙', '👈', '👉', '👆', '🖕', '👇', '☝️', '👍', '👎', '✊', '👊', '🤛', '🤜', '👏', '🙌', '👐', '🤲', '🤝', '🙏'],
-    'Activities': ['⚽', '🏀', '🏈', '⚾', '🥎', '🎾', '🏐', '🏉', '🥏', '🎱', '🪀', '🏓', '🏸', '🏒', '🏑', '🥍', '🏏', '🪃', '🥅', '⛳', '🪁', '🏹', '🎣', '🤿', '🥊', '🥋', '🎽', '🛹', '🛼', '🛷', '⛸️', '🥌', '🎿', '⛷️', '🏂'],
-    'Objects': ['⌚', '📱', '💻', '⌨️', '🖥️', '🖨️', '🖱️', '🖲️', '🕹️', '💾', '💿', '📀', '📼', '📷', '📸', '📹', '🎥', '📞', '☎️', '📟', '📠', '📺', '📻', '🎙️', '🎚️', '🎛️', '🧭', '⏱️', '⏲️', '⏰', '🕰️', '⌛', '⏳'],
-    'Symbols': ['❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '⭐', '🌟', '✨', '⚡', '💥', '💫', '💦', '💨', '🕊️', '🔥', '✅', '❌', '⚠️', '🚫', '💯'],
-    'Nature': ['🌱', '🌿', '☘️', '🍀', '🍃', '🍂', '🍁', '🌾', '🌳', '🌲', '🌴', '🌵', '🎋', '🎍', '🌷', '🌸', '💮', '🌹', '🥀', '🌺', '🌻', '🌼', '🌽', '🍄', '🌰', '🌏', '🌎', '🌍', '🌐', '🌙', '⭐', '🌟', '✨', '⚡', '☄️', '💫', '🔥', '☀️', '🌤️', '⛅', '🌥️', '☁️', '🌦️', '🌧️', '⛈️', '🌩️', '🌨️', '❄️', '☃️', '⛄', '🌬️', '💨', '🌪️', '🌫️', '🌈'],
-    'Food': ['🍎', '🍏', '🍐', '🍊', '🍋', '🍌', '🍉', '🍇', '🍓', '🍈', '🍒', '🍑', '🥭', '🍍', '🥥', '🥝', '🍅', '🍆', '🥑', '🥦', '🥬', '🥒', '🌶️', '🌽', '🥕', '🧄', '🧅', '🥔', '🍠', '🥐', '🥯', '🍞', '🥖', '🥨', '🧀', '🥚', '🍳', '🧈', '🥞', '🧇', '🥓', '🥩', '🍗', '🍖', '🦴', '🌭', '🍔', '🍟', '🍕', '🥪', '🥙', '🧆', '🌮', '🌯', '🥗', '🥘', '🍝', '🍜', '🍲', '🍛', '🍣', '🍱', '🥟', '🦪', '🍤', '🍙', '🍚', '🍘', '🍥', '🥠', '🥮', '🍢', '🍡', '🍧', '🍨', '🍦', '🥧', '🧁', '🍰', '🎂', '🍮', '🍭', '🍬', '🍫', '🍿', '🍩', '🍪', '🌰', '🥜', '🍯'],
-    'Travel': ['🚗', '🚕', '🚙', '🚌', '🚎', '🏎️', '🚓', '🚑', '🚒', '🚐', '🚚', '🚛', '🚜', '🛻', '🦯', '🦽', '🦼', '🛴', '🚲', '🛵', '🏍️', '🛺', '✈️', '🛩️', '🛫', '🛬', '🪂', '💺', '🚁', '🚟', '🚠', '🚡', '🛰️', '🚀', '🛸'],
+  useEffect(() => {
+    if (isOpen) {
+      loadCustomEmojis();
+    }
+  }, [isOpen]);
+
+  const loadCustomEmojis = async () => {
+    try {
+      const emojis = await customEmojisApi.getAll(false);
+      setCustomEmojis(emojis);
+    } catch (error) {
+      console.error('Failed to load custom emojis:', error);
+    }
   };
 
-  const handleEmojiClick = (emoji: string) => {
-    onEmojiSelect(emoji);
+  const handleEmojiClick = (emojiData: any) => {
+    // Handle emoji-picker-react format
+    if (emojiData.emoji) {
+      onEmojiSelect(emojiData.emoji, false);
+    }
+    // Handle emoji-mart format
+    else if (emojiData.native) {
+      onEmojiSelect(emojiData.native, false);
+    }
+    // Handle custom emoji
+    else if (emojiData.isCustom) {
+      onEmojiSelect(`:${emojiData.name}:`, true, emojiData.imageUrl);
+    }
     setIsOpen(false);
   };
 
-  return (
-    <div className="relative">
+  const handleCustomEmojiClick = (emoji: CustomEmoji) => {
+    onEmojiSelect(`:${emoji.name}:`, true, emoji.image_url);
+    setIsOpen(false);
+  };
+
+  if (isLoading) {
+    return (
       <button
         type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-1 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-        title="Pick emoji"
+        disabled
+        className="flex items-center gap-1 px-3 py-2 rounded-lg transition-colors opacity-50"
+        style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-accent-text)' }}
+        title="Loading emoji picker..."
       >
         <Smile className="h-4 w-4" />
       </button>
+    );
+  }
 
-      {isOpen && (
-        <>
-          {/* Backdrop */}
-          <div
-            className="fixed inset-0 z-40"
-            onClick={() => setIsOpen(false)}
-          />
-          
-          {/* Emoji picker popup */}
-          <div className="absolute right-0 mt-2 w-80 max-h-96 bg-white border border-gray-300 rounded-lg shadow-xl z-50 overflow-hidden flex flex-col">
-            {/* Header */}
-            <div className="flex items-center justify-between p-3 border-b border-gray-200 bg-gray-50">
-              <span className="font-semibold text-gray-700">Pick an emoji</span>
-              <button
-                onClick={() => setIsOpen(false)}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+  return (
+    <>
+      <div className="relative">
+        <button
+          type="button"
+          onClick={() => setIsOpen(!isOpen)}
+          className="flex items-center gap-1 px-3 py-2 rounded-lg hover:opacity-90 transition-colors"
+          style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-accent-text)' }}
+          title="Pick emoji"
+        >
+          <Smile className="h-4 w-4" />
+        </button>
+
+        {isOpen && (
+          <>
+            {/* Backdrop */}
+            <div
+              className="fixed inset-0 z-40"
+              onClick={() => setIsOpen(false)}
+            />
+            
+            {/* Emoji picker popup */}
+            <div
+              className="absolute right-0 mt-2 w-80 max-h-96 border rounded-lg shadow-xl z-50 overflow-hidden flex flex-col"
+              style={{
+                backgroundColor: 'var(--color-bg-primary)',
+                borderColor: 'var(--color-border-primary)',
+              }}
+            >
+              {/* Header */}
+              <div
+                className="flex items-center justify-between p-3 border-b"
+                style={{
+                  backgroundColor: 'var(--color-bg-secondary)',
+                  borderColor: 'var(--color-border-primary)',
+                }}
               >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
+                <span className="font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+                  Pick an emoji
+                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      setIsOpen(false);
+                      setShowManager(true);
+                    }}
+                    className="p-1 rounded hover:opacity-80 transition-colors"
+                    style={{ color: 'var(--color-text-secondary)' }}
+                    title="Manage custom emojis"
+                  >
+                    <Settings className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => setIsOpen(false)}
+                    className="hover:opacity-80 transition-colors"
+                    style={{ color: 'var(--color-text-secondary)' }}
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
 
-            {/* Emoji grid */}
-            <div className="overflow-y-auto p-3">
-              {Object.entries(emojiCategories).map(([category, emojis]) => (
-                <div key={category} className="mb-4">
-                  <h3 className="text-xs font-semibold text-gray-500 uppercase mb-2">
-                    {category}
+              {/* Custom Emojis Section */}
+              {customEmojis.length > 0 && (
+                <div className="p-3 border-b" style={{ borderColor: 'var(--color-border-primary)' }}>
+                  <h3 className="text-xs font-semibold uppercase mb-2" style={{ color: 'var(--color-text-secondary)' }}>
+                    Custom Emojis
                   </h3>
                   <div className="grid grid-cols-8 gap-1">
-                    {emojis.map((emoji, index) => (
+                    {customEmojis.map((emoji) => (
                       <button
-                        key={`${emoji}-${index}`}
-                        onClick={() => handleEmojiClick(emoji)}
-                        className="text-2xl p-2 hover:bg-gray-100 rounded transition-colors"
-                        title={emoji}
+                        key={emoji.id}
+                        onClick={() => handleCustomEmojiClick(emoji)}
+                        className="p-2 rounded transition-colors hover:opacity-80"
+                        style={{ backgroundColor: 'var(--color-bg-secondary)' }}
+                        title={`:${emoji.name}:`}
                       >
-                        {emoji}
+                        <img
+                          src={emoji.image_url}
+                          alt={emoji.name}
+                          className="w-6 h-6 object-contain"
+                        />
                       </button>
                     ))}
                   </div>
                 </div>
-              ))}
+              )}
+
+              {/* Emoji Library Picker */}
+              <div className="overflow-y-auto">
+                {emojiLibrary === 'emoji-picker-react' ? (
+                  <Picker
+                    onEmojiClick={handleEmojiClick}
+                    width="100%"
+                    height="300px"
+                    searchPlaceHolder="Search emoji..."
+                    previewConfig={{ showPreview: false }}
+                  />
+                ) : (
+                  <EmojiMartPicker
+                    data={data}
+                    onEmojiSelect={handleEmojiClick}
+                    theme="auto"
+                    previewPosition="none"
+                    searchPosition="sticky"
+                  />
+                )}
+              </div>
             </div>
-          </div>
-        </>
-      )}
-    </div>
+          </>
+        )}
+      </div>
+
+      {/* Custom Emoji Manager Modal */}
+      <CustomEmojiManager
+        isOpen={showManager}
+        onClose={() => setShowManager(false)}
+        onEmojiAdded={loadCustomEmojis}
+      />
+    </>
   );
 };
 
 export default EmojiPicker;
-
