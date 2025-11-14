@@ -8,6 +8,7 @@ from app.routers import (
     app_settings,
     background_images,
     backup,
+    custom_emojis,
     entries,
     goals,
     labels,
@@ -48,6 +49,7 @@ app.include_router(search.router, prefix='/api/search', tags=['search'])
 app.include_router(search_history.router, prefix='/api/search-history', tags=['search-history'])
 app.include_router(link_preview.router, prefix='/api/link-preview', tags=['link-preview'])
 app.include_router(background_images.router, prefix='/api/background-images', tags=['background-images'])
+app.include_router(custom_emojis.router)
 app.include_router(app_settings.router)
 app.include_router(goals.router)
 

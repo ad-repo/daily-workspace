@@ -89,6 +89,7 @@ class AppSettings(Base):
     sprint_end_date = Column(String, default='')  # Format: YYYY-MM-DD
     quarterly_start_date = Column(String, default='')  # Format: YYYY-MM-DD
     quarterly_end_date = Column(String, default='')  # Format: YYYY-MM-DD
+    emoji_library = Column(String, default='emoji-picker-react')  # Emoji picker library preference
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -174,3 +175,18 @@ class SearchHistory(Base):
     id = Column(Integer, primary_key=True, index=True)
     query = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class CustomEmoji(Base):
+    """Model for custom user-uploaded emojis"""
+
+    __tablename__ = 'custom_emojis'
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True, nullable=False, index=True)  # Shortcode like :custom_smile:
+    image_url = Column(String, nullable=False)  # Path to uploaded image
+    category = Column(String, default='Custom')  # Category for organization
+    keywords = Column(String, default='')  # Comma-separated keywords for search
+    is_deleted = Column(Integer, default=0)  # 0 = false, 1 = true (soft delete for backward compatibility)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
