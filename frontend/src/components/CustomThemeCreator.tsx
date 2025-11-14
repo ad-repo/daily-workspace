@@ -131,9 +131,9 @@ const CustomThemeCreator: React.FC<CustomThemeCreatorProps> = ({ editingTheme, o
   const categories = ['Background', 'Text', 'Border', 'Accent', 'Semantic', 'Card'];
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
       <div 
-        className="rounded-lg shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col"
+        className="rounded-lg shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col my-auto"
         style={{ backgroundColor: 'var(--color-card-bg)' }}
       >
         {/* Header */}
