@@ -37,33 +37,10 @@ const Search = () => {
     loadSearchHistory();
   }, []);
 
-  useEffect(() => {
-    // Reset search when component unmounts or navigates away
-    return () => {
-      setSearchQuery('');
-      setSelectedLabels([]);
-      setSelectedLists([]);
-      setResults([]);
-      setListResults([]);
-      setHasSearched(false);
-    };
-  }, []);
-
-  // Auto-search when labels, lists, or filters change
+  // Auto-search when filters change (only if we have already searched)
   useEffect(() => {
     if (hasSearched) {
-      // If we've already searched, re-search when filters change
-      if (selectedLabels.length > 0 || selectedLists.length > 0 || filterStarred !== null || filterCompleted !== null || searchQuery.trim()) {
-        handleSearch();
-      } else {
-        // Clear results if no filters and no query
-        setResults([]);
-        setListResults([]);
-        setHasSearched(false);
-      }
-    } else if (selectedLabels.length > 0 || selectedLists.length > 0 || filterStarred !== null || filterCompleted !== null) {
-      // Initial search when filters are applied
-      handleSearch();
+      performSearch();
     }
   }, [selectedLabels, selectedLists, filterStarred, filterCompleted]);
 
@@ -108,13 +85,16 @@ const Search = () => {
     }
   };
 
-  const handleSearch = async () => {
+  const performSearch = async () => {
+    // Don't search if nothing is entered
     if (!searchQuery.trim() && selectedLabels.length === 0 && selectedLists.length === 0 && filterStarred === null && filterCompleted === null) {
+      setResults([]);
+      setListResults([]);
+      setHasSearched(false);
       return;
     }
 
     setLoading(true);
-    setHasSearched(true);
 
     // Save to history if there's a text query
     if (searchQuery.trim()) {
@@ -149,6 +129,11 @@ const Search = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSearch = () => {
+    setHasSearched(true);
+    performSearch();
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -463,15 +448,34 @@ const Search = () => {
         )}
 
         {/* Search Info */}
-        {hasSearched && (
-          <div className="text-sm mb-4" style={{ color: 'var(--color-text-secondary)' }}>
-            Found {results.length} entr{results.length !== 1 ? 'ies' : 'y'} and {listResults.length} list{listResults.length !== 1 ? 's' : ''}
-            {searchQuery.trim() && ` for "${searchQuery}"`}
-            {selectedLabels.length > 0 && ` with selected labels`}
-            {selectedLists.length > 0 && ` in selected lists`}
-            {filterStarred === true && ` (starred only)`}
-            {filterCompleted === true && ` (completed only)`}
-            {filterCompleted === false && ` (not completed)`}
+        {hasSearched && !loading && (
+          <div 
+            className="text-sm mb-4 p-3 rounded-lg" 
+            style={{ 
+              color: 'var(--color-text-primary)',
+              backgroundColor: 'var(--color-bg-secondary)',
+              border: '1px solid var(--color-border-primary)'
+            }}
+          >
+            <strong>Found {results.length} entr{results.length !== 1 ? 'ies' : 'y'} and {listResults.length} list{listResults.length !== 1 ? 's' : ''}</strong>
+            {searchQuery.trim() && <div className="mt-1">Text: "{searchQuery}"</div>}
+            {selectedLabels.length > 0 && <div className="mt-1">Labels: {selectedLabels.length} selected</div>}
+            {selectedLists.length > 0 && <div className="mt-1">Lists: {selectedLists.length} selected</div>}
+            {filterStarred === true && <div className="mt-1">Status: Starred only</div>}
+            {filterCompleted === true && <div className="mt-1">Status: Completed only</div>}
+            {filterCompleted === false && <div className="mt-1">Status: Not completed</div>}
+          </div>
+        )}
+        
+        {loading && (
+          <div 
+            className="text-sm mb-4 p-3 rounded-lg text-center" 
+            style={{ 
+              color: 'var(--color-text-secondary)',
+              backgroundColor: 'var(--color-bg-secondary)',
+            }}
+          >
+            Searching...
           </div>
         )}
       </div>
