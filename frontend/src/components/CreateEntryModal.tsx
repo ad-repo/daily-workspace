@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 import { notesApi, entriesApi, listsApi } from '../api';
@@ -85,7 +86,7 @@ const CreateEntryModal = ({ list, onClose, onSuccess }: CreateEntryModalProps) =
     }
   };
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 flex items-center justify-center p-4"
       style={{
@@ -240,7 +241,8 @@ const CreateEntryModal = ({ list, onClose, onSuccess }: CreateEntryModalProps) =
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
