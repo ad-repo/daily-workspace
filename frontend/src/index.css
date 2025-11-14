@@ -622,3 +622,21 @@ ul[data-type="taskList"] li[data-checked="true"] > div {
   animation: highlight-pulse 1s ease-in-out 2;
   border: 2px solid var(--color-accent) !important;
 }
+
+/* Custom Emoji Styles */
+.inline-emoji {
+  display: inline-block;
+  height: 1.2em;
+  width: 1.2em;
+  vertical-align: -0.2em;
+  margin: 0 0.1em;
+  object-fit: contain;
+}
+
+/* Fallback for broken custom emoji images */
+.inline-emoji[alt]::after {
+  content: attr(alt);
+  display: inline-block;
+  font-size: 0.9em;
+  color: var(--color-text-tertiary);
+}

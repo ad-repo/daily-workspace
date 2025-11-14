@@ -18,6 +18,7 @@ import { DailyGoalsProvider } from './contexts/DailyGoalsContext';
 import { SprintGoalsProvider } from './contexts/SprintGoalsContext';
 import { QuarterlyGoalsProvider } from './contexts/QuarterlyGoalsContext';
 import { DayLabelsProvider } from './contexts/DayLabelsContext';
+import { EmojiLibraryProvider } from './contexts/EmojiLibraryContext';
 import CustomBackground from './components/CustomBackground';
 
 const AppContent = () => {
@@ -85,17 +86,19 @@ function App() {
       <TimezoneProvider>
         <CustomBackgroundProvider>
           <TransparentLabelsProvider>
-            <DailyGoalsProvider>
-              <SprintGoalsProvider>
-                <QuarterlyGoalsProvider>
-                  <DayLabelsProvider>
-                    <FullScreenProvider>
-                      <AppContent />
-                    </FullScreenProvider>
-                  </DayLabelsProvider>
-                </QuarterlyGoalsProvider>
-              </SprintGoalsProvider>
-            </DailyGoalsProvider>
+            <EmojiLibraryProvider>
+              <DailyGoalsProvider>
+                <SprintGoalsProvider>
+                  <QuarterlyGoalsProvider>
+                    <DayLabelsProvider>
+                      <FullScreenProvider>
+                        <AppContent />
+                      </FullScreenProvider>
+                    </DayLabelsProvider>
+                  </QuarterlyGoalsProvider>
+                </SprintGoalsProvider>
+              </DailyGoalsProvider>
+            </EmojiLibraryProvider>
           </TransparentLabelsProvider>
         </CustomBackgroundProvider>
       </TimezoneProvider>
