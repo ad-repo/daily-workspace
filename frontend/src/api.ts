@@ -14,6 +14,9 @@ import type {
   ListCreate,
   ListUpdate,
   EntryListAssociation,
+  CustomEmoji,
+  CustomEmojiCreate,
+  CustomEmojiUpdate,
 } from './types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -216,6 +219,36 @@ export const kanbanApi = {
 
   reorderColumns: async (columns: { id: number; order_index: number }[]): Promise<void> => {
     await api.put('/api/lists/kanban/reorder', { lists: columns });
+  },
+};
+
+// Custom Emojis API
+export const customEmojisApi = {
+  getAll: async (includeDeleted = false): Promise<CustomEmoji[]> => {
+    const response = await api.get<CustomEmoji[]>('/api/custom-emojis', {
+      params: { include_deleted: includeDeleted },
+    });
+    return response.data;
+  },
+
+  create: async (formData: FormData): Promise<CustomEmoji> => {
+    const response = await api.post<CustomEmoji>('/api/custom-emojis', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
+  update: async (id: number, data: CustomEmojiUpdate): Promise<CustomEmoji> => {
+    const response = await api.patch<CustomEmoji>(`/api/custom-emojis/${id}`, data);
+    return response.data;
+  },
+
+  delete: async (id: number, permanent = false): Promise<void> => {
+    await api.delete(`/api/custom-emojis/${id}`, {
+      params: { permanent },
+    });
   },
 };
 
