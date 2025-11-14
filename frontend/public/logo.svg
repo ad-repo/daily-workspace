@@ -1,19 +1,18 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
-  <!-- Background circle -->
-  <circle cx="100" cy="100" r="95" fill="#3b82f6" stroke="#1e40af" stroke-width="3"/>
+<svg width="900" height="240" viewBox="0 0 900 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Monitor with TtT on the left - narrower and taller -->
+  <g transform="translate(110, 30)">
+    <!-- Monitor outer border - narrower rounded rectangle -->
+    <rect x="0" y="0" width="240" height="160" rx="20" stroke="currentColor" stroke-width="12" fill="none"/>
+    
+    <!-- TtT text inside monitor - slightly smaller for padding -->
+    <text x="120" y="100" font-family="Arial, sans-serif" font-size="135" font-weight="bold" fill="currentColor" text-anchor="middle" dominant-baseline="middle">TtT</text>
+    
+    <!-- Monitor stand base -->
+    <rect x="90" y="160" width="60" height="20" rx="10" fill="currentColor"/>
+  </g>
   
-  <!-- Target/tracking symbol - concentric circles -->
-  <circle cx="100" cy="100" r="70" fill="none" stroke="#ffffff" stroke-width="4"/>
-  <circle cx="100" cy="100" r="50" fill="none" stroke="#ffffff" stroke-width="4"/>
-  <circle cx="100" cy="100" r="30" fill="none" stroke="#ffffff" stroke-width="4"/>
-  
-  <!-- Center dot -->
-  <circle cx="100" cy="100" r="10" fill="#ffffff"/>
-  
-  <!-- Crosshair lines -->
-  <line x1="100" y1="20" x2="100" y2="80" stroke="#ffffff" stroke-width="3"/>
-  <line x1="100" y1="120" x2="100" y2="180" stroke="#ffffff" stroke-width="3"/>
-  <line x1="20" y1="100" x2="80" y2="100" stroke="#ffffff" stroke-width="3"/>
-  <line x1="120" y1="100" x2="180" y2="100" stroke="#ffffff" stroke-width="3"/>
+  <!-- "Track the Thing" text - stacked vertically to the right of monitor -->
+  <text x="400" y="90" font-family="Arial, sans-serif" font-size="72" font-weight="bold" fill="currentColor">Track</text>
+  <text x="400" y="150" font-family="Arial, sans-serif" font-size="72" font-weight="bold" fill="currentColor">the</text>
+  <text x="400" y="210" font-family="Arial, sans-serif" font-size="72" font-weight="bold" fill="currentColor">Thing</text>
 </svg>
-

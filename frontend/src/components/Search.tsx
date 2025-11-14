@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search as SearchIcon, X, Star, CheckCircle, Columns } from 'lucide-react';
+import { Search as SearchIcon, X, Star, CheckCircle, Columns, Trello } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import type { NoteEntry, Label, List } from '../types';
@@ -614,22 +614,41 @@ const Search = () => {
                         </h3>
                       )}
                       <div className="flex flex-wrap gap-2 mb-4">
-                        {entry.labels.map((label) => (
+                        {entry.labels.map((label) => {
+                          // Check if it's a custom emoji URL
+                          const isCustomEmoji = label.name.startsWith('/api/uploads/') || label.name.startsWith('http');
+                          
+                          if (isCustomEmoji) {
+                            const imageUrl = label.name.startsWith('http') ? label.name : `${API_URL}${label.name}`;
+                            return (
+                              <img 
+                                key={label.id}
+                                src={imageUrl} 
+                                alt="emoji" 
+                                className="inline-emoji"
+                                style={{ width: '1.5rem', height: '1.5rem' }}
+                              />
+                            );
+                          }
+                          
+                          return (
+                            <span
+                              key={label.id}
+                              className="inline-block px-3 py-1 rounded-full text-sm font-medium"
+                              style={{ 
+                                backgroundColor: transparentLabels ? 'transparent' : label.color,
+                                color: transparentLabels ? label.color : 'white',
+                                border: transparentLabels ? `2px solid ${label.color}` : 'none'
+                              }}
+                            >
+                              {label.name}
+                            </span>
+                          );
+                        })}
+                        {/* Regular Lists */}
+                        {(entry as any).regular_lists && (entry as any).regular_lists.map((list: any) => (
                           <span
-                            key={label.id}
-                            className="inline-block px-3 py-1 rounded-full text-sm font-medium"
-                            style={{ 
-                              backgroundColor: transparentLabels ? 'transparent' : label.color,
-                              color: transparentLabels ? label.color : 'white',
-                              border: transparentLabels ? `2px solid ${label.color}` : 'none'
-                            }}
-                          >
-                            {label.name}
-                          </span>
-                        ))}
-                        {(entry as any).list_names && (entry as any).list_names.map((listName: string, idx: number) => (
-                          <span
-                            key={idx}
+                            key={list.id}
                             className="inline-flex items-center gap-1 px-3 py-1 rounded-lg text-sm font-medium"
                             style={{ 
                               backgroundColor: 'var(--color-bg-tertiary)',
@@ -638,7 +657,22 @@ const Search = () => {
                             }}
                           >
                             <Columns className="w-3 h-3" />
-                            {listName}
+                            {list.name}
+                          </span>
+                        ))}
+                        {/* Kanban Columns */}
+                        {(entry as any).kanban_columns && (entry as any).kanban_columns.map((column: any) => (
+                          <span
+                            key={column.id}
+                            className="inline-flex items-center gap-1 px-3 py-1 rounded-lg text-sm font-medium"
+                            style={{ 
+                              backgroundColor: 'var(--color-accent)',
+                              color: 'white',
+                              border: '1px solid var(--color-accent)'
+                            }}
+                          >
+                            <Trello className="w-3 h-3" />
+                            {column.name}
                           </span>
                         ))}
                       </div>

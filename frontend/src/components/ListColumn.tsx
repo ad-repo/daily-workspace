@@ -126,7 +126,6 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
         style={{
           backgroundColor: isDragOver ? `${list.color}15` : 'var(--color-card-bg)',
           border: isDragOver ? `3px dashed ${list.color}` : '1px solid var(--color-border)',
-          maxHeight: 'calc(100vh - 14rem)',
           boxShadow: isDragOver 
             ? `0 0 20px ${list.color}40` 
             : '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
@@ -285,43 +284,41 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
           </div>
         </div>
 
-        {/* List Content - Scrollable entries */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar" style={{ minHeight: 0 }}>
-          <div style={{ padding: '20px' }}>
-            {entries.length === 0 ? (
-              <div className="text-center py-12">
-                <div
-                  className="w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4"
-                  style={{ backgroundColor: list.color + '20' }}
-                >
-                  <Plus className="w-8 h-8" style={{ color: list.color }} />
-                </div>
-                <p className="font-medium" style={{ color: 'var(--color-text-secondary)' }}>
-                  No entries yet
-                </p>
-                <p className="text-xs mt-1" style={{ color: 'var(--color-text-secondary)' }}>
-                  Drag entries here or add from daily notes
-                </p>
+        {/* List Content - No internal scrolling, let page scroll */}
+        <div className="flex-1" style={{ padding: '20px' }}>
+          {entries.length === 0 ? (
+            <div className="text-center py-12">
+              <div
+                className="w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4"
+                style={{ backgroundColor: list.color + '20' }}
+              >
+                <Plus className="w-8 h-8" style={{ color: list.color }} />
               </div>
-            ) : (
-              <div className="space-y-3">
-                {entries.map((entry) => (
-                  <ListCard
-                    key={entry.id}
-                    entry={entry}
-                    listId={list.id}
-                    list={list}
-                    onRemoveFromList={handleRemoveEntry}
-                    onUpdate={onUpdate}
-                    onLabelsUpdate={() => {
-                      // Refresh the list to get updated entry data
-                      onUpdate();
-                    }}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
+              <p className="font-medium" style={{ color: 'var(--color-text-secondary)' }}>
+                No entries yet
+              </p>
+              <p className="text-xs mt-1" style={{ color: 'var(--color-text-secondary)' }}>
+                Drag entries here or add from daily notes
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {entries.map((entry) => (
+                <ListCard
+                  key={entry.id}
+                  entry={entry}
+                  listId={list.id}
+                  list={list}
+                  onRemoveFromList={handleRemoveEntry}
+                  onUpdate={onUpdate}
+                  onLabelsUpdate={() => {
+                    // Refresh the list to get updated entry data
+                    onUpdate();
+                  }}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </div>
 

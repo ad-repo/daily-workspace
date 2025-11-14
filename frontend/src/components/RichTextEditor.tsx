@@ -43,6 +43,7 @@ import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
 import TurndownService from 'turndown';
 import { marked } from 'marked';
 import * as yaml from 'js-yaml';
+import EmojiPicker from './EmojiPicker';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -156,25 +157,32 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
         addAttributes() {
           return {
             ...this.parent?.(),
-            src: {
+            'data-emoji': {
               default: null,
-              renderHTML: attributes => {
-                // Convert relative API URLs to absolute URLs
-                if (attributes.src && attributes.src.startsWith('/api/')) {
-                  return {
-                    src: `${API_BASE_URL}${attributes.src}`,
-                  };
-                }
-                return {
-                  src: attributes.src,
-                };
-              },
             },
           };
         },
-      }).configure({
-        HTMLAttributes: {
-          class: 'w-full h-auto rounded-lg',
+        renderHTML({ HTMLAttributes }) {
+          // Convert relative API URLs to absolute URLs for src
+          let src = HTMLAttributes.src;
+          if (src && src.startsWith('/api/')) {
+            src = `${API_BASE_URL}${src}`;
+          }
+
+          // If it's a custom emoji, use inline emoji styles
+          if (HTMLAttributes['data-emoji']) {
+            return ['img', {
+              ...HTMLAttributes,
+              src,
+              class: 'inline-emoji',
+            }];
+          }
+          // Otherwise use default image styles
+          return ['img', {
+            ...HTMLAttributes,
+            src,
+            class: 'w-full h-auto rounded-lg',
+          }];
         },
       }),
       // Add custom node for video tags
@@ -698,6 +706,22 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
     };
 
     input.click();
+  };
+
+  const handleEmojiSelect = (emoji: string, isCustom?: boolean, imageUrl?: string) => {
+    if (!editor) return;
+
+    if (isCustom && imageUrl) {
+      // Convert relative URL to absolute URL for the editor
+      const absoluteUrl = imageUrl.startsWith('http') ? imageUrl : `http://localhost:8000${imageUrl}`;
+      
+      // Insert custom emoji as raw HTML with data-emoji attribute
+      const imgHtml = `<img src="${absoluteUrl}" alt="${emoji}" data-emoji="true" class="inline-emoji" /> `;
+      editor.chain().focus().insertContent(imgHtml).run();
+    } else {
+      // Insert Unicode emoji as text
+      editor.chain().focus().insertContent(emoji + ' ').run();
+    }
   };
 
   const addLinkPreview = async () => {
@@ -1403,6 +1427,9 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
         <ToolbarButton onClick={addFile} title="Attach File">
           <Paperclip className="h-4 w-4" />
         </ToolbarButton>
+
+        {/* Emoji Picker */}
+        <EmojiPicker onEmojiSelect={handleEmojiSelect} />
 
         {/* Separator */}
         <div style={{ width: '1px', height: '24px', backgroundColor: 'var(--color-border-primary)', margin: '0 4px' }} />
