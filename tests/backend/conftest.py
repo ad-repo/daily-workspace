@@ -12,7 +12,7 @@ import sqlalchemy
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
-from sqlalchemy.pool import StaticPool
+from sqlalchemy.pool import NullPool
 
 # Set testing mode to prevent main.py from creating tables on production DB
 os.environ['TESTING'] = 'true'
@@ -55,7 +55,7 @@ def db_engine():
     engine = create_engine(
         f'sqlite:///{db_path}',
         connect_args={'check_same_thread': False},
-        poolclass=StaticPool,
+        poolclass=NullPool,
     )
 
     # Explicitly reference association tables to ensure they're registered

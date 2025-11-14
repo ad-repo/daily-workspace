@@ -4,18 +4,9 @@ Tests the ability to add and remove labels from lists.
 """
 from datetime import datetime
 
-import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import text
 from sqlalchemy.orm import Session
-
-from app.main import app
-
-
-@pytest.fixture
-def client(db_session: Session):
-    """Create a test client with a database session."""
-    return TestClient(app)
 
 
 def test_add_label_to_list(client: TestClient, db_session: Session):

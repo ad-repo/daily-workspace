@@ -7,10 +7,6 @@ import time
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from app.main import app
-
-client = TestClient(app)
-
 
 def unique_name(prefix: str) -> str:
     """Generate unique name for tests"""
@@ -22,7 +18,7 @@ def unique_date() -> str:
     return f'2025-{random.randint(1, 12):02d}-{random.randint(1, 28):02d}_{int(time.time() * 1000)}'
 
 
-def test_create_list(db_session: Session):
+def test_create_list(client: TestClient, db_session: Session):
     """Test creating a new list"""
     name = unique_name('Test List')
     response = client.post(
@@ -42,7 +38,7 @@ def test_create_list(db_session: Session):
     assert 'id' in data
 
 
-def test_create_duplicate_list(db_session: Session):
+def test_create_duplicate_list(client: TestClient, db_session: Session):
     """Test that creating a list with duplicate name fails"""
     name = unique_name('Duplicate List')
     client.post(
@@ -57,7 +53,7 @@ def test_create_duplicate_list(db_session: Session):
     assert 'already exists' in response.json()['detail']
 
 
-def test_get_all_lists(db_session: Session):
+def test_get_all_lists(client: TestClient, db_session: Session):
     """Test getting all lists"""
     name1 = unique_name('List 1')
     name2 = unique_name('List 2')
@@ -70,7 +66,7 @@ def test_get_all_lists(db_session: Session):
     assert len(data) >= 2
 
 
-def test_get_list_by_id(db_session: Session):
+def test_get_list_by_id(client: TestClient, db_session: Session):
     """Test getting a single list with entries"""
     # Create list
     name = unique_name('Test List')
@@ -89,13 +85,13 @@ def test_get_list_by_id(db_session: Session):
     assert 'entries' in data
 
 
-def test_get_nonexistent_list(db_session: Session):
+def test_get_nonexistent_list(client: TestClient, db_session: Session):
     """Test getting a nonexistent list returns 404"""
     response = client.get('/api/lists/99999')
     assert response.status_code == 404
 
 
-def test_update_list(db_session: Session):
+def test_update_list(client: TestClient, db_session: Session):
     """Test updating a list"""
     # Create
     name = unique_name('Original Name')
@@ -115,7 +111,7 @@ def test_update_list(db_session: Session):
     assert data['color'] == '#00ff00'
 
 
-def test_update_list_duplicate_name(db_session: Session):
+def test_update_list_duplicate_name(client: TestClient, db_session: Session):
     """Test that updating to a duplicate name fails"""
     name_a = unique_name('List A')
     name_b = unique_name('List B')
@@ -130,7 +126,7 @@ def test_update_list_duplicate_name(db_session: Session):
     assert response.status_code == 400
 
 
-def test_delete_list(db_session: Session):
+def test_delete_list(client: TestClient, db_session: Session):
     """Test deleting a list"""
     # Create
     name = unique_name('Test List')
@@ -146,7 +142,7 @@ def test_delete_list(db_session: Session):
     assert get_response.status_code == 404
 
 
-def test_add_entry_to_list(db_session: Session):
+def test_add_entry_to_list(client: TestClient, db_session: Session):
     """Test adding an entry to a list"""
     # Setup
     date = unique_date()
@@ -176,7 +172,7 @@ def test_add_entry_to_list(db_session: Session):
     assert list_data['entries'][0]['id'] == entry_id
 
 
-def test_remove_entry_from_list(db_session: Session):
+def test_remove_entry_from_list(client: TestClient, db_session: Session):
     """Test removing an entry from a list"""
     # Setup
     date = unique_date()
@@ -207,7 +203,7 @@ def test_remove_entry_from_list(db_session: Session):
     assert len(entries) == 0
 
 
-def test_entry_in_multiple_lists(db_session: Session):
+def test_entry_in_multiple_lists(client: TestClient, db_session: Session):
     """Test that an entry can belong to multiple lists"""
     # Setup
     date = unique_date()
@@ -247,7 +243,7 @@ def test_entry_in_multiple_lists(db_session: Session):
     assert list2_data['entries'][0]['id'] == entry_id
 
 
-def test_delete_list_preserves_entries(db_session: Session):
+def test_delete_list_preserves_entries(client: TestClient, db_session: Session):
     """Test that deleting a list doesn't delete the entries"""
     # Setup
     date = unique_date()
@@ -276,7 +272,7 @@ def test_delete_list_preserves_entries(db_session: Session):
     assert entry_get_response.status_code == 200
 
 
-def test_archive_list(db_session: Session):
+def test_archive_list(client: TestClient, db_session: Session):
     """Test archiving a list"""
     # Create
     name = unique_name('Test List')
