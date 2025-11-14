@@ -8,6 +8,8 @@ import { customEmojisApi } from '../api';
 import type { CustomEmoji } from '../types';
 import CustomEmojiManager from './CustomEmojiManager';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
 interface EmojiPickerProps {
   onEmojiSelect: (emoji: string, isCustom?: boolean, imageUrl?: string) => void;
 }
@@ -146,7 +148,7 @@ const EmojiPicker = ({ onEmojiSelect }: EmojiPickerProps) => {
                         title={`:${emoji.name}:`}
                       >
                         <img
-                          src={emoji.image_url}
+                          src={`${API_URL}${emoji.image_url}`}
                           alt={emoji.name}
                           className="w-6 h-6 object-contain"
                         />
