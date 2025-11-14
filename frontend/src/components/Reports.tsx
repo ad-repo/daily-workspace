@@ -497,6 +497,26 @@ const Reports = () => {
 
   return (
     <div className="max-w-5xl mx-auto page-fade-in" style={{ position: 'relative', zIndex: 1 }}>
+      {/* Clear All Button - Outside any report section */}
+      <div className="flex justify-end mb-4">
+        <button
+          onClick={clearAllReportFlags}
+          className="px-6 py-3 rounded-lg transition-colors shadow-lg"
+          style={{
+            backgroundColor: 'var(--color-danger, #ef4444)',
+            color: 'white'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.opacity = '0.9';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.opacity = '1';
+          }}
+        >
+          Clear All Report Flags
+        </button>
+      </div>
+
       <div 
         className="rounded-lg shadow-lg p-6 mb-6"
         style={{ backgroundColor: 'var(--color-bg-primary)' }}
@@ -504,24 +524,8 @@ const Reports = () => {
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <FileText className="h-8 w-8" style={{ color: 'var(--color-accent)' }} />
-            <h1 className="text-3xl font-bold" style={{ color: 'var(--color-text-primary)' }}>Reports</h1>
+            <h1 className="text-3xl font-bold" style={{ color: 'var(--color-text-primary)' }}>Weekly Report</h1>
           </div>
-          <button
-            onClick={clearAllReportFlags}
-            className="px-6 py-3 rounded-lg transition-colors"
-            style={{
-              backgroundColor: 'var(--color-danger, #ef4444)',
-              color: 'white'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.opacity = '0.9';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.opacity = '1';
-            }}
-          >
-            Clear All Report Flags
-          </button>
         </div>
 
         <div className="mb-6">
