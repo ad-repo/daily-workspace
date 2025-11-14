@@ -52,7 +52,7 @@ const EmojiPicker = ({ onEmojiSelect }: EmojiPickerProps) => {
   };
 
   const handleCustomEmojiClick = (emoji: CustomEmoji) => {
-    onEmojiSelect(`:${emoji.name}:`, true, emoji.image_url);
+    onEmojiSelect(`:${emoji.name}:`, true, `${API_URL}${emoji.image_url}`);
     setIsOpen(false);
   };
 
