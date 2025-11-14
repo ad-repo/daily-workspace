@@ -193,5 +193,28 @@ export const listsApi = {
   },
 };
 
+// Kanban API
+export const kanbanApi = {
+  getBoards: async (): Promise<ListWithEntries[]> => {
+    const response = await api.get<List[]>('/api/lists/kanban');
+    // Fetch detailed data for each Kanban column
+    const detailedBoards = await Promise.all(
+      response.data.map((board) => listsApi.getById(board.id))
+    );
+    // Sort by kanban_order
+    detailedBoards.sort((a, b) => (a.kanban_order || 0) - (b.kanban_order || 0));
+    return detailedBoards;
+  },
+
+  initialize: async (): Promise<{ message: string; columns: List[] }> => {
+    const response = await api.post<{ message: string; columns: List[] }>('/api/lists/kanban/initialize');
+    return response.data;
+  },
+
+  reorderColumns: async (columns: { id: number; order_index: number }[]): Promise<void> => {
+    await api.put('/api/lists/kanban/reorder', { lists: columns });
+  },
+};
+
 export default api;
 
