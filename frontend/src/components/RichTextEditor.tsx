@@ -726,6 +726,7 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
     if (!editor) return;
 
     if (isCustom && imageUrl) {
+      console.log('Inserting custom emoji:', { emoji, imageUrl });
       // Insert custom emoji as an image using TipTap's setImage command with data-emoji attribute
       editor.chain().focus().setImage({ src: imageUrl, alt: emoji, 'data-emoji': 'true' }).run();
       // Add a space after the image
