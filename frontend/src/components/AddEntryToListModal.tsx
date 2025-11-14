@@ -3,6 +3,7 @@ import { X, Search, Plus } from 'lucide-react';
 import { notesApi, listsApi } from '../api';
 import type { NoteEntry, List } from '../types';
 import { format } from 'date-fns';
+import ListCard from './ListCard';
 
 interface AddEntryToListModalProps {
   list: List;
@@ -102,13 +103,6 @@ const AddEntryToListModal = ({ list, onClose, onUpdate }: AddEntryToListModalPro
     }
   };
 
-  const getTextPreview = (html: string, maxLength: number = 100) => {
-    const temp = document.createElement('div');
-    temp.innerHTML = html;
-    const text = temp.textContent || temp.innerText || '';
-    return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
-  };
-
   const isEntryInList = (entry: NoteEntry) => {
     return entry.lists?.some((l) => l.id === list.id);
   };
@@ -196,76 +190,20 @@ const AddEntryToListModal = ({ list, onClose, onUpdate }: AddEntryToListModalPro
                 const isAdding = adding === entry.id;
 
                 return (
-                  <div
-                    key={entry.id}
-                    className="rounded-lg border-2 p-4 transition-all overflow-hidden"
-                    style={{
-                      backgroundColor: inList ? `${list.color}10` : 'var(--color-background)',
-                      borderColor: inList ? list.color : 'var(--color-border)',
-                      opacity: inList ? 0.6 : 1,
-                    }}
-                  >
-                    <div className="flex justify-between items-start gap-4">
-                      <div className="flex-1 min-w-0 overflow-hidden">
-                        {/* Title */}
-                        {entry.title && (
-                          <h3
-                            className="font-semibold mb-1 truncate"
-                            style={{ color: 'var(--color-text-primary)' }}
-                          >
-                            {entry.title}
-                          </h3>
-                        )}
-
-                        {/* Content preview */}
-                        <p
-                          className="text-sm mb-2 break-words"
-                          style={{ color: 'var(--color-text-secondary)' }}
-                        >
-                          {getTextPreview(entry.content)}
-                        </p>
-
-                        {/* Labels */}
-                        {entry.labels && entry.labels.length > 0 && (
-                          <div className="flex flex-wrap gap-1 mb-2">
-                            {entry.labels.slice(0, 3).map((label) => (
-                              <span
-                                key={label.id}
-                                className="px-2 py-0.5 rounded text-xs"
-                                style={{
-                                  backgroundColor: label.color + '20',
-                                  color: label.color,
-                                  border: `1px solid ${label.color}`,
-                                }}
-                              >
-                                {label.name}
-                              </span>
-                            ))}
-                            {entry.labels.length > 3 && (
-                              <span
-                                className="px-2 py-0.5 rounded text-xs"
-                                style={{
-                                  backgroundColor: 'var(--color-background)',
-                                  color: 'var(--color-text-secondary)',
-                                }}
-                              >
-                                +{entry.labels.length - 3}
-                              </span>
-                            )}
-                          </div>
-                        )}
-
-                        {/* Date */}
-                        <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
-                          {format(new Date(entry.created_at), 'MMM d, yyyy')}
-                        </p>
-                      </div>
-
-                      {/* Add button */}
+                  <div key={entry.id} className="relative">
+                    <ListCard
+                      entry={entry}
+                      listId={list.id}
+                      list={list}
+                      onUpdate={onUpdate}
+                      onLabelsUpdate={() => {}}
+                    />
+                    {/* Add button overlay */}
+                    <div className="absolute top-3 right-3 z-10">
                       <button
                         onClick={() => handleAddEntry(entry.id)}
                         disabled={inList || isAdding}
-                        className="px-4 py-2 rounded-lg font-medium transition-all hover:scale-105 hover:shadow-md flex-shrink-0 flex items-center gap-2"
+                        className="px-4 py-2 rounded-lg font-medium transition-all hover:scale-105 hover:shadow-md flex items-center gap-2"
                         style={{
                           backgroundColor: inList ? 'var(--color-border)' : list.color,
                           color: 'white',
