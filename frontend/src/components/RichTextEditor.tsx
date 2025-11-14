@@ -705,9 +705,10 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
     if (!editor) return;
 
     if (isCustom && imageUrl) {
-      // Insert custom emoji as an image with inline styling
-      const imgHtml = `<img src="${imageUrl}" alt="${emoji}" style="display: inline-block; height: 1.2em; width: 1.2em; vertical-align: -0.2em; margin: 0 0.1em; object-fit: contain;" /> `;
-      editor.chain().focus().insertContent(imgHtml).run();
+      // Insert custom emoji as an image using TipTap's setImage command
+      editor.chain().focus().setImage({ src: imageUrl, alt: emoji }).run();
+      // Add a space after the image
+      editor.chain().focus().insertContent(' ').run();
     } else {
       // Insert Unicode emoji as text
       editor.chain().focus().insertContent(emoji + ' ').run();
