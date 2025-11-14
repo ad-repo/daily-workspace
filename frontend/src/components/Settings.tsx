@@ -273,6 +273,11 @@ const Settings = () => {
     return emojiRegex.test(str.trim());
   };
 
+  // Check if a label name is a custom emoji URL
+  const isCustomEmojiUrl = (str: string): boolean => {
+    return str.startsWith('/api/uploads/') || str.startsWith('http');
+  };
+
   const handleDownloadFiles = async () => {
     setIsDownloadingFiles(true);
     try {
@@ -891,7 +896,14 @@ const Settings = () => {
                         }}
                       >
                         <div className="flex items-center gap-2 flex-1 min-w-0">
-                          {isEmoji ? (
+                          {isCustomEmojiUrl(label.name) ? (
+                            <img 
+                              src={label.name.startsWith('http') ? label.name : `${API_URL}${label.name}`} 
+                              alt="emoji" 
+                              className="inline-emoji"
+                              style={{ width: '2rem', height: '2rem' }}
+                            />
+                          ) : isEmoji ? (
                             <span className="text-2xl">{label.name}</span>
                           ) : (
                             <>

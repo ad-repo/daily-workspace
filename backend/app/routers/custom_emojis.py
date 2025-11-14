@@ -4,9 +4,11 @@ API routes for custom emoji management
 import os
 import uuid
 from datetime import datetime
+from io import BytesIO
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from PIL import Image
 from sqlalchemy.orm import Session
 
 from .. import models, schemas
@@ -20,6 +22,9 @@ UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 # Maximum file size: 500KB
 MAX_FILE_SIZE = 500 * 1024
+
+# Emoji size (resize all uploaded images to this size)
+EMOJI_SIZE = (64, 64)
 
 
 @router.get('', response_model=list[schemas.CustomEmojiResponse])
@@ -78,13 +83,26 @@ async def create_custom_emoji(
     if existing_emoji:
         raise HTTPException(status_code=400, detail='Emoji with this name already exists')
 
-    # Generate unique filename
-    unique_filename = f'{uuid.uuid4()}{file_extension}'
-    file_path = UPLOAD_DIR / unique_filename
+    # Open and resize image
+    try:
+        image = Image.open(BytesIO(contents))
 
-    # Save file
-    with open(file_path, 'wb') as f:
-        f.write(contents)
+        # Convert to RGBA if not already (to preserve transparency)
+        if image.mode != 'RGBA':
+            image = image.convert('RGBA')
+
+        # Resize to emoji size using high-quality resampling
+        image = image.resize(EMOJI_SIZE, Image.Resampling.LANCZOS)
+
+        # Generate unique filename (always save as PNG to preserve transparency)
+        unique_filename = f'{uuid.uuid4()}.png'
+        file_path = UPLOAD_DIR / unique_filename
+
+        # Save resized image
+        image.save(file_path, 'PNG', optimize=True)
+
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f'Failed to process image: {str(e)}')
 
     # Create database record
     image_url = f'/api/uploads/files/{unique_filename}'

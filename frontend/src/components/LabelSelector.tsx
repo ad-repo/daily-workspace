@@ -35,6 +35,11 @@ const LabelSelector = ({ date, entryId, selectedLabels, onOptimisticUpdate }: La
     return emojiRegex.test(str.trim());
   };
 
+  // Check if a label name is a custom emoji URL
+  const isCustomEmojiUrl = (str: string): boolean => {
+    return str.startsWith('/api/uploads/') || str.startsWith('http');
+  };
+
   useEffect(() => {
     loadLabels();
   }, []);
@@ -190,18 +195,21 @@ const LabelSelector = ({ date, entryId, selectedLabels, onOptimisticUpdate }: La
     }
   };
 
-  const handleEmojiSelect = async (emoji: string) => {
-    setNewLabelName(emoji);
+  const handleEmojiSelect = async (emoji: string, isCustom?: boolean, imageUrl?: string) => {
+    // For custom emojis, use the image URL as the label name
+    const labelName = isCustom && imageUrl ? imageUrl : emoji;
+    
+    setNewLabelName(labelName);
     setLoading(true);
     setShowSuggestions(false);
     try {
       // Check if label exists
-      let label = allLabels.find(l => l.name === emoji);
+      let label = allLabels.find(l => l.name === labelName);
 
       // Create label if it doesn't exist
       if (!label) {
         const response = await axios.post(`${API_URL}/api/labels/`, {
-          name: emoji,
+          name: labelName,
           color: getRandomColor(),
         });
         label = response.data;
@@ -311,9 +319,30 @@ const LabelSelector = ({ date, entryId, selectedLabels, onOptimisticUpdate }: La
       <div className="flex items-center gap-2 flex-wrap">
         {localLabels.map((label) => {
           const isEmoji = isEmojiOnly(label.name);
+          const isCustomEmoji = isCustomEmojiUrl(label.name);
+          
+          if (isCustomEmoji) {
+            // Custom emoji label - display as image
+            const imageUrl = label.name.startsWith('http') ? label.name : `${API_URL}${label.name}`;
+            return (
+              <button
+                key={label.id}
+                onClick={() => handleRemoveLabel(label.id)}
+                disabled={loading}
+                className="inline-flex items-center gap-1 px-2 py-1 rounded-lg transition-all duration-200 hover:bg-gray-100 disabled:opacity-50 border border-gray-200 animate-fadeIn"
+                title="Click to remove"
+                style={{
+                  animation: 'fadeIn 0.2s ease-in'
+                }}
+              >
+                <img src={imageUrl} alt="emoji" className="inline-emoji" />
+                <X className="h-3 w-3 text-gray-500" />
+              </button>
+            );
+          }
           
           if (isEmoji) {
-            // Emoji-only label - simpler display
+            // Unicode emoji label - simpler display
             return (
               <button
                 key={label.id}

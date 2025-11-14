@@ -52,7 +52,8 @@ const EmojiPicker = ({ onEmojiSelect }: EmojiPickerProps) => {
   };
 
   const handleCustomEmojiClick = (emoji: CustomEmoji) => {
-    onEmojiSelect(emoji.name, true, `${API_URL}${emoji.image_url}`);
+    // Pass the relative URL - the RichTextEditor will convert it to absolute
+    onEmojiSelect(emoji.name, true, emoji.image_url);
     setIsOpen(false);
   };
 
@@ -146,6 +147,7 @@ const EmojiPicker = ({ onEmojiSelect }: EmojiPickerProps) => {
                         className="p-2 rounded transition-colors hover:opacity-80"
                         style={{ backgroundColor: 'var(--color-bg-secondary)' }}
                         title={`:${emoji.name}:`}
+                        type="button"
                       >
                         <img
                           src={`${API_URL}${emoji.image_url}`}
