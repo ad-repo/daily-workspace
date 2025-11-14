@@ -67,6 +67,7 @@ export interface AppSettings {
   sprint_end_date: string;
   quarterly_start_date: string;
   quarterly_end_date: string;
+  emoji_library: string;
   created_at: string;
   updated_at: string;
 }
@@ -78,6 +79,7 @@ export interface AppSettingsUpdate {
   sprint_end_date?: string;
   quarterly_start_date?: string;
   quarterly_end_date?: string;
+  emoji_library?: string;
 }
 
 export interface Goal {
@@ -145,5 +147,28 @@ export interface EntryListAssociation {
   entry_id: number;
   list_id: number;
   order_index: number;
+}
+
+export interface CustomEmoji {
+  id: number;
+  name: string;
+  image_url: string;
+  category: string;
+  keywords: string;
+  is_deleted: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CustomEmojiCreate {
+  name: string;
+  category?: string;
+  keywords?: string;
+}
+
+export interface CustomEmojiUpdate {
+  name?: string;
+  category?: string;
+  keywords?: string;
 }
 
