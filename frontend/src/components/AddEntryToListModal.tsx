@@ -115,9 +115,8 @@ const AddEntryToListModal = ({ list, onClose, onUpdate }: AddEntryToListModalPro
 
   return (
     <div
-      className="fixed inset-0 flex items-center justify-center p-4"
+      className="fixed inset-0 flex items-center justify-center z-50 p-4"
       style={{
-        zIndex: 9999,
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
         backdropFilter: 'blur(2px)',
       }}
