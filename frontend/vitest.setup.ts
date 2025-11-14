@@ -4,6 +4,7 @@
 import '@testing-library/jest-dom';
 import { afterEach, vi } from 'vitest';
 import { cleanup } from '@testing-library/react';
+import React from 'react';
 
 // Cleanup after each test case
 afterEach(() => {
@@ -185,4 +186,22 @@ Object.defineProperty(navigator, 'clipboard', {
     readText: vi.fn().mockResolvedValue(''),
   },
 });
+
+// Mock EmojiLibraryContext
+vi.mock('./src/contexts/EmojiLibraryContext', () => ({
+  EmojiLibraryProvider: ({ children }: { children: React.ReactNode }) => children,
+  useEmojiLibrary: () => ({
+    emojiLibrary: 'emoji-picker-react',
+    customEmojis: [],
+    setEmojiLibrary: vi.fn(),
+    refreshCustomEmojis: vi.fn(),
+  }),
+}));
+
+// Mock EmojiPicker component
+vi.mock('./src/components/EmojiPicker', () => ({
+  default: ({ onEmojiSelect }: { onEmojiSelect?: (emoji: string, isCustom?: boolean, imageUrl?: string) => void }) => (
+    <button onClick={() => onEmojiSelect?.('🔥', false, undefined)}>Mock Emoji Picker</button>
+  ),
+}));
 
