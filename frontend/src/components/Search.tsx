@@ -187,7 +187,7 @@ const Search = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Search by text content..."
+              placeholder="Search by text (optional)..."
               className="flex-1 px-4 py-3 rounded-lg focus:outline-none"
               style={{
                 backgroundColor: 'var(--color-bg-primary)',
@@ -251,10 +251,10 @@ const Search = () => {
           </div>
         </div>
 
-        {/* Status Filters */}
+        {/* Status Selection */}
         <div className="mb-6">
           <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text-primary)' }}>
-            Filter by Status:
+            Search by Status (optional):
           </label>
           <div className="flex flex-wrap gap-3">
             {/* Starred Filter */}
@@ -343,10 +343,10 @@ const Search = () => {
           </div>
         </div>
 
-        {/* Label Filter */}
+        {/* Label Selection */}
         <div className="mb-6">
           <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text-primary)' }}>
-            Filter by Labels:
+            Search by Labels (optional):
           </label>
           <div className="flex flex-wrap gap-2">
             {allLabels.length === 0 ? (
@@ -378,7 +378,7 @@ const Search = () => {
         <div className="mb-6">
           <label className="block text-sm font-medium mb-2 flex items-center gap-2" style={{ color: 'var(--color-text-primary)' }}>
             <Columns className="h-4 w-4" />
-            Filter by Lists:
+            Search by Lists (optional):
           </label>
           <div className="flex flex-wrap gap-2">
             {allLists.length === 0 ? (
@@ -458,12 +458,15 @@ const Search = () => {
             }}
           >
             <strong>Found {results.length} entr{results.length !== 1 ? 'ies' : 'y'} and {listResults.length} list{listResults.length !== 1 ? 's' : ''}</strong>
-            {searchQuery.trim() && <div className="mt-1">Text: "{searchQuery}"</div>}
-            {selectedLabels.length > 0 && <div className="mt-1">Labels: {selectedLabels.length} selected</div>}
-            {selectedLists.length > 0 && <div className="mt-1">Lists: {selectedLists.length} selected</div>}
-            {filterStarred === true && <div className="mt-1">Status: Starred only</div>}
-            {filterCompleted === true && <div className="mt-1">Status: Completed only</div>}
-            {filterCompleted === false && <div className="mt-1">Status: Not completed</div>}
+            <div className="mt-2 text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+              Searching by:
+              {searchQuery.trim() && <span className="ml-2 px-2 py-1 rounded" style={{ backgroundColor: 'var(--color-bg-tertiary)' }}>Text: "{searchQuery}"</span>}
+              {selectedLabels.length > 0 && <span className="ml-2 px-2 py-1 rounded" style={{ backgroundColor: 'var(--color-bg-tertiary)' }}>{selectedLabels.length} label{selectedLabels.length !== 1 ? 's' : ''}</span>}
+              {selectedLists.length > 0 && <span className="ml-2 px-2 py-1 rounded" style={{ backgroundColor: 'var(--color-bg-tertiary)' }}>{selectedLists.length} list{selectedLists.length !== 1 ? 's' : ''}</span>}
+              {filterStarred === true && <span className="ml-2 px-2 py-1 rounded" style={{ backgroundColor: 'var(--color-bg-tertiary)' }}>Starred</span>}
+              {filterCompleted === true && <span className="ml-2 px-2 py-1 rounded" style={{ backgroundColor: 'var(--color-bg-tertiary)' }}>Completed</span>}
+              {filterCompleted === false && <span className="ml-2 px-2 py-1 rounded" style={{ backgroundColor: 'var(--color-bg-tertiary)' }}>Not completed</span>}
+            </div>
           </div>
         )}
         
