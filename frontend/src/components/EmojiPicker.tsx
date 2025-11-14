@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Smile, X, Settings } from 'lucide-react';
 import Picker from 'emoji-picker-react';
 import data from '@emoji-mart/data';
-import { Picker as EmojiMartPicker } from '@emoji-mart/react';
+import EmojiMartPicker from '@emoji-mart/react';
 import { useEmojiLibrary } from '../contexts/EmojiLibraryContext';
 import { customEmojisApi } from '../api';
 import type { CustomEmoji } from '../types';
@@ -172,7 +172,6 @@ const EmojiPicker = ({ onEmojiSelect }: EmojiPickerProps) => {
                     onEmojiSelect={handleEmojiClick}
                     theme="auto"
                     previewPosition="none"
-                    searchPosition="sticky"
                   />
                 )}
               </div>
