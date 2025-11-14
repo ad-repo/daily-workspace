@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FileText, Download, Calendar, Copy, Check } from 'lucide-react';
+import { FileText, Download, Calendar, Copy, Check, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { format } from 'date-fns';
@@ -48,6 +48,7 @@ const Reports = () => {
   const [copiedAllReport, setCopiedAllReport] = useState(false);
   const [copiedEntryId, setCopiedEntryId] = useState<number | null>(null);
   const [clearingFlags, setClearingFlags] = useState(false);
+  const [clearedFlags, setClearedFlags] = useState(false);
 
   useEffect(() => {
     loadAvailableWeeks();
@@ -94,6 +95,7 @@ const Reports = () => {
 
   const clearAllReportFlags = async () => {
     setClearingFlags(true);
+    setClearedFlags(false);
     try {
       // Get all entries with report flag
       const response = await axios.get(`${API_URL}/api/reports/all-entries`);
@@ -116,6 +118,10 @@ const Reports = () => {
       if (allEntriesReport) {
         await generateAllEntriesReport();
       }
+
+      // Show success state
+      setClearedFlags(true);
+      setTimeout(() => setClearedFlags(false), 2000);
     } catch (error) {
       console.error('Failed to clear report flags:', error);
     } finally {
@@ -498,19 +504,25 @@ const Reports = () => {
         <button
           onClick={clearAllReportFlags}
           disabled={clearingFlags}
-          className="px-6 py-3 rounded-lg transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center gap-2 px-6 py-3 rounded-lg transition-all duration-200 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
           style={{
-            backgroundColor: clearingFlags ? 'var(--color-bg-tertiary)' : 'var(--color-danger, #ef4444)',
+            backgroundColor: clearedFlags 
+              ? 'var(--color-success, #22c55e)' 
+              : clearingFlags 
+                ? 'var(--color-bg-tertiary)' 
+                : 'var(--color-danger, #ef4444)',
             color: clearingFlags ? 'var(--color-text-tertiary)' : 'white'
           }}
           onMouseEnter={(e) => {
-            if (!clearingFlags) e.currentTarget.style.opacity = '0.9';
+            if (!clearingFlags && !clearedFlags) e.currentTarget.style.opacity = '0.9';
           }}
           onMouseLeave={(e) => {
-            if (!clearingFlags) e.currentTarget.style.opacity = '1';
+            if (!clearingFlags && !clearedFlags) e.currentTarget.style.opacity = '1';
           }}
         >
-          {clearingFlags ? 'Clearing...' : 'Clear All Report Flags'}
+          {clearingFlags && <Loader2 className="h-5 w-5 animate-spin" />}
+          {clearedFlags && <Check className="h-5 w-5" />}
+          {clearingFlags ? 'Clearing...' : clearedFlags ? 'Cleared!' : 'Clear All Report Flags'}
         </button>
       </div>
 
