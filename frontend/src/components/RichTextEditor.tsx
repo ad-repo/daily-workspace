@@ -43,6 +43,7 @@ import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
 import TurndownService from 'turndown';
 import { marked } from 'marked';
 import * as yaml from 'js-yaml';
+import EmojiPicker from './EmojiPicker';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -698,6 +699,22 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
     };
 
     input.click();
+  };
+
+  const handleEmojiSelect = (emoji: string, isCustom?: boolean, imageUrl?: string) => {
+    if (!editor) return;
+
+    if (isCustom && imageUrl) {
+      // Insert custom emoji as an image with inline-emoji class
+      editor
+        .chain()
+        .focus()
+        .insertContent(`<img src="${imageUrl}" alt="${emoji}" class="inline-emoji" /> `)
+        .run();
+    } else {
+      // Insert Unicode emoji as text
+      editor.chain().focus().insertContent(emoji + ' ').run();
+    }
   };
 
   const addLinkPreview = async () => {
@@ -1403,6 +1420,9 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
         <ToolbarButton onClick={addFile} title="Attach File">
           <Paperclip className="h-4 w-4" />
         </ToolbarButton>
+
+        {/* Emoji Picker */}
+        <EmojiPicker onEmojiSelect={handleEmojiSelect} />
 
         {/* Separator */}
         <div style={{ width: '1px', height: '24px', backgroundColor: 'var(--color-border-primary)', margin: '0 4px' }} />

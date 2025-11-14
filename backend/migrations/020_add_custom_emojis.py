@@ -27,7 +27,7 @@ def migrate_up(db_path: Path) -> bool:
 
         if table_exists(cursor, 'custom_emojis'):
             print("Table 'custom_emojis' already exists. Skipping migration 020.")
-            return False
+            return True
 
         # Create custom_emojis table
         cursor.execute("""
