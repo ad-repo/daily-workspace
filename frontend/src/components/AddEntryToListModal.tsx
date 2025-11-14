@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Search, Plus } from 'lucide-react';
 import { notesApi, listsApi } from '../api';
 import type { NoteEntry, List } from '../types';
@@ -113,7 +114,7 @@ const AddEntryToListModal = ({ list, onClose, onUpdate }: AddEntryToListModalPro
     return entry.lists?.some((l) => l.id === list.id);
   };
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 flex items-center justify-center p-4"
       style={{
@@ -297,7 +298,8 @@ const AddEntryToListModal = ({ list, onClose, onUpdate }: AddEntryToListModalPro
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
