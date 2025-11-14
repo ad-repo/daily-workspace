@@ -41,6 +41,15 @@ A modern, powerful daily workspace application for capturing and organizing your
 - **Autocomplete**: Smart label suggestions with predictive text
 - **Emoji Labels**: Special rendering for emoji-only labels
 - **Transparent Mode**: Toggle between solid or transparent label backgrounds
+- **Custom Emoji System**: Advanced emoji management with multiple options
+  - **Dual Library Support**: Choose between `emoji-picker-react` or `emoji-mart` in Settings
+  - **Custom Emoji Upload**: Upload your own emoji images (PNG, JPG, GIF, WebP)
+  - **Automatic Resizing**: Uploaded emojis are automatically resized to 64x64 pixels
+  - **Emoji Management**: View, rename, and delete custom emojis from Settings
+  - **Global Availability**: Custom emojis work everywhere - rich text editor, labels, and all text inputs
+  - **Image Display**: Custom emojis render as inline images, not text
+  - **Searchable by Name**: Find custom emojis quickly by their names
+  - **Persistent Storage**: Custom emojis saved to database and included in backups
 - **Lists**: Trello-style boards for organizing note entries
   - Create custom lists with names, descriptions, and colors
   - Add labels to lists for categorization and filtering
@@ -63,6 +72,9 @@ A modern, powerful daily workspace application for capturing and organizing your
   - **Drag-and-Drop**: Reorder columns to match your workflow
   - **Horizontal Scrolling**: Navigate between columns with smooth scrolling
   - **Mini-Map Navigation**: Quick jump to any column with visual indicators
+  - **Status Selector on Cards**: Click the Kanban status badge on any card to open a modal and change its status
+  - **Quick Status Changes**: Move entries between Kanban columns without drag-and-drop
+  - **Smooth Transitions**: Status changes include loading indicators and smooth page updates
   - **Reuses Existing Infrastructure**: Kanban columns are special lists (is_kanban flag)
   - **Separate from Lists**: Regular lists and Kanban boards are kept separate
   - **Full Entry Support**: All entry features work in Kanban (labels, completion, etc.)
@@ -131,12 +143,13 @@ A modern, powerful daily workspace application for capturing and organizing your
 - **Markdown Export**: Export all data as markdown for LLM consumption
 
 ### 🔍 Search & Discovery
-- **Global Search**: Search both entries and lists by text content and/or labels
-- **Unified Results**: View entries and lists together in search results
+- **Global Search**: Search entries, lists, and Kanban boards by text content and/or labels
+- **Unified Results**: View entries, regular lists, and Kanban columns together in search results
+- **Kanban Differentiation**: Kanban columns displayed with Trello icon and accent color for easy identification
 - **Status Filters**: Filter by starred, completed, or not completed entries
 - **Search History**: Unlimited search history (no duplicates)
-- **Label Filtering**: Find entries and lists by specific labels
-- **Direct Navigation**: Click search results to jump to specific entries or lists
+- **Label Filtering**: Find entries, lists, and Kanban boards by specific labels
+- **Direct Navigation**: Click search results to jump to specific entries, lists, or Kanban boards
 - **Rich Result Cards**: Large, detailed cards showing all relevant information
 
 ### 🛠️ Productivity Tools
@@ -153,6 +166,17 @@ A modern, powerful daily workspace application for capturing and organizing your
 - **Smart Layout**: Timeline auto-hides in full-screen, auto-shows when toggled on
 - **Persistent Preferences**: View settings saved across sessions
 - **One-Click Toggle**: Quick access from navigation bar
+
+### 🎯 UI/UX Improvements
+- **Card Borders**: Defined 2px borders on all cards in list and kanban views for better visual separation
+- **Improved Card Layout**: Enhanced content display with proper spacing and formatting
+- **Rich Text Rendering**: Full prose styling for all formatted content (headings, lists, code blocks, etc.)
+- **Vertical Scrolling**: List and Kanban columns grow naturally without truncation
+- **Page-Level Scrolling**: Smooth scrolling for entire page when lists have varying heights
+- **Fixed Scroll Indicators**: Horizontal scroll indicators stay at consistent viewport position
+- **Custom Logo**: Branded "Track the Thing" logo with monitor icon in navigation bar
+- **Theme-Aware Logo**: Logo colors adapt to current theme using CSS variables
+- **Responsive Design**: Consistent layout across different screen sizes
 
 ### 💾 Data Management
 - **Backup & Restore**: Full JSON export/import with all data
