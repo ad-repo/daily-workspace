@@ -494,40 +494,45 @@ const Search = () => {
                         style={{
                           backgroundColor: 'var(--color-card-bg)',
                           border: `2px solid ${list.color}`,
-                          animation: `fadeIn 0.3s ease-in ${index * 0.05}s both`
+                          animation: `fadeIn 0.3s ease-in ${index * 0.05}s both`,
+                          minHeight: '200px'
                         }}
                       >
-                        <div className="flex items-start justify-between mb-4">
-                          <div className="flex items-center gap-3 flex-1">
-                            <div
-                              className="w-2 h-12 rounded-full flex-shrink-0"
-                              style={{ backgroundColor: list.color }}
-                            />
-                            <div className="flex-1">
-                              <h3 className="text-2xl font-bold mb-2" style={{ color: 'var(--color-text-primary)' }}>
-                                {list.name}
-                              </h3>
-                              {list.description && (
-                                <p className="text-sm mb-3" style={{ color: 'var(--color-text-secondary)' }}>
-                                  {list.description}
-                                </p>
-                              )}
-                              <div className="flex items-center gap-3">
-                                <span
-                                  className="px-3 py-1 rounded-full text-sm font-semibold"
-                                  style={{
-                                    backgroundColor: list.color,
-                                    color: 'white',
-                                  }}
-                                >
-                                  {list.entry_count || 0} {list.entry_count === 1 ? 'entry' : 'entries'}
+                        <div className="flex items-start gap-3 mb-4">
+                          <div
+                            className="w-2 h-16 rounded-full flex-shrink-0"
+                            style={{ backgroundColor: list.color }}
+                          />
+                          <div className="flex-1">
+                            <h3 className="text-2xl font-bold mb-3" style={{ color: 'var(--color-text-primary)' }}>
+                              {list.name}
+                            </h3>
+                            {list.description && (
+                              <div 
+                                className="prose max-w-none text-base leading-relaxed mb-4"
+                                style={{ 
+                                  color: 'var(--color-text-secondary)',
+                                  maxHeight: '200px',
+                                  overflowY: 'auto'
+                                }}
+                                dangerouslySetInnerHTML={{ __html: list.description }}
+                              />
+                            )}
+                            <div className="flex items-center gap-3">
+                              <span
+                                className="px-3 py-1 rounded-full text-sm font-semibold"
+                                style={{
+                                  backgroundColor: list.color,
+                                  color: 'white',
+                                }}
+                              >
+                                {list.entry_count || 0} {list.entry_count === 1 ? 'entry' : 'entries'}
+                              </span>
+                              {list.is_archived && (
+                                <span className="px-3 py-1 rounded-full text-sm font-medium" style={{ backgroundColor: 'var(--color-bg-tertiary)', color: 'var(--color-text-secondary)' }}>
+                                  Archived
                                 </span>
-                                {list.is_archived && (
-                                  <span className="px-3 py-1 rounded-full text-sm font-medium" style={{ backgroundColor: 'var(--color-bg-tertiary)', color: 'var(--color-text-secondary)' }}>
-                                    Archived
-                                  </span>
-                                )}
-                              </div>
+                              )}
                             </div>
                           </div>
                         </div>
