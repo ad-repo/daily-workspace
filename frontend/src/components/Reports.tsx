@@ -47,6 +47,7 @@ const Reports = () => {
   const [loadingAll, setLoadingAll] = useState(false);
   const [copiedAllReport, setCopiedAllReport] = useState(false);
   const [copiedEntryId, setCopiedEntryId] = useState<number | null>(null);
+  const [clearingFlags, setClearingFlags] = useState(false);
 
   useEffect(() => {
     loadAvailableWeeks();
@@ -92,6 +93,7 @@ const Reports = () => {
   };
 
   const clearAllReportFlags = async () => {
+    setClearingFlags(true);
     try {
       // Get all entries with report flag
       const response = await axios.get(`${API_URL}/api/reports/all-entries`);
@@ -116,6 +118,8 @@ const Reports = () => {
       }
     } catch (error) {
       console.error('Failed to clear report flags:', error);
+    } finally {
+      setClearingFlags(false);
     }
   };
 
@@ -493,19 +497,20 @@ const Reports = () => {
       <div className="flex justify-end mb-4">
         <button
           onClick={clearAllReportFlags}
-          className="px-6 py-3 rounded-lg transition-colors shadow-lg"
+          disabled={clearingFlags}
+          className="px-6 py-3 rounded-lg transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
           style={{
-            backgroundColor: 'var(--color-danger, #ef4444)',
-            color: 'white'
+            backgroundColor: clearingFlags ? 'var(--color-bg-tertiary)' : 'var(--color-danger, #ef4444)',
+            color: clearingFlags ? 'var(--color-text-tertiary)' : 'white'
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.opacity = '0.9';
+            if (!clearingFlags) e.currentTarget.style.opacity = '0.9';
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.opacity = '1';
+            if (!clearingFlags) e.currentTarget.style.opacity = '1';
           }}
         >
-          Clear All Report Flags
+          {clearingFlags ? 'Clearing...' : 'Clear All Report Flags'}
         </button>
       </div>
 
