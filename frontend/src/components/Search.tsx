@@ -37,13 +37,6 @@ const Search = () => {
     loadSearchHistory();
   }, []);
 
-  // Auto-search when filters change (only if we have already searched)
-  useEffect(() => {
-    if (hasSearched) {
-      performSearch();
-    }
-  }, [selectedLabels, selectedLists, filterStarred, filterCompleted]);
-
   const loadLabels = async () => {
     try {
       const response = await axios.get<Label[]>(`${API_URL}/api/labels/`);
@@ -85,9 +78,21 @@ const Search = () => {
     }
   };
 
-  const performSearch = async () => {
+  const performSearch = async (overrides?: {
+    query?: string;
+    labels?: number[];
+    lists?: number[];
+    starred?: boolean | null;
+    completed?: boolean | null;
+  }) => {
+    const query = overrides?.query !== undefined ? overrides.query : searchQuery;
+    const labels = overrides?.labels !== undefined ? overrides.labels : selectedLabels;
+    const lists = overrides?.lists !== undefined ? overrides.lists : selectedLists;
+    const starred = overrides?.starred !== undefined ? overrides.starred : filterStarred;
+    const completed = overrides?.completed !== undefined ? overrides.completed : filterCompleted;
+
     // Don't search if nothing is entered
-    if (!searchQuery.trim() && selectedLabels.length === 0 && selectedLists.length === 0 && filterStarred === null && filterCompleted === null) {
+    if (!query.trim() && labels.length === 0 && lists.length === 0 && starred === null && completed === null) {
       setResults([]);
       setListResults([]);
       setHasSearched(false);
@@ -95,28 +100,29 @@ const Search = () => {
     }
 
     setLoading(true);
+    setHasSearched(true);
 
     // Save to history if there's a text query
-    if (searchQuery.trim()) {
-      saveToHistory(searchQuery);
+    if (query.trim()) {
+      saveToHistory(query);
     }
 
     try {
       const params: any = {};
-      if (searchQuery.trim()) {
-        params.q = searchQuery.trim();
+      if (query.trim()) {
+        params.q = query.trim();
       }
-      if (selectedLabels.length > 0) {
-        params.label_ids = selectedLabels.join(',');
+      if (labels.length > 0) {
+        params.label_ids = labels.join(',');
       }
-      if (selectedLists.length > 0) {
-        params.list_ids = selectedLists.join(',');
+      if (lists.length > 0) {
+        params.list_ids = lists.join(',');
       }
-      if (filterStarred !== null) {
-        params.is_important = filterStarred;
+      if (starred !== null) {
+        params.is_important = starred;
       }
-      if (filterCompleted !== null) {
-        params.is_completed = filterCompleted;
+      if (completed !== null) {
+        params.is_completed = completed;
       }
 
       const response = await axios.get<{entries: NoteEntry[], lists: List[]}>(`${API_URL}/api/search/all`, { params });
@@ -143,11 +149,12 @@ const Search = () => {
   };
 
   const toggleLabel = (labelId: number) => {
-    setSelectedLabels(prev =>
-      prev.includes(labelId)
-        ? prev.filter(id => id !== labelId)
-        : [...prev, labelId]
-    );
+    const newLabels = selectedLabels.includes(labelId)
+      ? selectedLabels.filter(id => id !== labelId)
+      : [...selectedLabels, labelId];
+    
+    setSelectedLabels(newLabels);
+    performSearch({ labels: newLabels });
   };
 
   const clearSearch = () => {
@@ -259,7 +266,11 @@ const Search = () => {
           <div className="flex flex-wrap gap-3">
             {/* Starred Filter */}
             <button
-              onClick={() => setFilterStarred(filterStarred === true ? null : true)}
+              onClick={() => {
+                const newValue = filterStarred === true ? null : true;
+                setFilterStarred(newValue);
+                performSearch({ starred: newValue });
+              }}
               className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all"
               style={{
                 backgroundColor: filterStarred === true ? 'var(--color-accent)' : 'var(--color-bg-tertiary)',
@@ -288,7 +299,11 @@ const Search = () => {
 
             {/* Completed Filter */}
             <button
-              onClick={() => setFilterCompleted(filterCompleted === true ? null : true)}
+              onClick={() => {
+                const newValue = filterCompleted === true ? null : true;
+                setFilterCompleted(newValue);
+                performSearch({ completed: newValue });
+              }}
               className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all"
               style={{
                 backgroundColor: filterCompleted === true ? 'var(--color-accent)' : 'var(--color-bg-tertiary)',
@@ -317,7 +332,11 @@ const Search = () => {
 
             {/* Not Completed Filter */}
             <button
-              onClick={() => setFilterCompleted(filterCompleted === false ? null : false)}
+              onClick={() => {
+                const newValue = filterCompleted === false ? null : false;
+                setFilterCompleted(newValue);
+                performSearch({ completed: newValue });
+              }}
               className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all"
               style={{
                 backgroundColor: filterCompleted === false ? 'var(--color-accent)' : 'var(--color-bg-tertiary)',
@@ -387,11 +406,14 @@ const Search = () => {
               allLists.map((list) => (
                 <button
                   key={list.id}
-                  onClick={() => setSelectedLists(prev => 
-                    prev.includes(list.id)
-                      ? prev.filter(id => id !== list.id)
-                      : [...prev, list.id]
-                  )}
+                  onClick={() => {
+                    const newLists = selectedLists.includes(list.id)
+                      ? selectedLists.filter(id => id !== list.id)
+                      : [...selectedLists, list.id];
+                    
+                    setSelectedLists(newLists);
+                    performSearch({ lists: newLists });
+                  }}
                   className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
                     selectedLists.includes(list.id)
                       ? 'ring-2 ring-offset-2'
