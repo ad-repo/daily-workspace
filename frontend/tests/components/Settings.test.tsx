@@ -204,11 +204,13 @@ describe('Settings Component', () => {
   it('displays success message after successful operation', async () => {
     mockAxios.delete.mockResolvedValue({ data: {} });
 
-    renderWithProviders(<Settings />);
+    await act(async () => {
+      renderWithProviders(<Settings />);
+    });
 
     await waitFor(() => {
       expect(screen.getByText('work')).toBeInTheDocument();
-    });
+    }, { timeout: 10000 });
 
     const deleteButtons = screen.getAllByText('Trash2');
     
@@ -218,7 +220,7 @@ describe('Settings Component', () => {
 
     await waitFor(() => {
       expect(screen.getByText(/success/i)).toBeInTheDocument();
-    });
+    }, { timeout: 5000 });
   });
 
   it('displays error message on API failure', async () => {

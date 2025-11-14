@@ -1,9 +1,11 @@
 _schema_version: "1.0.0"
-last_updated: "2025-11-09"
+last_updated: "2025-11-13"
 meta_guidelines:
   purpose: "Defines all coding, testing, documentation, and cleanup standards for the AI code editor."
   enforcement:
     - Always reference these rules after every operation, edit, or commit.
+    - ALWAYS review .ai-testing-rules.yml before committing or pushing code.
+    - ALWAYS run ./test_ci_locally.sh before every commit to verify CI compliance.
     - After each code generation, verify:
       - All relevant rules are followed.
       - Critical requirements are satisfied.
@@ -12,6 +14,37 @@ meta_guidelines:
     - Optionally summarize rule compliance when outputting results.
 
 rules:
+  ai_testing_compliance:
+    critical: true
+    purpose: "Ensure AI always tests code properly before committing and follows exact CI procedures."
+    reference_file: ".ai-testing-rules.yml"
+    mandatory_actions:
+      - ALWAYS run ./test_ci_locally.sh before every commit
+      - NEVER push code without verifying it passes all CI checks locally
+      - NEVER guess at CI errors - always read actual CI logs
+      - NEVER run different commands than what CI runs
+      - Review .ai-testing-rules.yml for complete procedures
+    before_every_commit:
+      - step: 1
+        action: "Run ./test_ci_locally.sh"
+        required: true
+      - step: 2
+        action: "Verify exit code is 0"
+        required: true
+      - step: 3
+        action: "Only commit if all checks pass"
+        required: true
+    when_ci_fails:
+      - "DO NOT GUESS - Look at actual CI error logs"
+      - "Reproduce error locally using exact CI commands"
+      - "Fix the error"
+      - "Run ./test_ci_locally.sh to verify"
+      - "Only push if local checks pass"
+    enforcement:
+      - Treat violations as critical failures
+      - Multiple CI failures due to not testing locally is unacceptable
+      - Always follow procedures in .ai-testing-rules.yml
+
   plan_logging:
     purpose: "Automatically show and save all plans generated in plan mode with descriptive titles for traceability and review."
     applies_to:

@@ -1274,19 +1274,19 @@ const Settings = () => {
               // Full timezone selector when editing
               <div>
                 <p className="mb-4" style={{ color: 'var(--color-text-secondary)' }}>
-                  Set your timezone for accurate time display throughout the app.
-                </p>
-                
-                <div className="max-w-md">
+              Set your timezone for accurate time display throughout the app.
+            </p>
+            
+            <div className="max-w-md">
                   <label htmlFor="timezone" className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>
-                    Select Timezone
-                  </label>
-                  <select
-                    id="timezone"
-                    value={timezone}
-                    onChange={(e) => {
-                      setTimezone(e.target.value);
-                      showMessage('success', `Timezone updated to ${e.target.value}`);
+                Select Timezone
+              </label>
+              <select
+                id="timezone"
+                value={timezone}
+                onChange={(e) => {
+                  setTimezone(e.target.value);
+                  showMessage('success', `Timezone updated to ${e.target.value}`);
                       setIsEditingTimezone(false);
                     }}
                     className="w-full px-4 py-2 rounded-lg focus:outline-none focus:ring-2"
@@ -1295,51 +1295,51 @@ const Settings = () => {
                       color: 'var(--color-text-primary)',
                       border: '1px solid var(--color-border-primary)'
                     }}
-                  >
-                    <optgroup label="US Timezones">
-                      <option value="America/New_York">Eastern (New York)</option>
-                      <option value="America/Chicago">Central (Chicago)</option>
-                      <option value="America/Denver">Mountain (Denver)</option>
-                      <option value="America/Phoenix">Mountain - No DST (Phoenix)</option>
-                      <option value="America/Los_Angeles">Pacific (Los Angeles)</option>
-                      <option value="America/Anchorage">Alaska (Anchorage)</option>
-                      <option value="Pacific/Honolulu">Hawaii (Honolulu)</option>
-                    </optgroup>
-                    <optgroup label="Canada">
-                      <option value="America/Toronto">Eastern (Toronto)</option>
-                      <option value="America/Winnipeg">Central (Winnipeg)</option>
-                      <option value="America/Edmonton">Mountain (Edmonton)</option>
-                      <option value="America/Vancouver">Pacific (Vancouver)</option>
-                    </optgroup>
-                    <optgroup label="Europe">
-                      <option value="Europe/London">London (GMT/BST)</option>
-                      <option value="Europe/Paris">Paris (CET/CEST)</option>
-                      <option value="Europe/Berlin">Berlin (CET/CEST)</option>
-                      <option value="Europe/Rome">Rome (CET/CEST)</option>
-                      <option value="Europe/Madrid">Madrid (CET/CEST)</option>
-                      <option value="Europe/Moscow">Moscow (MSK)</option>
-                    </optgroup>
-                    <optgroup label="Asia">
-                      <option value="Asia/Dubai">Dubai (GST)</option>
-                      <option value="Asia/Kolkata">India (IST)</option>
-                      <option value="Asia/Shanghai">China (CST)</option>
-                      <option value="Asia/Tokyo">Japan (JST)</option>
-                      <option value="Asia/Seoul">South Korea (KST)</option>
-                      <option value="Asia/Singapore">Singapore (SGT)</option>
-                      <option value="Asia/Hong_Kong">Hong Kong (HKT)</option>
-                    </optgroup>
-                    <optgroup label="Australia">
-                      <option value="Australia/Sydney">Sydney (AEDT/AEST)</option>
-                      <option value="Australia/Melbourne">Melbourne (AEDT/AEST)</option>
-                      <option value="Australia/Perth">Perth (AWST)</option>
-                    </optgroup>
-                    <optgroup label="Other">
-                      <option value="UTC">UTC</option>
-                    </optgroup>
-                  </select>
+              >
+                <optgroup label="US Timezones">
+                  <option value="America/New_York">Eastern (New York)</option>
+                  <option value="America/Chicago">Central (Chicago)</option>
+                  <option value="America/Denver">Mountain (Denver)</option>
+                  <option value="America/Phoenix">Mountain - No DST (Phoenix)</option>
+                  <option value="America/Los_Angeles">Pacific (Los Angeles)</option>
+                  <option value="America/Anchorage">Alaska (Anchorage)</option>
+                  <option value="Pacific/Honolulu">Hawaii (Honolulu)</option>
+                </optgroup>
+                <optgroup label="Canada">
+                  <option value="America/Toronto">Eastern (Toronto)</option>
+                  <option value="America/Winnipeg">Central (Winnipeg)</option>
+                  <option value="America/Edmonton">Mountain (Edmonton)</option>
+                  <option value="America/Vancouver">Pacific (Vancouver)</option>
+                </optgroup>
+                <optgroup label="Europe">
+                  <option value="Europe/London">London (GMT/BST)</option>
+                  <option value="Europe/Paris">Paris (CET/CEST)</option>
+                  <option value="Europe/Berlin">Berlin (CET/CEST)</option>
+                  <option value="Europe/Rome">Rome (CET/CEST)</option>
+                  <option value="Europe/Madrid">Madrid (CET/CEST)</option>
+                  <option value="Europe/Moscow">Moscow (MSK)</option>
+                </optgroup>
+                <optgroup label="Asia">
+                  <option value="Asia/Dubai">Dubai (GST)</option>
+                  <option value="Asia/Kolkata">India (IST)</option>
+                  <option value="Asia/Shanghai">China (CST)</option>
+                  <option value="Asia/Tokyo">Japan (JST)</option>
+                  <option value="Asia/Seoul">South Korea (KST)</option>
+                  <option value="Asia/Singapore">Singapore (SGT)</option>
+                  <option value="Asia/Hong_Kong">Hong Kong (HKT)</option>
+                </optgroup>
+                <optgroup label="Australia">
+                  <option value="Australia/Sydney">Sydney (AEDT/AEST)</option>
+                  <option value="Australia/Melbourne">Melbourne (AEDT/AEST)</option>
+                  <option value="Australia/Perth">Perth (AWST)</option>
+                </optgroup>
+                <optgroup label="Other">
+                  <option value="UTC">UTC</option>
+                </optgroup>
+              </select>
                   
                   <div className="mt-3 flex gap-2">
-                    <button
+              <button
                       onClick={() => setIsEditingTimezone(false)}
                       className="px-4 py-2 text-sm rounded-lg transition-colors"
                       style={{ color: 'var(--color-text-secondary)' }}
@@ -1351,8 +1351,8 @@ const Settings = () => {
                       }}
                     >
                       Cancel
-                    </button>
-                  </div>
+              </button>
+            </div>
                 </div>
               </div>
             )}

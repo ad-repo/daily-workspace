@@ -1,3 +1,5 @@
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -10,6 +12,7 @@ from app.routers import (
     goals,
     labels,
     link_preview,
+    lists,
     notes,
     reports,
     search,
@@ -17,8 +20,9 @@ from app.routers import (
     uploads,
 )
 
-# Create database tables
-Base.metadata.create_all(bind=engine)
+# Create database tables only if not in test mode
+if os.getenv('TESTING') != 'true':
+    Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title='Track the Thing API', version='1.0.0')
 
@@ -37,6 +41,7 @@ app.include_router(notes.router, prefix='/api/notes', tags=['notes'])
 app.include_router(entries.router, prefix='/api/entries', tags=['entries'])
 app.include_router(uploads.router, prefix='/api/uploads', tags=['uploads'])
 app.include_router(labels.router, prefix='/api/labels', tags=['labels'])
+app.include_router(lists.router)
 app.include_router(backup.router, prefix='/api/backup', tags=['backup'])
 app.include_router(reports.router, prefix='/api/reports', tags=['reports'])
 app.include_router(search.router, prefix='/api/search', tags=['search'])

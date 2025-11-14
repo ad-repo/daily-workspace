@@ -460,7 +460,7 @@ const Reports = () => {
   };
 
   return (
-    <div className="container mx-auto p-4 max-w-4xl page-fade-in" style={{ position: 'relative', zIndex: 1 }}>
+    <div className="max-w-5xl mx-auto page-fade-in" style={{ position: 'relative', zIndex: 1 }}>
       <div 
         className="rounded-lg shadow-lg p-6 mb-6"
         style={{ backgroundColor: 'var(--color-bg-primary)' }}

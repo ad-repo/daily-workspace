@@ -172,8 +172,8 @@ describe('RichTextEditor Component', () => {
 
   it('renders heading buttons', () => {
     render(<RichTextEditor {...defaultProps} />);
-    expect(screen.getByText('H1')).toBeInTheDocument();
-    expect(screen.getByText('H2')).toBeInTheDocument();
+    // Heading picker button should be present
+    expect(screen.getByTitle('Headings')).toBeInTheDocument();
   });
 
   it('renders list buttons', () => {

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import CalendarView from './components/CalendarView';
 import DailyView from './components/DailyView';
+import Lists from './components/Lists';
 import Navigation from './components/Navigation';
 import Settings from './components/Settings';
 import Reports from './components/Reports';
@@ -49,6 +50,10 @@ const AppContent = () => {
             <Route
               path="/day/:date"
               element={<DailyView />}
+            />
+            <Route
+              path="/lists"
+              element={<Lists />}
             />
             <Route
               path="/reports"

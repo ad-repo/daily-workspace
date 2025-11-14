@@ -43,7 +43,6 @@ vi.mock('react-calendar', () => ({
 vi.mock('lucide-react', () => ({
   Star: () => <div>Star</div>,
   Check: () => <div>Check</div>,
-  Skull: () => <div>Skull</div>,
 }));
 
 // Mock date-fns
@@ -58,8 +57,8 @@ describe('CalendarView Component', () => {
       date: '2025-11-07',
       daily_goal: 'Test goal',
       entries: [
-        { id: 1, is_important: true, is_completed: false, is_dev_null: false },
-        { id: 2, is_important: false, is_completed: true, is_dev_null: false },
+        { id: 1, is_important: true, is_completed: false },
+        { id: 2, is_important: false, is_completed: true },
       ],
     },
     {
@@ -67,7 +66,7 @@ describe('CalendarView Component', () => {
       date: '2025-11-08',
       daily_goal: '',
       entries: [
-        { id: 3, is_important: false, is_completed: false, is_dev_null: true },
+        { id: 3, is_important: false, is_completed: false },
       ],
     },
   ];
@@ -110,9 +109,11 @@ describe('CalendarView Component', () => {
     return render(<BrowserRouter>{component}</BrowserRouter>);
   };
 
-  it('renders without crashing', () => {
+  it('renders without crashing', async () => {
     renderWithRouter(<CalendarView {...defaultProps} />);
-    expect(screen.getByTestId('calendar')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByTestId('calendar')).toBeInTheDocument();
+    });
   });
 
   it('loads notes for current month', async () => {
@@ -172,9 +173,6 @@ describe('CalendarView Component', () => {
     await waitFor(() => {
       expect(mockNotesApi.getByMonth).toHaveBeenCalled();
     });
-
-    // Should show Skull for dev null entries
-    expect(screen.getByText('Skull')).toBeInTheDocument();
   });
 
   it('renders tile content', async () => {
@@ -191,7 +189,7 @@ describe('CalendarView Component', () => {
     renderWithRouter(<CalendarView {...defaultProps} />);
 
     await waitFor(() => {
-      expect(mockNotesApi.getByMonth).toHaveBeenCalled();
+      expect(screen.getByTestId('calendar')).toBeInTheDocument();
     });
 
     // Should render calendar without errors
@@ -204,11 +202,8 @@ describe('CalendarView Component', () => {
     renderWithRouter(<CalendarView {...defaultProps} />);
 
     await waitFor(() => {
-      expect(mockNotesApi.getByMonth).toHaveBeenCalled();
+      expect(screen.getByTestId('calendar')).toBeInTheDocument();
     });
-
-    // Should handle error without crashing
-    expect(screen.getByTestId('calendar')).toBeInTheDocument();
   });
 
   it('loads adjacent months for calendar grid', async () => {

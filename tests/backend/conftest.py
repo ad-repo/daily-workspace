@@ -8,10 +8,14 @@ from collections.abc import Generator
 from datetime import datetime
 
 import pytest
+import sqlalchemy
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
-from sqlalchemy.pool import StaticPool
+from sqlalchemy.pool import NullPool
+
+# Set testing mode to prevent main.py from creating tables on production DB
+os.environ['TESTING'] = 'true'
 
 # Add backend directory to path for imports
 # In Docker: /app (backend code) is mounted, we're in /tests
@@ -21,28 +25,58 @@ backend_path = os.getenv(
 )
 sys.path.insert(0, backend_path)
 
+# Import the entire models module to ensure all tables (including association tables) are registered
+from app import models  # noqa: E402, F401
 from app.database import Base, get_db  # noqa: E402
 from app.main import app  # noqa: E402
-from app.models import AppSettings, DailyNote, Label, NoteEntry, QuarterlyGoal, SprintGoal  # noqa: E402
+from app.models import (  # noqa: E402
+    AppSettings,
+    DailyNote,
+    Label,
+    NoteEntry,
+    QuarterlyGoal,
+    SprintGoal,
+    entry_labels,
+    entry_lists,
+    list_labels,
+    note_labels,
+)
 
 
 @pytest.fixture(scope='function')
 def db_engine():
-    """Create a shared in-memory SQLite database engine for testing."""
-    # Use shared cache mode to ensure all connections see the same database
-    engine = create_engine(
-        'sqlite:///:memory:',
-        connect_args={'check_same_thread': False},
-        poolclass=StaticPool,  # Use static pool to share connections
-    )
-    # Import all models to ensure they're registered with Base.metadata
-    from app import models  # noqa
+    """Create a shared test database engine."""
+    # Use a file-based database with WAL mode to avoid locking issues
+    import tempfile
 
-    # Create all tables
+    fd, db_path = tempfile.mkstemp(suffix='.db')
+    os.close(fd)
+
+    engine = create_engine(
+        f'sqlite:///{db_path}',
+        connect_args={'check_same_thread': False},
+        poolclass=NullPool,
+    )
+
+    # Explicitly reference association tables to ensure they're registered
+    _ = (entry_labels, entry_lists, list_labels, note_labels)
+
+    # Create all tables (models module is imported above, ensuring all tables are registered)
     Base.metadata.create_all(bind=engine)
+
+    # Enable WAL mode for better concurrency
+    with engine.connect() as conn:
+        conn.execute(sqlalchemy.text('PRAGMA journal_mode=WAL'))
+        conn.commit()
+
     yield engine
+
     Base.metadata.drop_all(bind=engine)
     engine.dispose()
+
+    # Clean up the temp file
+    if os.path.exists(db_path):
+        os.unlink(db_path)
 
 
 @pytest.fixture(scope='function')
@@ -116,7 +150,6 @@ def sample_note_entry(db_session, sample_daily_note) -> NoteEntry:
         content_type='rich_text',
         is_important=0,
         is_completed=0,
-        is_dev_null=0,
     )
     db_session.add(entry)
     db_session.commit()
@@ -210,5 +243,8 @@ def temp_db_file():
 
 @pytest.fixture
 def fixed_datetime():
+    """Return a fixed datetime for consistent testing."""
+    return datetime(2025, 11, 7, 12, 0, 0)
+
     """Return a fixed datetime for consistent testing."""
     return datetime(2025, 11, 7, 12, 0, 0)

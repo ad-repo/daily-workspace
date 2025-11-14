@@ -47,7 +47,7 @@ class TestBackupExportAPI:
 
         assert response.status_code == 200
         data = response.json()
-        assert data['version'] == '5.0'
+        assert data['version'] == '6.0'
 
     def test_export_includes_notes_and_entries(self, client: TestClient, db_session: Session):
         """Test that export includes all notes and their entries."""
@@ -259,7 +259,6 @@ class TestBackupImportAPI:
                             'order_index': 0,
                             'is_important': True,
                             'is_completed': False,
-                            'is_dev_null': False,
                             'include_in_report': False,
                             'created_at': '2025-11-07T10:00:00',
                             'updated_at': '2025-11-07T10:00:00',
@@ -327,7 +326,6 @@ class TestBackupImportAPI:
                             'order_index': 0,
                             'is_important': False,
                             'is_completed': False,
-                            'is_dev_null': False,
                             'include_in_report': False,
                             'created_at': '2025-11-07T10:00:00',
                             'updated_at': '2025-11-07T10:00:00',

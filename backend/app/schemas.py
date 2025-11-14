@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from datetime import datetime
 
 from pydantic import BaseModel, Field
@@ -21,6 +23,61 @@ class Label(LabelBase):
         from_attributes = True
 
 
+# ===========================
+# List Schemas (Trello-style boards) - Must be before NoteEntry
+# ===========================
+
+
+class ListBase(BaseModel):
+    name: str
+    description: str = ''
+    color: str = '#3b82f6'
+    order_index: int = 0
+    is_archived: bool = False
+
+
+class ListCreate(ListBase):
+    pass
+
+
+class ListUpdate(BaseModel):
+    name: str | None = None
+    description: str | None = None
+    color: str | None = None
+    order_index: int | None = None
+    is_archived: bool | None = None
+
+
+class ListResponse(ListBase):
+    id: int
+    created_at: datetime
+    updated_at: datetime
+    entry_count: int = 0  # Calculated field
+    labels: list[Label] = []
+
+    class Config:
+        from_attributes = True
+
+
+class EntryListAssociation(BaseModel):
+    entry_id: int
+    list_id: int
+    order_index: int = 0
+
+
+class ReorderEntriesRequest(BaseModel):
+    entries: list[EntryListAssociation]
+
+
+class ListOrderUpdate(BaseModel):
+    id: int
+    order_index: int
+
+
+class ReorderListsRequest(BaseModel):
+    lists: list[ListOrderUpdate]
+
+
 # Entry Schemas
 class NoteEntryBase(BaseModel):
     title: str = ''
@@ -41,19 +98,29 @@ class NoteEntryUpdate(BaseModel):
     include_in_report: bool | None = None
     is_important: bool | None = None
     is_completed: bool | None = None
-    is_dev_null: bool | None = None
+    is_pinned: bool | None = None
 
 
 class NoteEntry(NoteEntryBase):
     id: int
     daily_note_id: int
+    daily_note_date: str | None = None  # YYYY-MM-DD format for navigation
     created_at: datetime
     updated_at: datetime
     labels: list[Label] = []
+    lists: list[ListResponse] = []
     include_in_report: bool = False
     is_important: bool = False
     is_completed: bool = False
-    is_dev_null: bool = False
+    is_pinned: bool = False
+
+    class Config:
+        from_attributes = True
+
+
+# ListWithEntries - defined after NoteEntry due to forward reference
+class ListWithEntries(ListResponse):
+    entries: list[NoteEntry] = []
 
     class Config:
         from_attributes = True
@@ -107,7 +174,6 @@ class ReportEntry(BaseModel):
     labels: list[Label]
     entry_id: int
     is_completed: bool
-    is_dev_null: bool = False
 
 
 class WeeklyReport(BaseModel):
@@ -132,10 +198,12 @@ class SearchResult(NoteEntryBase):
     created_at: datetime
     updated_at: datetime
     labels: list[Label] = []
+    lists: list[ListResponse] = []
+    list_names: list[str] = []
     include_in_report: bool = False
     is_important: bool = False
     is_completed: bool = False
-    is_dev_null: bool = False
+    is_pinned: bool = False
 
     class Config:
         from_attributes = True

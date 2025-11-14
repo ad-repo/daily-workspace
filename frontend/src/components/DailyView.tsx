@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { format, parse, addDays, subDays } from 'date-fns';
 import { ChevronLeft, ChevronRight, Plus, CheckSquare, Combine } from 'lucide-react';
 import axios from 'axios';
@@ -20,6 +20,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 const DailyView = () => {
   const { date } = useParams<{ date: string }>();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { isFullScreen } = useFullScreen();
   const { showDailyGoals } = useDailyGoals();
   const { showSprintGoals } = useSprintGoals();
@@ -103,23 +104,50 @@ const DailyView = () => {
     }
   };
 
-  // Scroll to specific entry if hash is present
+  // Scroll to specific entry if hash or highlight param is present
   useEffect(() => {
-    if (entries.length > 0 && window.location.hash) {
+    if (entries.length === 0) return;
+
+    let entryId: string | null = null;
+
+    // Check for hash (#entry-123)
+    if (window.location.hash) {
       const hash = window.location.hash.slice(1); // Remove the #
       if (hash.startsWith('entry-')) {
-        const entryId = hash.replace('entry-', '');
-        setTimeout(() => {
-          const element = document.querySelector(`[data-entry-id="${entryId}"]`);
-          if (element) {
-            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            // Clear the hash after scrolling
-            window.history.replaceState(null, '', window.location.pathname);
-          }
-        }, 300);
+        entryId = hash.replace('entry-', '');
       }
     }
-  }, [entries]);
+
+    // Check for highlight query param (?highlight=123)
+    const highlightParam = searchParams.get('highlight');
+    if (highlightParam) {
+      entryId = highlightParam;
+    }
+
+    if (entryId) {
+      setTimeout(() => {
+        const element = document.querySelector(`[data-entry-id="${entryId}"]`);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          
+          // Add brief highlight animation
+          element.classList.add('highlight-pulse');
+          setTimeout(() => {
+            element.classList.remove('highlight-pulse');
+          }, 2000);
+
+          // Clear the query param after scrolling
+          searchParams.delete('highlight');
+          setSearchParams(searchParams, { replace: true });
+          
+          // Clear the hash after scrolling
+          if (window.location.hash) {
+            window.history.replaceState(null, '', window.location.pathname);
+          }
+        }
+      }, 300);
+    }
+  }, [entries, searchParams, setSearchParams]);
 
   const loadDailyNote = async (preserveScroll = false) => {
     if (!date) return;
@@ -416,8 +444,8 @@ const DailyView = () => {
   const isToday = format(new Date(), 'yyyy-MM-dd') === date;
 
   return (
-    <div className="relative page-fade-in">
-      <div className={`mx-auto px-2 sm:px-4 xl:px-8 ${isFullScreen ? 'max-w-7xl' : 'max-w-4xl'}`} style={{ position: 'relative', zIndex: 20 }}>
+    <div className="max-w-5xl mx-auto page-fade-in" style={{ position: 'relative', zIndex: 1 }}>
+      <div className={`${isFullScreen ? 'max-w-full' : 'max-w-5xl'} mx-auto`} style={{ position: 'relative', zIndex: 20 }}>
       {/* Header */}
       <div 
         className="rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8 mb-4 sm:mb-6 lg:mb-8"
@@ -456,24 +484,28 @@ const DailyView = () => {
             )}
           </div>
 
-          <div className="flex items-center gap-2">
-            <EntryDropdown entries={entries} />
-            <button
-              onClick={handleNextDay}
-              className="p-2 rounded-lg transition-colors"
-              style={{ color: 'var(--color-text-secondary)' }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'var(--color-bg-hover)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'transparent';
-              }}
-              aria-label="Next day"
-            >
-              <ChevronRight className="h-6 w-6" />
-            </button>
-          </div>
+          <button
+            onClick={handleNextDay}
+            className="p-2 rounded-lg transition-colors"
+            style={{ color: 'var(--color-text-secondary)' }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.backgroundColor = 'var(--color-bg-hover)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent';
+            }}
+            aria-label="Next day"
+          >
+            <ChevronRight className="h-6 w-6" />
+          </button>
         </div>
+
+        {/* Jump to Entry - centered below date */}
+        {entries.length > 0 && (
+          <div className="flex justify-center mt-4 pb-4 border-b" style={{ borderColor: 'var(--color-border-primary)' }}>
+            <EntryDropdown entries={entries} />
+          </div>
+        )}
 
           {(showDailyGoals || showSprintGoals || showQuarterlyGoals || showDayLabels) && (
             <div className="flex flex-col items-center gap-6 w-full">
@@ -506,39 +538,61 @@ const DailyView = () => {
                     }
                   }}
                   className="space-y-3"
-                  style={{ maxHeight: '300px', overflowY: 'auto' }}
                 >
                   <SimpleRichTextEditor
                     content={dailyGoal}
                     onChange={handleDailyGoalChange}
                     placeholder="What are your main goals for today?"
                   />
-                  <button
-                    onClick={() => {
-                      setEditingDailyGoal(false);
-                      // Flush any pending debounced save
-                      if (dailyGoalTimeoutRef.current) {
-                        clearTimeout(dailyGoalTimeoutRef.current);
-                        dailyGoalTimeoutRef.current = null;
-                      }
-                      // Immediately save
-                      if (date && dailyGoalRef.current) {
-                        if (note) {
-                          notesApi.update(date, { daily_goal: dailyGoalRef.current });
-                        } else {
-                          notesApi.create({ date, daily_goal: dailyGoalRef.current, fire_rating: 0 });
-                          loadDailyNote();
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        setEditingDailyGoal(false);
+                        // Flush any pending debounced save
+                        if (dailyGoalTimeoutRef.current) {
+                          clearTimeout(dailyGoalTimeoutRef.current);
+                          dailyGoalTimeoutRef.current = null;
                         }
-                      }
-                    }}
-                    className="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                    style={{
-                      backgroundColor: 'var(--color-accent)',
-                      color: 'white',
-                    }}
-                  >
-                    Save
-                  </button>
+                        // Immediately save
+                        if (date && dailyGoalRef.current) {
+                          if (note) {
+                            notesApi.update(date, { daily_goal: dailyGoalRef.current });
+                          } else {
+                            notesApi.create({ date, daily_goal: dailyGoalRef.current, fire_rating: 0 });
+                            loadDailyNote();
+                          }
+                        }
+                      }}
+                      className="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                      style={{
+                        backgroundColor: 'var(--color-accent)',
+                        color: 'white',
+                      }}
+                    >
+                      Save
+                    </button>
+                    <button
+                      onClick={() => {
+                        setEditingDailyGoal(false);
+                        // Clear any pending debounced save
+                        if (dailyGoalTimeoutRef.current) {
+                          clearTimeout(dailyGoalTimeoutRef.current);
+                          dailyGoalTimeoutRef.current = null;
+                        }
+                        // Reset to original value
+                        setDailyGoal(note?.daily_goal || '');
+                        dailyGoalRef.current = note?.daily_goal || '';
+                      }}
+                      className="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                      style={{
+                        backgroundColor: 'var(--color-bg-secondary)',
+                        color: 'var(--color-text-primary)',
+                        border: '1px solid var(--color-border-primary)',
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
                 </div>
               ) : (
                     <div
@@ -659,7 +713,6 @@ const DailyView = () => {
                             }
                           }}
                           className="space-y-3"
-                          style={{ maxHeight: '300px', overflowY: 'auto' }}
                         >
                           <SimpleRichTextEditor
                             content={sprintGoal.text}
@@ -696,27 +749,47 @@ const DailyView = () => {
                               }}
                             />
                           </div>
-                          <button
-                            onClick={() => {
-                              setEditingSprintGoal(false);
-                              const updates: { text?: string; start_date?: string; end_date?: string } = {};
-                              updates.text = sprintGoal.text;
-                              if (editingSprintStartDate && editingSprintStartDate !== sprintGoal.start_date) {
-                                updates.start_date = editingSprintStartDate;
-                              }
-                              if (editingSprintEndDate && editingSprintEndDate !== sprintGoal.end_date) {
-                                updates.end_date = editingSprintEndDate;
-                              }
-                              handleSprintGoalUpdate(updates);
-                            }}
-                            className="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                            style={{
-                              backgroundColor: 'var(--color-accent)',
-                              color: 'white',
-                            }}
-                          >
-                            Save
-                          </button>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => {
+                                setEditingSprintGoal(false);
+                                const updates: { text?: string; start_date?: string; end_date?: string } = {};
+                                updates.text = sprintGoal.text;
+                                if (editingSprintStartDate && editingSprintStartDate !== sprintGoal.start_date) {
+                                  updates.start_date = editingSprintStartDate;
+                                }
+                                if (editingSprintEndDate && editingSprintEndDate !== sprintGoal.end_date) {
+                                  updates.end_date = editingSprintEndDate;
+                                }
+                                handleSprintGoalUpdate(updates);
+                              }}
+                              className="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                              style={{
+                                backgroundColor: 'var(--color-accent)',
+                                color: 'white',
+                              }}
+                            >
+                              Save
+                            </button>
+                            <button
+                              onClick={() => {
+                                setEditingSprintGoal(false);
+                                // Reset to original values
+                                setEditingSprintStartDate(sprintGoal.start_date);
+                                setEditingSprintEndDate(sprintGoal.end_date);
+                                // Reload the sprint goal to discard changes
+                                if (date) loadGoalsForDate(date);
+                              }}
+                              className="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                              style={{
+                                backgroundColor: 'var(--color-bg-secondary)',
+                                color: 'var(--color-text-primary)',
+                                border: '1px solid var(--color-border-primary)',
+                              }}
+                            >
+                              Cancel
+                            </button>
+                          </div>
                         </div>
                       ) : (
                         <div
@@ -880,7 +953,6 @@ const DailyView = () => {
                             }
                           }}
                           className="space-y-3"
-                          style={{ maxHeight: '300px', overflowY: 'auto' }}
                         >
                           <SimpleRichTextEditor
                             content={quarterlyGoal.text}
@@ -917,27 +989,47 @@ const DailyView = () => {
                               }}
                             />
                           </div>
-                          <button
-                            onClick={() => {
-                              setEditingQuarterlyGoal(false);
-                              const updates: { text?: string; start_date?: string; end_date?: string } = {};
-                              updates.text = quarterlyGoal.text;
-                              if (editingQuarterlyStartDate && editingQuarterlyStartDate !== quarterlyGoal.start_date) {
-                                updates.start_date = editingQuarterlyStartDate;
-                              }
-                              if (editingQuarterlyEndDate && editingQuarterlyEndDate !== quarterlyGoal.end_date) {
-                                updates.end_date = editingQuarterlyEndDate;
-                              }
-                              handleQuarterlyGoalUpdate(updates);
-                            }}
-                            className="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                            style={{
-                              backgroundColor: 'var(--color-accent)',
-                              color: 'white',
-                            }}
-                          >
-                            Save
-                          </button>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => {
+                                setEditingQuarterlyGoal(false);
+                                const updates: { text?: string; start_date?: string; end_date?: string } = {};
+                                updates.text = quarterlyGoal.text;
+                                if (editingQuarterlyStartDate && editingQuarterlyStartDate !== quarterlyGoal.start_date) {
+                                  updates.start_date = editingQuarterlyStartDate;
+                                }
+                                if (editingQuarterlyEndDate && editingQuarterlyEndDate !== quarterlyGoal.end_date) {
+                                  updates.end_date = editingQuarterlyEndDate;
+                                }
+                                handleQuarterlyGoalUpdate(updates);
+                              }}
+                              className="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                              style={{
+                                backgroundColor: 'var(--color-accent)',
+                                color: 'white',
+                              }}
+                            >
+                              Save
+                            </button>
+                            <button
+                              onClick={() => {
+                                setEditingQuarterlyGoal(false);
+                                // Reset to original values
+                                setEditingQuarterlyStartDate(quarterlyGoal.start_date);
+                                setEditingQuarterlyEndDate(quarterlyGoal.end_date);
+                                // Reload the quarterly goal to discard changes
+                                if (date) loadGoalsForDate(date);
+                              }}
+                              className="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                              style={{
+                                backgroundColor: 'var(--color-bg-secondary)',
+                                color: 'var(--color-text-primary)',
+                                border: '1px solid var(--color-border-primary)',
+                              }}
+                            >
+                              Cancel
+                            </button>
+                          </div>
                         </div>
                       ) : (
                         <div
@@ -1192,9 +1284,9 @@ const DailyView = () => {
               <div 
                 key={entry.id} 
                 data-entry-id={entry.id}
-                className="entry-card-container"
+                className="entry-card-container relative group"
                 style={{
-                  animation: index === 0 ? 'slideDown 0.3s ease-out' : 'none'
+                  animation: index === 0 ? 'slideDown 0.3s ease-out' : 'none',
                 }}
               >
                 <NoteEntryCard
@@ -1202,6 +1294,7 @@ const DailyView = () => {
                   onUpdate={handleEntryUpdate}
                   onDelete={handleEntryDelete}
                   onLabelsUpdate={handleEntryLabelsUpdate}
+                  onListsUpdate={loadDailyNote}
                   onMoveToTop={handleMoveToTop}
                   selectionMode={selectionMode}
                   isSelected={selectedEntries.has(entry.id)}
@@ -1213,6 +1306,7 @@ const DailyView = () => {
           </>
         )}
       </div>
+
     </div>
     </div>
   );

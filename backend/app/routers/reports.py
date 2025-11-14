@@ -73,7 +73,6 @@ def generate_report(
                         'labels': [{'name': label.name, 'color': label.color} for label in entry.labels],
                         'created_at': entry.created_at.isoformat(),
                         'is_completed': bool(entry.is_completed),
-                        'is_dev_null': bool(entry.is_dev_null),
                     }
                 )
 
@@ -103,7 +102,6 @@ def generate_all_entries_report(db: Session = Depends(get_db)):
                         'created_at': entry.created_at.isoformat(),
                         'is_completed': bool(entry.is_completed),
                         'is_important': bool(entry.is_important),
-                        'is_dev_null': bool(entry.is_dev_null),
                     }
                 )
 

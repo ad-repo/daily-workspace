@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import Calendar from 'react-calendar';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
-import { Star, Check, Skull } from 'lucide-react';
+import { Star, Check } from 'lucide-react';
 import { notesApi, goalsApi } from '../api';
 import type { DailyNote, Goal } from '../types';
 import 'react-calendar/dist/Calendar.css';
@@ -17,20 +17,19 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
   const [notes, setNotes] = useState<DailyNote[]>([]);
   const [sprintGoals, setSprintGoals] = useState<Goal[]>([]);
   const [quarterlyGoals, setQuarterlyGoals] = useState<Goal[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
   useEffect(() => {
-    loadMonthNotes();
-    loadAllGoals();
+    loadMonthData();
   }, [currentMonth]);
 
   // Add tooltips to calendar tiles after notes and goals are loaded
   useEffect(() => {
-    if (notes.length === 0 && sprintGoals.length === 0 && quarterlyGoals.length === 0) return;
+    if (loading || (notes.length === 0 && sprintGoals.length === 0 && quarterlyGoals.length === 0)) return;
 
-    // Wait for calendar to render
-    setTimeout(() => {
+    // Use requestAnimationFrame for smoother DOM updates
+    requestAnimationFrame(() => {
       const tiles = document.querySelectorAll('.react-calendar__tile');
       tiles.forEach((tile) => {
         const abbr = tile.querySelector('abbr');
@@ -67,11 +66,12 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
           }
         }
       });
-    }, 100);
-  }, [notes, sprintGoals, quarterlyGoals]);
+    });
+  }, [notes, sprintGoals, quarterlyGoals, loading]);
 
-  const loadMonthNotes = async () => {
+  const loadMonthData = async () => {
     setLoading(true);
+    
     try {
       const curYear = currentMonth.getFullYear();
       const curMonth = currentMonth.getMonth() + 1;
@@ -85,35 +85,32 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
       const nextYear = nextDate.getFullYear();
       const nextMonth = nextDate.getMonth() + 1;
 
-      const [prevData, curData, nextData] = await Promise.all([
+      // Load all data in parallel
+      const [prevData, curData, nextData, sprints, quarterlies] = await Promise.all([
         notesApi.getByMonth(prevYear, prevMonth),
         notesApi.getByMonth(curYear, curMonth),
         notesApi.getByMonth(nextYear, nextMonth),
+        goalsApi.getAllSprints(),
+        goalsApi.getAllQuarterly(),
       ]);
 
-      // Merge by unique date
+      // Merge notes by unique date
       const byDate = new Map<string, DailyNote>();
       for (const n of [...prevData, ...curData, ...nextData]) {
         byDate.set(n.date, n);
       }
+      
+      // Update all state at once, then wait a frame for smooth transition
       setNotes(Array.from(byDate.values()));
-    } catch (error) {
-      console.error('Failed to load notes:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadAllGoals = async () => {
-    try {
-      const [sprints, quarterlies] = await Promise.all([
-        goalsApi.getAllSprints(),
-        goalsApi.getAllQuarterly(),
-      ]);
       setSprintGoals(sprints);
       setQuarterlyGoals(quarterlies);
+      
+      // Wait for next frame before removing loading state
+      await new Promise(resolve => requestAnimationFrame(() => resolve(null)));
     } catch (error) {
-      console.error('Failed to load goals:', error);
+      console.error('Failed to load calendar data:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -153,7 +150,6 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
       return null;
     }
 
-    const hasDevNullEntries = note?.entries.some(entry => entry.is_dev_null);
     const hasImportantEntries = note?.entries.some(entry => entry.is_important);
     const hasCompletedEntries = note?.entries.some(entry => entry.is_completed);
     
@@ -162,16 +158,13 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
         {/* Entry indicators - show all that apply */}
         {hasEntries && (
           <div className="flex items-center gap-0.5">
-            {hasDevNullEntries && (
-              <Skull className="h-4 w-4 text-gray-700 stroke-[2.5]" />
-            )}
             {hasImportantEntries && (
               <Star className="h-4 w-4 text-yellow-500 fill-yellow-500 star-rays spin-rays" />
             )}
             {hasCompletedEntries && (
               <Check className="h-4 w-4 text-green-500 stroke-[3] animate-bounce" />
             )}
-            {!hasDevNullEntries && !hasImportantEntries && !hasCompletedEntries && (
+            {!hasImportantEntries && !hasCompletedEntries && (
               <div className="w-1.5 h-1.5 bg-blue-500 rounded-full" />
             )}
           </div>
@@ -197,17 +190,38 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
       <div className="rounded-xl shadow-xl p-6" style={{ backgroundColor: 'var(--color-bg-primary)' }}>
         <h1 className="text-3xl font-bold mb-6" style={{ color: 'var(--color-text-primary)' }}>🗓️ Calendar View</h1>
         
-        {loading && (
-          <div className="text-center py-4" style={{ color: 'var(--color-text-secondary)' }}>Loading notes...</div>
-        )}
-
-        <Calendar
-          value={selectedDate}
-          onClickDay={handleDateClick}
-          onActiveStartDateChange={handleActiveStartDateChange}
-          tileContent={getTileContent}
-          className="w-full"
-        />
+        <div style={{ minHeight: '400px' }}>
+          {loading ? (
+            <div 
+              className="text-center py-12" 
+              style={{ 
+                color: 'var(--color-text-secondary)',
+                minHeight: '400px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                opacity: 0.6
+              }}
+            >
+              <div className="animate-pulse text-2xl">🗓️</div>
+            </div>
+          ) : (
+            <div 
+              style={{ 
+                animation: 'fadeIn 0.3s ease-in',
+                opacity: 1
+              }}
+            >
+              <Calendar
+                value={selectedDate}
+                onClickDay={handleDateClick}
+                onActiveStartDateChange={handleActiveStartDateChange}
+                tileContent={getTileContent}
+                className="w-full"
+              />
+            </div>
+          )}
+        </div>
 
         <div className="mt-6 p-4 rounded-lg" style={{ backgroundColor: 'var(--color-bg-secondary)', border: '1px solid var(--color-border-primary)' }}>
           <h3 className="text-base font-bold mb-3" style={{ color: 'var(--color-text-primary)' }}>📋 Legend</h3>
@@ -216,10 +230,6 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
           <div className="mb-3">
             <h4 className="text-sm font-semibold mb-2" style={{ color: 'var(--color-text-secondary)' }}>Entry Status</h4>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3" style={{ color: 'var(--color-text-secondary)' }}>
-              <div className="flex items-center gap-2 p-2 rounded-lg" style={{ backgroundColor: 'var(--color-card-bg)' }}>
-                <Skull className="h-4 w-4 text-gray-700 stroke-[2.5] flex-shrink-0" />
-                <span className="text-xs font-medium">Has /dev/null</span>
-              </div>
               <div className="flex items-center gap-2 p-2 rounded-lg" style={{ backgroundColor: 'var(--color-card-bg)' }}>
                 <Star className="h-4 w-4 text-yellow-500 fill-yellow-500 star-rays spin-rays flex-shrink-0" />
                 <span className="text-xs font-medium">Has important</span>

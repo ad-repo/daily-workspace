@@ -146,7 +146,6 @@ class TestReportsAPI:
             content='<p>Completed dev null entry</p>',
             include_in_report=1,
             is_completed=1,
-            is_dev_null=1,
         )
         db_session.add(entry)
         db_session.commit()
@@ -159,7 +158,6 @@ class TestReportsAPI:
 
         entry_data = data['entries'][0]
         assert entry_data['is_completed'] is True
-        assert entry_data['is_dev_null'] is True
 
     def test_generate_weekly_report_invalid_date_format(self, client: TestClient):
         """Test that invalid date format falls back to current date."""
@@ -387,7 +385,6 @@ class TestReportsAPI:
             include_in_report=1,
             is_completed=0,
             is_important=0,
-            is_dev_null=0,
         )
         db_session.add(entry)
         db_session.commit()
@@ -409,7 +406,6 @@ class TestReportsAPI:
             'created_at',
             'is_completed',
             'is_important',
-            'is_dev_null',
         ]
         for field in required_fields:
             assert field in entry_data, f'Missing field: {field}'
