@@ -18,7 +18,9 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "externalBin": [],
+    "externalBin": [
+      "binaries/daily-notes-backend"
+    ],
     "resources": []
   },
   "app": {
