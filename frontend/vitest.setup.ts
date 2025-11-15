@@ -214,3 +214,15 @@ vi.mock('./src/contexts/SprintNameContext', () => ({
   }),
 }));
 
+// Mock window.scrollTo
+window.scrollTo = vi.fn();
+
+// Mock TransparentLabelsContext
+vi.mock('./src/contexts/TransparentLabelsContext', () => ({
+  TransparentLabelsProvider: ({ children }: { children: React.ReactNode }) => children,
+  useTransparentLabels: () => ({
+    transparentLabels: false,
+    setTransparentLabels: vi.fn(),
+  }),
+}));
+
