@@ -224,6 +224,10 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onListsUpdat
     
     try {
       await axios.post(`${API_URL}/api/entries/${entry.id}/toggle-pin`);
+      // Trigger parent refresh if callback exists
+      if (onListsUpdate) {
+        onListsUpdate();
+      }
     } catch (error) {
       console.error('Failed to toggle pin status:', error);
       setIsPinned(!newValue); // Revert on error
