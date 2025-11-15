@@ -161,6 +161,10 @@ const Search = () => {
     return tmp.textContent || tmp.innerText || '';
   };
 
+  const isCustomEmojiUrl = (name: string) => {
+    return name.startsWith('/api/uploads/') || name.startsWith('http');
+  };
+
   return (
     <div className="max-w-5xl mx-auto page-fade-in" style={{ position: 'relative', zIndex: 1 }}>
       <div className="rounded-lg shadow-lg p-6 mb-6" style={{ backgroundColor: 'var(--color-bg-primary)' }}>
@@ -354,24 +358,53 @@ const Search = () => {
             {allLabels.length === 0 ? (
               <p className="text-sm" style={{ color: 'var(--color-text-tertiary)' }}>No labels available</p>
             ) : (
-              allLabels.map((label) => (
-                <button
-                  key={label.id}
-                  onClick={() => toggleLabel(label.id)}
-                  className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
-                    selectedLabels.includes(label.id)
-                      ? 'ring-2 ring-offset-2 ring-blue-500'
-                      : 'opacity-70 hover:opacity-100'
-                  }`}
-                  style={{
-                    backgroundColor: transparentLabels ? 'transparent' : label.color,
-                    color: transparentLabels ? label.color : 'white',
-                    border: transparentLabels ? `1px solid ${label.color}` : 'none'
-                  }}
-                >
-                  {label.name}
-                </button>
-              ))
+              allLabels.map((label) => {
+                const isCustomEmoji = isCustomEmojiUrl(label.name);
+                
+                if (isCustomEmoji) {
+                  const imageUrl = label.name.startsWith('http') ? label.name : `${API_URL}${label.name}`;
+                  return (
+                    <button
+                      key={label.id}
+                      onClick={() => toggleLabel(label.id)}
+                      className={`p-1.5 rounded-lg transition-all ${
+                        selectedLabels.includes(label.id)
+                          ? 'ring-2 ring-offset-2 ring-blue-500'
+                          : 'opacity-70 hover:opacity-100'
+                      }`}
+                      style={{
+                        backgroundColor: 'var(--color-bg-tertiary)',
+                      }}
+                    >
+                      <img 
+                        src={imageUrl} 
+                        alt="emoji" 
+                        className="inline-emoji"
+                        style={{ width: '1.5rem', height: '1.5rem' }}
+                      />
+                    </button>
+                  );
+                }
+                
+                return (
+                  <button
+                    key={label.id}
+                    onClick={() => toggleLabel(label.id)}
+                    className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                      selectedLabels.includes(label.id)
+                        ? 'ring-2 ring-offset-2 ring-blue-500'
+                        : 'opacity-70 hover:opacity-100'
+                    }`}
+                    style={{
+                      backgroundColor: transparentLabels ? 'transparent' : label.color,
+                      color: transparentLabels ? label.color : 'white',
+                      border: transparentLabels ? `1px solid ${label.color}` : 'none'
+                    }}
+                  >
+                    {label.name}
+                  </button>
+                );
+              })
             )}
           </div>
         </div>
