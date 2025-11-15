@@ -105,6 +105,9 @@ def search_entries(
 def search_all(
     q: str | None = Query(None, description='Search query for content'),
     label_ids: str | None = Query(None, description='Comma-separated label IDs to filter by'),
+    list_ids: str | None = Query(None, description='Comma-separated list IDs to filter by'),
+    is_important: bool | None = Query(None, description='Filter by starred/important entries'),
+    is_completed: bool | None = Query(None, description='Filter by completed entries'),
     db: Session = Depends(get_db),
 ):
     """
@@ -131,6 +134,23 @@ def search_all(
                 )
         except ValueError:
             pass
+
+    # Filter by lists if provided
+    if list_ids and list_ids.strip():
+        try:
+            list_id_list = [int(lid.strip()) for lid in list_ids.split(',') if lid.strip()]
+            if list_id_list:
+                entry_query = entry_query.join(models.NoteEntry.lists).filter(models.List.id.in_(list_id_list)).distinct()
+        except ValueError:
+            pass
+
+    # Filter by starred/important status if provided
+    if is_important is not None:
+        entry_query = entry_query.filter(models.NoteEntry.is_important == is_important)
+
+    # Filter by completed status if provided
+    if is_completed is not None:
+        entry_query = entry_query.filter(models.NoteEntry.is_completed == is_completed)
 
     entry_results = entry_query.order_by(models.NoteEntry.created_at.desc()).limit(100).all()
 
