@@ -559,103 +559,6 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
     }
   }, [showFontFamilyMenu, showFontSizeMenu, showHeadingMenu]);
 
-  // Add copy buttons to code blocks
-  useEffect(() => {
-    if (!editor) return;
-
-    const addCopyButtons = () => {
-      try {
-        const editorElement = editor.view.dom;
-        if (!editorElement) return;
-        
-        const codeBlocks = editorElement.querySelectorAll('pre:not(.copy-button-added)');
-        
-        codeBlocks.forEach((pre) => {
-          if (pre.querySelector('.code-copy-button')) return; // Skip if button already exists
-          
-          pre.classList.add('copy-button-added');
-          (pre as HTMLElement).style.position = 'relative';
-          
-          const button = document.createElement('button');
-          button.innerHTML = '📋 Copy';
-          button.className = 'code-copy-button';
-          button.style.cssText = `
-            position: absolute;
-            top: 0.5rem;
-            right: 0.5rem;
-            padding: 0.25rem 0.5rem;
-            font-size: 0.75rem;
-            background-color: rgba(0, 0, 0, 0.7);
-            color: white;
-            border: none;
-            border-radius: 0.25rem;
-            cursor: pointer;
-            opacity: 0;
-            transition: opacity 0.2s;
-            z-index: 10;
-          `;
-          
-          const handleClick = async (e: Event) => {
-            e.preventDefault();
-            e.stopPropagation();
-            const code = pre.querySelector('code');
-            const text = code?.textContent || pre.textContent || '';
-            
-            try {
-              await navigator.clipboard.writeText(text);
-              button.innerHTML = '✓ Copied!';
-              setTimeout(() => {
-                button.innerHTML = '📋 Copy';
-              }, 2000);
-            } catch (err) {
-              console.error('Failed to copy:', err);
-            }
-          };
-          
-          const handleMouseEnter = () => {
-            button.style.opacity = '1';
-          };
-          
-          const handleMouseLeave = () => {
-            button.style.opacity = '0';
-          };
-          
-          button.addEventListener('click', handleClick);
-          pre.addEventListener('mouseenter', handleMouseEnter);
-          pre.addEventListener('mouseleave', handleMouseLeave);
-          
-          pre.appendChild(button);
-        });
-      } catch (err) {
-        console.error('Error adding copy buttons:', err);
-      }
-    };
-    
-    // Run after a short delay to ensure DOM is ready
-    const timeoutId = setTimeout(addCopyButtons, 100);
-    
-    // Listen to editor updates
-    const updateHandler = () => {
-      setTimeout(addCopyButtons, 100);
-    };
-    
-    editor.on('update', updateHandler);
-    
-    return () => {
-      clearTimeout(timeoutId);
-      editor.off('update', updateHandler);
-      
-      // Clean up copy buttons
-      try {
-        const editorElement = editor.view.dom;
-        if (editorElement) {
-          editorElement.querySelectorAll('.code-copy-button').forEach(btn => btn.remove());
-        }
-      } catch (err) {
-        console.error('Error cleaning up copy buttons:', err);
-      }
-    };
-  }, [editor]);
 
   if (!editor) {
     return null;
@@ -688,8 +591,16 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
         .run();
       return;
     }
-    // Otherwise set current block to preformatted
-    editor.chain().focus().setNode('preformattedText').run();
+    // If no selection and current node is empty paragraph, convert to preformatted
+    const { $from } = editor.state.selection;
+    const currentNode = $from.parent;
+    
+    if (currentNode.type.name === 'paragraph' && currentNode.content.size === 0) {
+      editor.chain().focus().setNode('preformattedText').run();
+    } else {
+      // Otherwise insert a new preformatted block after current position
+      editor.chain().focus().insertContent({ type: 'preformattedText' }).run();
+    }
   };
 
   const handleCodeBlockClick = () => {
