@@ -52,11 +52,11 @@ def search_entries(
 
     # Filter by starred/important status if provided
     if is_important is not None:
-        query = query.filter(models.NoteEntry.is_important == is_important)
+        query = query.filter(models.NoteEntry.is_important == (1 if is_important else 0))
 
     # Filter by completed status if provided
     if is_completed is not None:
-        query = query.filter(models.NoteEntry.is_completed == is_completed)
+        query = query.filter(models.NoteEntry.is_completed == (1 if is_completed else 0))
 
     # Order by most recent first
     query = query.order_by(models.NoteEntry.created_at.desc())
@@ -155,11 +155,11 @@ def search_all(
 
     # Filter by starred/important status if provided
     if is_important is not None:
-        entry_query = entry_query.filter(models.NoteEntry.is_important == is_important)
+        entry_query = entry_query.filter(models.NoteEntry.is_important == (1 if is_important else 0))
 
     # Filter by completed status if provided
     if is_completed is not None:
-        entry_query = entry_query.filter(models.NoteEntry.is_completed == is_completed)
+        entry_query = entry_query.filter(models.NoteEntry.is_completed == (1 if is_completed else 0))
 
     # Add distinct if we did any joins
     if has_joins:
