@@ -18,7 +18,7 @@ test.describe('Goals System', () => {
     const testRunDate = `2024-03-${String(dayNum).padStart(2, '0')}`; // Mar for goals
     
     await page.goto(`/day/${testRunDate}`);
-    await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
+    await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
   });
 
   test('should display daily goals section', async ({ page }) => {
@@ -115,7 +115,7 @@ test.describe('Goals System', () => {
     // Navigate to a different date and check goals still exist
     const currentUrl = page.url();
     await page.goto('/day/2024-01-15');
-    await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
+    await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
     
     // Goals sections should still be visible
     await expect(page.locator('text="🎯 Daily Goals"')).toBeVisible();
@@ -233,7 +233,7 @@ test.describe('Goals System', () => {
     
     // Reload to verify persistence and HTML rendering
     await page.reload();
-    await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
+    await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
     
     // Verify the italic text is visible in the rendered HTML
     await expect(page.locator('em:has-text("Test goal with formatting")')).toBeVisible({ timeout: 5000 });
@@ -264,7 +264,7 @@ test.describe('Goals System', () => {
       
       // Reload page to verify persistence
       await page.reload();
-      await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
+      await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
       
       // Goal should still be visible
       await expect(page.locator('text="Plain text goal"')).toBeVisible();
@@ -314,7 +314,7 @@ test.describe('Goals System', () => {
     
     // Navigate to a date within the NEW date range (Mar 10 is between Mar 5-31)
     await page.goto('/day/2024-03-10');
-    await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
+    await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
     
     // Wait for goal to load (should contain the text)
     await page.waitForSelector('text="Test sprint goal for date editing"', { timeout: 10000 });
@@ -375,7 +375,7 @@ test.describe('Goals System', () => {
     
     // Navigate to a date within the NEW date range (Mar 20 is between Mar 1-31)
     await page.goto('/day/2024-03-20');
-    await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
+    await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
     
     // Wait for goal to load (should contain the text)
     await page.waitForSelector('text="Test sprint goal for end date editing"', { timeout: 10000 });
@@ -443,7 +443,7 @@ test.describe('Goals System', () => {
     
     // Navigate to a date within the NEW date range (Mar 20 is between Jan 15 - Mar 31)
     await page.goto('/day/2024-03-20');
-    await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
+    await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
     
     // Wait for goal to load (should contain the text)
     await page.waitForSelector('text="Test quarterly goal for date editing"', { timeout: 10000 });
@@ -512,7 +512,7 @@ test.describe('Goals System', () => {
 
     // Reload and verify
     await page.reload();
-    await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
+    await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
     
     // Should have checkbox
     const checkbox = page.locator('input[type="checkbox"]').first();
@@ -556,7 +556,7 @@ test.describe('Goals System', () => {
 
     // Reload
     await page.reload();
-    await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
+    await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
 
     // Check the checkbox
     const checkbox = page.locator('input[type="checkbox"]').first();
@@ -565,7 +565,7 @@ test.describe('Goals System', () => {
 
     // Reload and verify it's still checked
     await page.reload();
-    await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
+    await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
     
     const checkboxAfterReload = page.locator('input[type="checkbox"]').first();
     await expect(checkboxAfterReload).toBeChecked();

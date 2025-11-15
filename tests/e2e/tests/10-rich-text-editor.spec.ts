@@ -21,7 +21,7 @@ test.describe('Rich Text Editor', () => {
     const testRunDate = `2024-04-${String(dayNum).padStart(2, '0')}`; // Apr for rich-text
     
     await page.goto(`/day/${testRunDate}`);
-    await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
+    await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
     
     // Delete any existing entries for this date (cleanup from previous runs)
     let deleteCount = await page.locator('button[title*="Delete" i]').count();
@@ -29,6 +29,12 @@ test.describe('Rich Text Editor', () => {
       try {
         const deleteButton = page.locator('button[title*="Delete" i]').first();
         await deleteButton.click({ timeout: 5000 });
+        
+        // Wait for and confirm the delete modal
+        await expect(page.locator('text="Delete Card?"')).toBeVisible({ timeout: 2000 });
+        const confirmButton = page.locator('button:has-text("Delete Card")').first();
+        await confirmButton.click();
+        
         // Wait for delete API call to complete
         await page.waitForResponse(
           resp => resp.url().includes('/api/entries') && resp.request().method() === 'DELETE',
@@ -44,7 +50,7 @@ test.describe('Rich Text Editor', () => {
 
   test('should display editor toolbar', async ({ page }) => {
     // Create entry to show editor
-    await page.click('button:has-text("New Entry")');
+    await page.click('button:has-text("New Card")');
     const editor = page.locator('.ProseMirror').first();
     await expect(editor).toBeVisible({ timeout: 10000 });
     
@@ -54,7 +60,7 @@ test.describe('Rich Text Editor', () => {
   });
 
   test('should apply bold formatting', async ({ page }) => {
-    await page.click('button:has-text("New Entry")');
+    await page.click('button:has-text("New Card")');
     const editor = page.locator('.ProseMirror').first();
     await expect(editor).toBeVisible();
     await page.waitForTimeout(500);
@@ -75,7 +81,7 @@ test.describe('Rich Text Editor', () => {
   });
 
   test('should apply italic formatting', async ({ page }) => {
-    await page.click('button:has-text("New Entry")');
+    await page.click('button:has-text("New Card")');
     const editor = page.locator('.ProseMirror').first();
     await expect(editor).toBeVisible();
     await page.waitForTimeout(500);
@@ -96,7 +102,7 @@ test.describe('Rich Text Editor', () => {
   });
 
   test('should apply underline formatting', async ({ page }) => {
-    await page.click('button:has-text("New Entry")');
+    await page.click('button:has-text("New Card")');
     const editor = page.locator('.ProseMirror').first();
     await expect(editor).toBeVisible();
     await page.waitForTimeout(500);
@@ -108,7 +114,7 @@ test.describe('Rich Text Editor', () => {
   });
 
   test('should apply strikethrough formatting', async ({ page }) => {
-    await page.click('button:has-text("New Entry")');
+    await page.click('button:has-text("New Card")');
     const editor = page.locator('.ProseMirror').first();
     await expect(editor).toBeVisible();
     await page.waitForTimeout(500);
@@ -132,7 +138,7 @@ test.describe('Rich Text Editor', () => {
   });
 
   test('should create headings', async ({ page }) => {
-    await page.click('button:has-text("New Entry")');
+    await page.click('button:has-text("New Card")');
     await page.waitForTimeout(1000);
     
     const editor = page.locator('.ProseMirror').last();
@@ -159,7 +165,7 @@ test.describe('Rich Text Editor', () => {
   });
 
   test('should create bullet lists', async ({ page }) => {
-    await page.click('button:has-text("New Entry")');
+    await page.click('button:has-text("New Card")');
     const editor = page.locator('.ProseMirror').first();
     await expect(editor).toBeVisible();
     
@@ -175,7 +181,7 @@ test.describe('Rich Text Editor', () => {
   });
 
   test('should create numbered lists', async ({ page }) => {
-    await page.click('button:has-text("New Entry")');
+    await page.click('button:has-text("New Card")');
     const editor = page.locator('.ProseMirror').first();
     await expect(editor).toBeVisible();
     
@@ -191,7 +197,7 @@ test.describe('Rich Text Editor', () => {
   });
 
   test('should insert blockquote', async ({ page }) => {
-    await page.click('button:has-text("New Entry")');
+    await page.click('button:has-text("New Card")');
     const editor = page.locator('.ProseMirror').first();
     await expect(editor).toBeVisible();
     
@@ -207,7 +213,7 @@ test.describe('Rich Text Editor', () => {
   });
 
   test('should insert code block', async ({ page }) => {
-    await page.click('button:has-text("New Entry")');
+    await page.click('button:has-text("New Card")');
     const editor = page.locator('.ProseMirror').first();
     await expect(editor).toBeVisible();
     
@@ -224,7 +230,7 @@ test.describe('Rich Text Editor', () => {
   });
 
   test('should insert link', async ({ page }) => {
-    await page.click('button:has-text("New Entry")');
+    await page.click('button:has-text("New Card")');
     const editor = page.locator('.ProseMirror').first();
     await expect(editor).toBeVisible();
     
@@ -244,7 +250,7 @@ test.describe('Rich Text Editor', () => {
   });
 
   test('should undo and redo', async ({ page }) => {
-    await page.click('button:has-text("New Entry")');
+    await page.click('button:has-text("New Card")');
     const editor = page.locator('.ProseMirror').first();
     await expect(editor).toBeVisible();
     
@@ -254,7 +260,7 @@ test.describe('Rich Text Editor', () => {
   });
 
   test('should handle keyboard shortcuts', async ({ page }) => {
-    await page.click('button:has-text("New Entry")');
+    await page.click('button:has-text("New Card")');
     const editor = page.locator('.ProseMirror').first();
     await expect(editor).toBeVisible();
     await page.waitForTimeout(500);
@@ -266,7 +272,7 @@ test.describe('Rich Text Editor', () => {
   });
 
   test('should expand editor to fullscreen', async ({ page }) => {
-    await page.click('button:has-text("New Entry")');
+    await page.click('button:has-text("New Card")');
     const editor = page.locator('.ProseMirror').first();
     await expect(editor).toBeVisible();
     
@@ -282,7 +288,7 @@ test.describe('Rich Text Editor', () => {
   });
 
   test('should auto-save content', async ({ page }) => {
-    await page.click('button:has-text("New Entry")');
+    await page.click('button:has-text("New Card")');
     const editor = page.locator('.ProseMirror').first();
     await expect(editor).toBeVisible();
     
@@ -301,7 +307,7 @@ test.describe('Rich Text Editor', () => {
     
     // Reload and verify
     await page.reload();
-    await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
+    await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
     await expect(page.locator('.ProseMirror').first()).toContainText('Auto-save test');
   });
 
@@ -310,8 +316,8 @@ test.describe('Rich Text Editor', () => {
   // ============================================
 
   test('should create task list in note entry', async ({ page }) => {
-    // Create new entry
-    await page.locator('button:has-text("New Entry")').click();
+    // Create new card
+    await page.locator('button:has-text("New Card")').click();
     await page.waitForTimeout(1000);
 
     const editor = page.locator('.ProseMirror').last();
@@ -337,7 +343,7 @@ test.describe('Rich Text Editor', () => {
 
   test('should persist checked task in note entry', async ({ page }) => {
     // Create task list entry
-    await page.locator('button:has-text("New Entry")').click();
+    await page.locator('button:has-text("New Card")').click();
     await page.waitForTimeout(1000);
 
     const editor = page.locator('.ProseMirror').last();
@@ -358,7 +364,7 @@ test.describe('Rich Text Editor', () => {
 
     // Reload and verify
     await page.reload();
-    await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
+    await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
 
     const checkboxAfterReload = page.locator('input[type="checkbox"]').first();
     await expect(checkboxAfterReload).toBeChecked();
@@ -366,7 +372,7 @@ test.describe('Rich Text Editor', () => {
 
   test('should support nested task lists', async ({ page }) => {
     // Create task list
-    await page.locator('button:has-text("New Entry")').click();
+    await page.locator('button:has-text("New Card")').click();
     await page.waitForTimeout(1000);
 
     const editor = page.locator('.ProseMirror').last();

@@ -241,15 +241,29 @@ describe('NoteEntryCard Component', () => {
     expect(true).toBe(true);
   });
 
-  it('calls onDelete when delete button clicked', () => {
+  it('calls onDelete when delete button clicked and confirmed', async () => {
     renderWithProviders(<NoteEntryCard {...defaultProps} />);
     
     const deleteButton = screen.getByText('Trash2');
     
+    // Click delete button to open modal
     act(() => {
       fireEvent.click(deleteButton);
     });
 
+    // Wait for modal to appear
+    await waitFor(() => {
+      expect(screen.getByText('Delete Card?')).toBeInTheDocument();
+    });
+
+    // Find and click the confirm button in the modal
+    const confirmButton = screen.getByRole('button', { name: /delete card/i });
+    
+    act(() => {
+      fireEvent.click(confirmButton);
+    });
+
+    // onDelete should now be called
     expect(defaultProps.onDelete).toHaveBeenCalledWith(1);
   });
 
@@ -390,15 +404,21 @@ describe('NoteEntryCard Component', () => {
     
     const deleteButton = screen.getByText('Trash2');
     
-    // Rapidly click multiple times
+    // Rapidly click delete button multiple times
     act(() => {
       fireEvent.click(deleteButton);
       fireEvent.click(deleteButton);
       fireEvent.click(deleteButton);
     });
 
-    // Should only call once
-    expect(onDelete).toHaveBeenCalledTimes(3); // This tests current behavior
+    // Modal should appear only once
+    await waitFor(() => {
+      expect(screen.getByText('Delete Card?')).toBeInTheDocument();
+    });
+
+    // Only one modal should be present
+    const modals = screen.getAllByText('Delete Card?');
+    expect(modals).toHaveLength(1);
   });
 
   it('renders Jira icon for Jira copy button', () => {

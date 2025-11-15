@@ -162,7 +162,7 @@ const AddEntryToListModal = ({ list, onClose, onUpdate }: AddEntryToListModalPro
         >
           <div className="flex justify-between items-center mb-3">
             <h2 className="text-2xl font-bold" style={{ color: 'var(--color-text-primary)' }}>
-              Add Entries to {list.name}
+              Add Cards to {list.name}
             </h2>
             <div className="flex gap-2">
               <button
