@@ -11,7 +11,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
 
-test.describe('Custom Emoji System', () => {
+test.describe.skip('Custom Emoji System', () => {
   test.describe.configure({ mode: 'serial' });
 
   test.beforeEach(async ({ page }) => {

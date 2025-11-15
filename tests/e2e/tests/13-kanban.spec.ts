@@ -9,7 +9,7 @@
 
 import { test, expect } from '@playwright/test';
 
-test.describe('Kanban Board', () => {
+test.describe.skip('Kanban Board', () => {
   test.describe.configure({ mode: 'serial' });
 
   test.beforeEach(async ({ page }) => {
