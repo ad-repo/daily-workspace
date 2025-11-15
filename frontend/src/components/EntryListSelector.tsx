@@ -196,7 +196,13 @@ const EntryListSelector = ({ entryId, currentLists, onOptimisticUpdate }: EntryL
         {/* Right: Add to List Button */}
         <button
           onClick={() => setShowDropdown(!showDropdown)}
-          className="flex items-center gap-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors ml-auto"
+          className="flex items-center gap-1 px-4 py-2 rounded-lg transition-colors ml-auto"
+          style={{
+            backgroundColor: 'var(--color-accent)',
+            color: 'var(--color-accent-text)',
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--color-accent-hover)'}
+          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--color-accent)'}
         >
           <Plus className="h-4 w-4" />
           Add to list

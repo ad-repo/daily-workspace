@@ -52,11 +52,11 @@ def search_entries(
 
     # Filter by starred/important status if provided
     if is_important is not None:
-        query = query.filter(models.NoteEntry.is_important == is_important)
+        query = query.filter(models.NoteEntry.is_important == (1 if is_important else 0))
 
     # Filter by completed status if provided
     if is_completed is not None:
-        query = query.filter(models.NoteEntry.is_completed == is_completed)
+        query = query.filter(models.NoteEntry.is_completed == (1 if is_completed else 0))
 
     # Order by most recent first
     query = query.order_by(models.NoteEntry.created_at.desc())
@@ -105,18 +105,22 @@ def search_entries(
 def search_all(
     q: str | None = Query(None, description='Search query for content'),
     label_ids: str | None = Query(None, description='Comma-separated label IDs to filter by'),
+    list_ids: str | None = Query(None, description='Comma-separated list IDs to filter by'),
+    is_important: bool | None = Query(None, description='Filter by starred/important entries'),
+    is_completed: bool | None = Query(None, description='Filter by completed entries'),
     db: Session = Depends(get_db),
 ):
     """
     Global search across entries AND lists.
     Returns both entries and lists that match the search criteria.
     """
+    print(
+        f'Search params: q={q}, label_ids={label_ids}, list_ids={list_ids}, is_important={is_important}, is_completed={is_completed}'
+    )
     results = {'entries': [], 'lists': []}
 
-    # Search entries (existing logic)
-    entry_query = db.query(models.NoteEntry).options(
-        joinedload(models.NoteEntry.labels), joinedload(models.NoteEntry.lists), joinedload(models.NoteEntry.daily_note)
-    )
+    # Search entries
+    entry_query = db.query(models.NoteEntry)
 
     if q and q.strip():
         search_term = f'%{q.strip()}%'
@@ -126,13 +130,38 @@ def search_all(
         try:
             label_id_list = [int(lid.strip()) for lid in label_ids.split(',') if lid.strip()]
             if label_id_list:
-                entry_query = (
-                    entry_query.join(models.NoteEntry.labels).filter(models.Label.id.in_(label_id_list)).distinct()
-                )
+                # Use exists() subquery to avoid join conflicts
+                entry_query = entry_query.filter(models.NoteEntry.labels.any(models.Label.id.in_(label_id_list)))
         except ValueError:
             pass
 
+    # Filter by lists if provided
+    if list_ids and list_ids.strip():
+        try:
+            list_id_list = [int(lid.strip()) for lid in list_ids.split(',') if lid.strip()]
+            if list_id_list:
+                # Use exists() subquery to avoid join conflicts
+                entry_query = entry_query.filter(models.NoteEntry.lists.any(models.List.id.in_(list_id_list)))
+        except ValueError:
+            pass
+
+    # Filter by starred/important status if provided
+    if is_important is not None:
+        print(f'Filtering by is_important: {is_important}, converted to: {1 if is_important else 0}')
+        entry_query = entry_query.filter(models.NoteEntry.is_important == (1 if is_important else 0))
+
+    # Filter by completed status if provided
+    if is_completed is not None:
+        print(f'Filtering by is_completed: {is_completed}, converted to: {1 if is_completed else 0}')
+        entry_query = entry_query.filter(models.NoteEntry.is_completed == (1 if is_completed else 0))
+
+    # Now add eager loading for relationships and execute
+    entry_query = entry_query.options(
+        joinedload(models.NoteEntry.labels), joinedload(models.NoteEntry.lists), joinedload(models.NoteEntry.daily_note)
+    )
+
     entry_results = entry_query.order_by(models.NoteEntry.created_at.desc()).limit(100).all()
+    print(f'Found {len(entry_results)} entries')
 
     for entry in entry_results:
         # Separate regular lists and kanban columns
@@ -155,8 +184,7 @@ def search_all(
                 'order_index': entry.order_index,
                 'created_at': entry.created_at,
                 'updated_at': entry.updated_at,
-                'labels': entry.labels,
-                'lists': entry.lists,
+                'labels': [{'id': label.id, 'name': label.name, 'color': label.color} for label in entry.labels],
                 'list_names': [lst.name for lst in entry.lists],
                 'regular_lists': regular_lists,
                 'kanban_columns': kanban_columns,

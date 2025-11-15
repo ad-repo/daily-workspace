@@ -222,6 +222,8 @@ class AppSettingsUpdate(BaseModel):
     quarterly_start_date: str | None = None
     quarterly_end_date: str | None = None
     emoji_library: str | None = None
+    sprint_name: str | None = None
+    daily_goal_end_time: str | None = None
 
 
 class AppSettingsResponse(BaseModel):
@@ -233,6 +235,8 @@ class AppSettingsResponse(BaseModel):
     quarterly_start_date: str
     quarterly_end_date: str
     emoji_library: str = 'emoji-picker-react'
+    sprint_name: str = 'Sprint'
+    daily_goal_end_time: str = '17:00'
     created_at: str
     updated_at: str
 

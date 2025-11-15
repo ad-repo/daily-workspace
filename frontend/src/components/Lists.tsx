@@ -280,7 +280,7 @@ export default function Lists() {
                 onDrop={(e) => handleListDrop(e, list.id)}
                 style={{
                   opacity: draggedListId === list.id ? 0.5 : 1,
-                  transform: dragOverListId === list.id && draggedListId !== list.id ? 'scale(1.02)' : 'scale(1)',
+                  ...(dragOverListId === list.id && draggedListId !== list.id && { transform: 'scale(1.02)' }),
                   transition: 'transform 0.2s ease, opacity 0.2s ease',
                 }}
               >

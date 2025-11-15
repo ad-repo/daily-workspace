@@ -1,8 +1,13 @@
 import { useState, useEffect } from 'react';
-import { X, Search, Plus } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { X, Search, Plus, RefreshCw } from 'lucide-react';
 import { notesApi, listsApi } from '../api';
 import type { NoteEntry, List } from '../types';
 import { format } from 'date-fns';
+import { useTimezone } from '../contexts/TimezoneContext';
+import { formatTimestamp } from '../utils/timezone';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 interface AddEntryToListModalProps {
   list: List;
@@ -11,6 +16,7 @@ interface AddEntryToListModalProps {
 }
 
 const AddEntryToListModal = ({ list, onClose, onUpdate }: AddEntryToListModalProps) => {
+  const { timezone } = useTimezone();
   const [searchQuery, setSearchQuery] = useState('');
   const [allEntries, setAllEntries] = useState<NoteEntry[]>([]);
   const [filteredEntries, setFilteredEntries] = useState<NoteEntry[]>([]);
@@ -109,11 +115,25 @@ const AddEntryToListModal = ({ list, onClose, onUpdate }: AddEntryToListModalPro
     return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
   };
 
+  // Fix all absolute API URLs in HTML content to use the actual API_URL
+  const fixImageUrls = (html: string): string => {
+    // Replace localhost:8000
+    let fixed = html.replace(/http:\/\/localhost:8000/g, API_URL);
+    // Replace any IP:8000 patterns (like 192.168.0.186:8000)
+    fixed = fixed.replace(/http:\/\/[\d.]+:8000/g, API_URL);
+    return fixed;
+  };
+
   const isEntryInList = (entry: NoteEntry) => {
     return entry.lists?.some((l) => l.id === list.id);
   };
 
-  return (
+  // Check if a label name is a custom emoji URL
+  const isCustomEmojiUrl = (str: string): boolean => {
+    return str.startsWith('/api/uploads/') || str.startsWith('http');
+  };
+
+  return createPortal(
     <div
       className="fixed inset-0 flex items-center justify-center p-4"
       style={{
@@ -144,20 +164,37 @@ const AddEntryToListModal = ({ list, onClose, onUpdate }: AddEntryToListModalPro
             <h2 className="text-2xl font-bold" style={{ color: 'var(--color-text-primary)' }}>
               Add Entries to {list.name}
             </h2>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onClose();
-              }}
-              className="p-2 rounded-lg transition-all hover:scale-110"
-              style={{
-                color: 'var(--color-text-secondary)',
-                backgroundColor: 'var(--color-background)',
-              }}
-              title="Close (Esc)"
-            >
-              <X className="w-5 h-5" />
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  loadEntries();
+                }}
+                className="p-2 rounded-lg transition-all hover:scale-110"
+                style={{
+                  color: 'var(--color-text-secondary)',
+                  backgroundColor: 'var(--color-background)',
+                }}
+                title="Refresh entries"
+                disabled={loading}
+              >
+                <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onClose();
+                }}
+                className="p-2 rounded-lg transition-all hover:scale-110"
+                style={{
+                  color: 'var(--color-text-secondary)',
+                  backgroundColor: 'var(--color-background)',
+                }}
+                title="Close (Esc)"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
           {/* Search Input */}
@@ -195,7 +232,7 @@ const AddEntryToListModal = ({ list, onClose, onUpdate }: AddEntryToListModalPro
               </p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {filteredEntries.map((entry) => {
                 const inList = isEntryInList(entry);
                 const isAdding = adding === entry.id;
@@ -203,11 +240,12 @@ const AddEntryToListModal = ({ list, onClose, onUpdate }: AddEntryToListModalPro
                 return (
                   <div
                     key={entry.id}
-                    className="rounded-lg border-2 p-4 transition-all"
+                    className="rounded-xl border-2 p-6 transition-all"
                     style={{
                       backgroundColor: inList ? `${list.color}10` : 'var(--color-background)',
                       borderColor: inList ? list.color : 'var(--color-border)',
                       opacity: inList ? 0.6 : 1,
+                      minHeight: '150px',
                     }}
                   >
                     <div className="flex justify-between items-start gap-4">
@@ -215,37 +253,61 @@ const AddEntryToListModal = ({ list, onClose, onUpdate }: AddEntryToListModalPro
                         {/* Title */}
                         {entry.title && (
                           <h3
-                            className="font-semibold mb-1 truncate"
+                            className="text-xl font-bold mb-3"
                             style={{ color: 'var(--color-text-primary)' }}
                           >
                             {entry.title}
                           </h3>
                         )}
 
-                        {/* Content preview */}
-                        <p
-                          className="text-sm mb-2"
-                          style={{ color: 'var(--color-text-secondary)' }}
-                        >
-                          {getTextPreview(entry.content)}
-                        </p>
+                        {/* Rich content */}
+                        <div 
+                          className="prose max-w-none text-base leading-relaxed mb-3"
+                          style={{ 
+                            color: 'var(--color-text-primary)',
+                            maxHeight: '200px',
+                            overflowY: 'auto'
+                          }}
+                          dangerouslySetInnerHTML={{ 
+                            __html: entry.content_type === 'code' 
+                              ? `<pre><code>${entry.content}</code></pre>` 
+                              : fixImageUrls(entry.content)
+                          }}
+                        />
 
                         {/* Labels */}
                         {entry.labels && entry.labels.length > 0 && (
                           <div className="flex flex-wrap gap-1 mb-2">
-                            {entry.labels.slice(0, 3).map((label) => (
-                              <span
-                                key={label.id}
-                                className="px-2 py-0.5 rounded text-xs"
-                                style={{
-                                  backgroundColor: label.color + '20',
-                                  color: label.color,
-                                  border: `1px solid ${label.color}`,
-                                }}
-                              >
-                                {label.name}
-                              </span>
-                            ))}
+                            {entry.labels.slice(0, 3).map((label) => {
+                              const isCustomEmoji = isCustomEmojiUrl(label.name);
+                              
+                              if (isCustomEmoji) {
+                                const imageUrl = label.name.startsWith('http') ? label.name : `${API_URL}${label.name}`;
+                                return (
+                                  <img 
+                                    key={label.id}
+                                    src={imageUrl} 
+                                    alt="emoji" 
+                                    className="inline-emoji"
+                                    style={{ width: '1.5rem', height: '1.5rem' }}
+                                  />
+                                );
+                              }
+                              
+                              return (
+                                <span
+                                  key={label.id}
+                                  className="px-2 py-0.5 rounded text-xs"
+                                  style={{
+                                    backgroundColor: label.color + '20',
+                                    color: label.color,
+                                    border: `1px solid ${label.color}`,
+                                  }}
+                                >
+                                  {label.name}
+                                </span>
+                              );
+                            })}
                             {entry.labels.length > 3 && (
                               <span
                                 className="px-2 py-0.5 rounded text-xs"
@@ -260,9 +322,12 @@ const AddEntryToListModal = ({ list, onClose, onUpdate }: AddEntryToListModalPro
                           </div>
                         )}
 
-                        {/* Date */}
-                        <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
-                          {format(new Date(entry.created_at), 'MMM d, yyyy')}
+                        {/* Date and Time */}
+                        <p className="text-sm font-medium" style={{ color: 'var(--color-text-secondary)' }}>
+                          {entry.daily_note_date 
+                            ? `${format(new Date(entry.daily_note_date + 'T12:00:00'), 'MMM d, yyyy')} ${formatTimestamp(entry.created_at, timezone, 'h:mm a zzz')}`
+                            : formatTimestamp(entry.created_at, timezone, 'MMM d, yyyy h:mm a zzz')
+                          }
                         </p>
                       </div>
 
@@ -297,7 +362,8 @@ const AddEntryToListModal = ({ list, onClose, onUpdate }: AddEntryToListModalPro
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

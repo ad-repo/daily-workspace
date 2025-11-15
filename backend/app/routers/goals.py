@@ -106,12 +106,7 @@ def create_sprint_goal(goal: schemas.GoalCreate, db: Session = Depends(get_db)):
     if not validate_date_range(goal.start_date, goal.end_date):
         raise HTTPException(status_code=400, detail='end_date must be after start_date')
 
-    # Check for overlaps
-    if check_overlap(db, models.SprintGoal, goal.start_date, goal.end_date):
-        raise HTTPException(
-            status_code=400,
-            detail=f'A sprint goal already exists that overlaps with {goal.start_date} to {goal.end_date}',
-        )
+    # Allow overlapping goals - removed overlap check
 
     db_goal = models.SprintGoal(text=goal.text, start_date=goal.start_date, end_date=goal.end_date)
     db.add(db_goal)
@@ -152,11 +147,7 @@ def update_sprint_goal(goal_id: int, goal_update: schemas.GoalUpdate, db: Sessio
         if not validate_date_range(new_start, new_end):
             raise HTTPException(status_code=400, detail='end_date must be after start_date')
 
-        # Check for overlaps (excluding this goal)
-        if check_overlap(db, models.SprintGoal, new_start, new_end, exclude_id=goal_id):
-            raise HTTPException(
-                status_code=400, detail=f'A sprint goal already exists that overlaps with {new_start} to {new_end}'
-            )
+        # Allow overlapping goals - removed overlap check
 
         if goal_update.start_date is not None:
             db_goal.start_date = goal_update.start_date
@@ -260,12 +251,7 @@ def create_quarterly_goal(goal: schemas.GoalCreate, db: Session = Depends(get_db
     if not validate_date_range(goal.start_date, goal.end_date):
         raise HTTPException(status_code=400, detail='end_date must be after start_date')
 
-    # Check for overlaps
-    if check_overlap(db, models.QuarterlyGoal, goal.start_date, goal.end_date):
-        raise HTTPException(
-            status_code=400,
-            detail=f'A quarterly goal already exists that overlaps with {goal.start_date} to {goal.end_date}',
-        )
+    # Allow overlapping goals - removed overlap check
 
     db_goal = models.QuarterlyGoal(text=goal.text, start_date=goal.start_date, end_date=goal.end_date)
     db.add(db_goal)
@@ -306,11 +292,7 @@ def update_quarterly_goal(goal_id: int, goal_update: schemas.GoalUpdate, db: Ses
         if not validate_date_range(new_start, new_end):
             raise HTTPException(status_code=400, detail='end_date must be after start_date')
 
-        # Check for overlaps (excluding this goal)
-        if check_overlap(db, models.QuarterlyGoal, new_start, new_end, exclude_id=goal_id):
-            raise HTTPException(
-                status_code=400, detail=f'A quarterly goal already exists that overlaps with {new_start} to {new_end}'
-            )
+        # Allow overlapping goals - removed overlap check
 
         if goal_update.start_date is not None:
             db_goal.start_date = goal_update.start_date

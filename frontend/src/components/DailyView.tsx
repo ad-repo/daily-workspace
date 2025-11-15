@@ -12,6 +12,7 @@ import SimpleRichTextEditor from './SimpleRichTextEditor';
 import { useFullScreen } from '../contexts/FullScreenContext';
 import { useDailyGoals } from '../contexts/DailyGoalsContext';
 import { useSprintGoals } from '../contexts/SprintGoalsContext';
+import { useSprintName } from '../contexts/SprintNameContext';
 import { useQuarterlyGoals } from '../contexts/QuarterlyGoalsContext';
 import { useDayLabels } from '../contexts/DayLabelsContext';
 
@@ -24,12 +25,15 @@ const DailyView = () => {
   const { isFullScreen } = useFullScreen();
   const { showDailyGoals } = useDailyGoals();
   const { showSprintGoals } = useSprintGoals();
+  const { sprintName } = useSprintName();
   const { showQuarterlyGoals } = useQuarterlyGoals();
   const { showDayLabels } = useDayLabels();
   const [note, setNote] = useState<DailyNote | null>(null);
   const [entries, setEntries] = useState<NoteEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [dailyGoal, setDailyGoal] = useState('');
+  const [dailyGoalEndTime, setDailyGoalEndTime] = useState('17:00');
+  const [dailyGoalTimeRemaining, setDailyGoalTimeRemaining] = useState('');
   const [sprintGoal, setSprintGoal] = useState<Goal | null>(null);
   const [quarterlyGoal, setQuarterlyGoal] = useState<Goal | null>(null);
   const [editingDailyGoal, setEditingDailyGoal] = useState(false);
@@ -73,6 +77,55 @@ const DailyView = () => {
       loadGoalsForDate(date);
     }
   }, [date]);
+
+  // Load daily goal end time from settings
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const response = await axios.get(`${API_URL}/api/settings`);
+        setDailyGoalEndTime(response.data.daily_goal_end_time || '17:00');
+      } catch (error) {
+        console.error('Failed to load settings:', error);
+      }
+    };
+    loadSettings();
+  }, []);
+
+  // Update daily goal countdown every minute
+  useEffect(() => {
+    const updateCountdown = () => {
+      if (!date || !dailyGoalEndTime) return;
+
+      const now = new Date();
+      const viewedDate = new Date(date + 'T00:00:00');
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+      // Only show countdown if viewing today
+      if (viewedDate.getTime() !== today.getTime()) {
+        setDailyGoalTimeRemaining('');
+        return;
+      }
+
+      const [hours, minutes] = dailyGoalEndTime.split(':').map(Number);
+      const endTime = new Date(now);
+      endTime.setHours(hours, minutes, 0, 0);
+
+      const diff = endTime.getTime() - now.getTime();
+
+      if (diff <= 0) {
+        setDailyGoalTimeRemaining('Done for the day');
+      } else {
+        const hoursLeft = Math.floor(diff / (1000 * 60 * 60));
+        const minutesLeft = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        setDailyGoalTimeRemaining(`${hoursLeft}h ${minutesLeft}m remaining`);
+      }
+    };
+
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 60000); // Update every minute
+
+    return () => clearInterval(interval);
+  }, [date, dailyGoalEndTime]);
 
   const loadGoalsForDate = async (viewedDate: string) => {
     try {
@@ -334,6 +387,14 @@ const DailyView = () => {
     return goal.start_date > viewedDate;
   };
 
+  // Helper to check if goal text is actually empty (accounting for HTML tags and whitespace)
+  const hasGoalContent = (goalText: string | undefined | null): boolean => {
+    if (!goalText) return false;
+    // Strip HTML tags and check if there's any actual text content
+    const textOnly = goalText.replace(/<[^>]*>/g, '').trim();
+    return textOnly.length > 0;
+  };
+
   const handleCreateSprintGoal = async () => {
     if (!date || !newSprintText || !newSprintStartDate || !newSprintEndDate) {
       alert('Please provide goal text, start date, and end date');
@@ -524,7 +585,23 @@ const DailyView = () => {
               {/* Daily Goals Section - only show if enabled */}
               {showDailyGoals && (
                 <div className="w-full">
-                  <label className="block text-lg font-semibold mb-2" style={{ color: 'var(--color-text-primary)' }}>🎯 Daily Goals</label>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-lg font-semibold" style={{ color: 'var(--color-text-primary)' }}>🎯 Daily Goals</label>
+                    {hasGoalContent(dailyGoal) && dailyGoalTimeRemaining && (
+                      <div 
+                        className="flex items-center gap-2 px-3 py-1 rounded-full"
+                        style={{ 
+                          backgroundColor: 'var(--color-bg-secondary)',
+                          color: 'var(--color-accent)',
+                          border: '1px solid var(--color-accent)'
+                        }}
+                      >
+                        <span className="text-sm font-bold">
+                          {dailyGoalTimeRemaining}
+                        </span>
+                      </div>
+                    )}
+                  </div>
               {editingDailyGoal ? (
                 <div 
                   onBlur={(e) => {
@@ -597,10 +674,11 @@ const DailyView = () => {
               ) : (
                     <div
                       onClick={() => setEditingDailyGoal(true)}
-                      className="w-full px-4 py-3 rounded-lg cursor-pointer transition-colors min-h-[80px]"
+                      className="w-full px-4 py-3 rounded-lg cursor-pointer transition-colors"
                       style={{
-                        color: dailyGoal ? 'var(--color-text-primary)' : 'var(--color-text-tertiary)',
+                        color: hasGoalContent(dailyGoal) ? 'var(--color-text-primary)' : 'var(--color-text-tertiary)',
                         backgroundColor: 'transparent',
+                        minHeight: hasGoalContent(dailyGoal) ? '80px' : '40px',
                         maxHeight: '300px',
                         overflowY: 'auto'
                       }}
@@ -658,21 +736,14 @@ const DailyView = () => {
               {showSprintGoals && (
                 <div className="w-full">
                   <div className="flex items-center justify-between mb-2">
-                    <label className="block text-lg font-semibold" style={{ color: 'var(--color-text-primary)' }}>🚀 Sprint Goals</label>
-                    {sprintGoal && date && (
+                    <label className="block text-lg font-semibold" style={{ color: 'var(--color-text-primary)' }}>🚀 {sprintName} Goals</label>
+                    {sprintGoal && hasGoalContent(sprintGoal.text) && date && (
                       <div 
                         className="flex items-center gap-2 px-3 py-1 rounded-full"
                         style={{ 
-                          backgroundColor: isGoalNotStarted(sprintGoal, date) 
-                            ? 'rgba(59, 130, 246, 0.15)' 
-                            : sprintGoal.days_remaining && sprintGoal.days_remaining > 0 
-                              ? 'rgba(16, 185, 129, 0.15)' 
-                              : 'rgba(239, 68, 68, 0.15)',
-                          color: isGoalNotStarted(sprintGoal, date)
-                            ? 'var(--color-accent)'
-                            : sprintGoal.days_remaining && sprintGoal.days_remaining > 0 
-                              ? 'var(--color-success)' 
-                              : 'var(--color-error)'
+                          backgroundColor: 'var(--color-bg-secondary)',
+                          color: 'var(--color-accent)',
+                          border: '1px solid var(--color-accent)'
                         }}
                         title={`${sprintGoal.start_date} to ${sprintGoal.end_date}`}
                       >
@@ -798,10 +869,11 @@ const DailyView = () => {
                             setEditingSprintStartDate(sprintGoal.start_date);
                             setEditingSprintEndDate(sprintGoal.end_date);
                           }}
-                          className="w-full px-4 py-3 rounded-lg transition-colors min-h-[80px] cursor-pointer"
+                          className="w-full px-4 py-3 rounded-lg transition-colors cursor-pointer"
                           style={{
-                            color: sprintGoal.text ? 'var(--color-text-primary)' : 'var(--color-text-tertiary)',
+                            color: hasGoalContent(sprintGoal.text) ? 'var(--color-text-primary)' : 'var(--color-text-tertiary)',
                             backgroundColor: 'transparent',
+                            minHeight: hasGoalContent(sprintGoal.text) ? '80px' : '40px',
                             maxHeight: '400px',
                             overflowY: 'auto'
                           }}
@@ -899,20 +971,13 @@ const DailyView = () => {
                 <div className="w-full">
                   <div className="flex items-center justify-between mb-2">
                     <label className="block text-lg font-semibold" style={{ color: 'var(--color-text-primary)' }}>🌟 Quarterly Goals</label>
-                    {quarterlyGoal && date && (
+                    {quarterlyGoal && hasGoalContent(quarterlyGoal.text) && date && (
                       <div 
                         className="flex items-center gap-2 px-3 py-1 rounded-full"
                         style={{ 
-                          backgroundColor: isGoalNotStarted(quarterlyGoal, date) 
-                            ? 'rgba(59, 130, 246, 0.15)' 
-                            : quarterlyGoal.days_remaining && quarterlyGoal.days_remaining > 0 
-                              ? 'rgba(16, 185, 129, 0.15)' 
-                              : 'rgba(239, 68, 68, 0.15)',
-                          color: isGoalNotStarted(quarterlyGoal, date)
-                            ? 'var(--color-accent)'
-                            : quarterlyGoal.days_remaining && quarterlyGoal.days_remaining > 0 
-                              ? 'var(--color-success)' 
-                              : 'var(--color-error)'
+                          backgroundColor: 'var(--color-bg-secondary)',
+                          color: 'var(--color-accent)',
+                          border: '1px solid var(--color-accent)'
                         }}
                         title={`${quarterlyGoal.start_date} to ${quarterlyGoal.end_date}`}
                       >
@@ -1038,10 +1103,11 @@ const DailyView = () => {
                             setEditingQuarterlyStartDate(quarterlyGoal.start_date);
                             setEditingQuarterlyEndDate(quarterlyGoal.end_date);
                           }}
-                          className="w-full px-4 py-3 rounded-lg transition-colors min-h-[80px] cursor-pointer"
+                          className="w-full px-4 py-3 rounded-lg transition-colors cursor-pointer"
                           style={{
-                            color: quarterlyGoal.text ? 'var(--color-text-primary)' : 'var(--color-text-tertiary)',
+                            color: hasGoalContent(quarterlyGoal.text) ? 'var(--color-text-primary)' : 'var(--color-text-tertiary)',
                             backgroundColor: 'transparent',
+                            minHeight: hasGoalContent(quarterlyGoal.text) ? '80px' : '40px',
                             maxHeight: '400px',
                             overflowY: 'auto'
                           }}

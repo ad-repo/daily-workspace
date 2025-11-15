@@ -205,3 +205,12 @@ vi.mock('./src/components/EmojiPicker', () => ({
   },
 }));
 
+// Mock SprintNameContext
+vi.mock('./src/contexts/SprintNameContext', () => ({
+  SprintNameProvider: ({ children }: { children: React.ReactNode }) => children,
+  useSprintName: () => ({
+    sprintName: 'Sprint',
+    setSprintName: vi.fn(),
+  }),
+}));
+

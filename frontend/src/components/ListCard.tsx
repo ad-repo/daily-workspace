@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Trash2, Calendar, Clock } from 'lucide-react';
+import { Trash2, BookOpen, Clock, Columns, Trello } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import type { NoteEntry, List } from '../types';
 import { useTimezone } from '../contexts/TimezoneContext';
@@ -14,9 +14,10 @@ interface ListCardProps {
   onLabelsUpdate: (entryId: number, labels: any[]) => void;
   listId?: number;
   list?: List;
+  isKanbanView?: boolean;
 }
 
-const ListCard = ({ entry, onRemoveFromList, listId, list }: ListCardProps) => {
+const ListCard = ({ entry, onRemoveFromList, listId, list, isKanbanView }: ListCardProps) => {
   const navigate = useNavigate();
   const { timezone } = useTimezone();
   const [isDragging, setIsDragging] = useState(false);
@@ -24,6 +25,15 @@ const ListCard = ({ entry, onRemoveFromList, listId, list }: ListCardProps) => {
   // Check if a label name is a custom emoji URL
   const isCustomEmojiUrl = (str: string): boolean => {
     return str.startsWith('/api/uploads/') || str.startsWith('http');
+  };
+
+  // Fix all absolute API URLs in HTML content to use the actual API_URL
+  const fixImageUrls = (html: string): string => {
+    // Replace localhost:8000
+    let fixed = html.replace(/http:\/\/localhost:8000/g, API_URL);
+    // Replace any IP:8000 patterns (like 192.168.0.186:8000)
+    fixed = fixed.replace(/http:\/\/[\d.]+:8000/g, API_URL);
+    return fixed;
   };
 
   const handleDragStart = (e: React.DragEvent) => {
@@ -79,9 +89,9 @@ const ListCard = ({ entry, onRemoveFromList, listId, list }: ListCardProps) => {
               border: '1px solid var(--color-border)',
               boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
             }}
-            title="View in daily notes"
+            title="Edit"
           >
-            <Calendar className="w-4 h-4" />
+            <BookOpen className="w-4 h-4" />
           </button>
         )}
         {onRemoveFromList && listId && (
@@ -121,6 +131,52 @@ const ListCard = ({ entry, onRemoveFromList, listId, list }: ListCardProps) => {
               {formatTimestamp(entry.created_at, timezone, 'h:mm a zzz')}
             </span>
           </div>
+
+          {/* Kanban Status - only on Lists page */}
+          {!isKanbanView && entry.lists && (() => {
+            const kanbanLists = entry.lists.filter(entryList => entryList.is_kanban);
+            if (kanbanLists.length === 0) return null;
+            
+            return (
+              <div className="flex items-center gap-2 mb-2 flex-wrap">
+                {kanbanLists.map(kanbanList => (
+                  <div key={kanbanList.id} className="inline-flex items-center gap-1.5 px-3 py-1 rounded text-sm font-medium"
+                    style={{
+                      backgroundColor: kanbanList.color,
+                      color: 'white',
+                    }}
+                  >
+                    <Trello className="w-3 h-3" />
+                    {kanbanList.name}
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
+
+          {/* Regular Lists - exclude current list */}
+          {entry.lists && (() => {
+            const regularLists = entry.lists.filter(entryList => 
+              !entryList.is_kanban && entryList.id !== listId
+            );
+            if (regularLists.length === 0) return null;
+            
+            return (
+              <div className="flex items-center gap-2 mb-3 flex-wrap">
+                {regularLists.map(regularList => (
+                  <div key={regularList.id} className="inline-flex items-center gap-1.5 px-3 py-1 rounded text-sm font-medium"
+                    style={{
+                      backgroundColor: regularList.color,
+                      color: 'white',
+                    }}
+                  >
+                    <Columns className="h-3 w-3" />
+                    {regularList.name}
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
 
           {/* Title (read-only) */}
           {entry.title && (
@@ -179,7 +235,7 @@ const ListCard = ({ entry, onRemoveFromList, listId, list }: ListCardProps) => {
               color: 'var(--color-text-primary)',
               pointerEvents: 'auto',
             }}
-            dangerouslySetInnerHTML={{ __html: entry.content }}
+            dangerouslySetInnerHTML={{ __html: fixImageUrls(entry.content) }}
             onClick={(e) => {
               // Only allow link clicks, prevent other interactions
               const target = e.target as HTMLElement;

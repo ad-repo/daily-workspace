@@ -10,6 +10,7 @@ import { useSprintGoals } from '../contexts/SprintGoalsContext';
 import { useQuarterlyGoals } from '../contexts/QuarterlyGoalsContext';
 import { useDayLabels } from '../contexts/DayLabelsContext';
 import { useEmojiLibrary } from '../contexts/EmojiLibraryContext';
+import { useSprintName } from '../contexts/SprintNameContext';
 import CustomThemeCreator from './CustomThemeCreator';
 import CustomBackgroundSettings from './CustomBackgroundSettings';
 import CustomEmojiManager from './CustomEmojiManager';
@@ -53,11 +54,16 @@ const Settings = () => {
   const { showQuarterlyGoals, setShowQuarterlyGoals } = useQuarterlyGoals();
   const { showDayLabels, setShowDayLabels } = useDayLabels();
   const { emojiLibrary, setEmojiLibrary } = useEmojiLibrary();
+  const { setSprintName: setSprintNameContext } = useSprintName();
   
   const [labels, setLabels] = useState<Label[]>([]);
   const [showEmojiManager, setShowEmojiManager] = useState(false);
   const [deletingLabelId, setDeletingLabelId] = useState<number | null>(null);
   const [labelSearchQuery, setLabelSearchQuery] = useState('');
+  const [sprintName, setSprintName] = useState('Sprint');
+  const [savingSprintName, setSavingSprintName] = useState(false);
+  const [dailyGoalEndTime, setDailyGoalEndTime] = useState('17:00');
+  const [savingDailyGoalEndTime, setSavingDailyGoalEndTime] = useState(false);
   const [isUploadingCustomBgImage, setIsUploadingCustomBgImage] = useState(false);
   const [labelSortBy, setLabelSortBy] = useState<'name' | 'usage'>('name');
   const [isEditingTimezone, setIsEditingTimezone] = useState(false);
@@ -68,7 +74,43 @@ const Settings = () => {
 
   useEffect(() => {
     loadLabels();
+    loadSprintName();
   }, []);
+
+  const loadSprintName = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/api/settings`);
+      setSprintName(response.data.sprint_name || 'Sprint');
+      setDailyGoalEndTime(response.data.daily_goal_end_time || '17:00');
+    } catch (error) {
+      console.error('Error loading sprint name:', error);
+    }
+  };
+
+  const handleSprintNameChange = async (newName: string) => {
+    setSprintName(newName);
+    setSprintNameContext(newName); // Update context immediately for other components
+    setSavingSprintName(true);
+    try {
+      await axios.patch(`${API_URL}/api/settings`, { sprint_name: newName });
+    } catch (error) {
+      console.error('Error saving sprint name:', error);
+    } finally {
+      setSavingSprintName(false);
+    }
+  };
+
+  const handleDailyGoalEndTimeChange = async (newTime: string) => {
+    setDailyGoalEndTime(newTime);
+    setSavingDailyGoalEndTime(true);
+    try {
+      await axios.patch(`${API_URL}/api/settings`, { daily_goal_end_time: newTime });
+    } catch (error) {
+      console.error('Error saving daily goal end time:', error);
+    } finally {
+      setSavingDailyGoalEndTime(false);
+    }
+  };
 
   const handleOpenThemeCreator = () => {
     setEditingTheme(null);
@@ -414,132 +456,143 @@ const Settings = () => {
             General
           </h2>
           <div className="rounded-lg p-6" style={{ backgroundColor: 'var(--color-bg-primary)' }}>
-            {/* Show Daily Goals Toggle */}
+            {/* Display Toggles - Compact Grid */}
             <div className="mb-4 p-4 rounded-lg" style={{ backgroundColor: 'var(--color-bg-secondary)', border: '1px solid var(--color-border-primary)' }}>
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <h3 className="font-medium mb-1" style={{ color: 'var(--color-text-primary)' }}>
-                    Show Daily Goals
-                  </h3>
-                  <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-                    Display the daily goals section on the day view. Disable to remove it completely.
-                  </p>
-                </div>
-                <button
-                  onClick={() => setShowDailyGoals(!showDailyGoals)}
-                  className={`ml-4 relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2`}
-                  style={{
-                    backgroundColor: showDailyGoals ? 'var(--color-accent)' : 'var(--color-bg-secondary)',
-                    borderColor: 'var(--color-border-primary)',
-                    borderWidth: '1px'
-                  }}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full transition-transform`}
+              <h3 className="font-medium mb-3" style={{ color: 'var(--color-text-primary)' }}>Display Options</h3>
+              <div className="grid grid-cols-2 gap-3">
+                {/* Show Daily Goals */}
+                <div className="flex items-center justify-between">
+                  <span className="text-sm" style={{ color: 'var(--color-text-primary)' }}>Daily Goals</span>
+                  <button
+                    onClick={() => setShowDailyGoals(!showDailyGoals)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors`}
                     style={{
-                      backgroundColor: 'var(--color-bg-primary)',
-                      transform: showDailyGoals ? 'translateX(1.5rem)' : 'translateX(0.25rem)'
+                      backgroundColor: showDailyGoals ? 'var(--color-accent)' : 'var(--color-bg-secondary)',
+                      borderColor: 'var(--color-border-primary)',
+                      borderWidth: '1px'
                     }}
-                  />
-                </button>
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full transition-transform`}
+                      style={{
+                        backgroundColor: 'var(--color-bg-primary)',
+                        transform: showDailyGoals ? 'translateX(1.5rem)' : 'translateX(0.25rem)'
+                      }}
+                    />
+                  </button>
+                </div>
+
+                {/* Show Sprint Goals */}
+                <div className="flex items-center justify-between">
+                  <span className="text-sm" style={{ color: 'var(--color-text-primary)' }}>Sprint Goals</span>
+                  <button
+                    onClick={() => setShowSprintGoals(!showSprintGoals)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors`}
+                    style={{
+                      backgroundColor: showSprintGoals ? 'var(--color-accent)' : 'var(--color-bg-secondary)',
+                      borderColor: 'var(--color-border-primary)',
+                      borderWidth: '1px'
+                    }}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full transition-transform`}
+                      style={{
+                        backgroundColor: 'var(--color-bg-primary)',
+                        transform: showSprintGoals ? 'translateX(1.5rem)' : 'translateX(0.25rem)'
+                      }}
+                    />
+                  </button>
+                </div>
+
+                {/* Show Quarterly Goals */}
+                <div className="flex items-center justify-between">
+                  <span className="text-sm" style={{ color: 'var(--color-text-primary)' }}>Quarterly Goals</span>
+                  <button
+                    onClick={() => setShowQuarterlyGoals(!showQuarterlyGoals)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors`}
+                    style={{
+                      backgroundColor: showQuarterlyGoals ? 'var(--color-accent)' : 'var(--color-bg-secondary)',
+                      borderColor: 'var(--color-border-primary)',
+                      borderWidth: '1px'
+                    }}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full transition-transform`}
+                      style={{
+                        backgroundColor: 'var(--color-bg-primary)',
+                        transform: showQuarterlyGoals ? 'translateX(1.5rem)' : 'translateX(0.25rem)'
+                      }}
+                    />
+                  </button>
+                </div>
+
+                {/* Show Day Labels */}
+                <div className="flex items-center justify-between">
+                  <span className="text-sm" style={{ color: 'var(--color-text-primary)' }}>Day Labels</span>
+                  <button
+                    onClick={() => setShowDayLabels(!showDayLabels)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors`}
+                    style={{
+                      backgroundColor: showDayLabels ? 'var(--color-accent)' : 'var(--color-bg-secondary)',
+                      borderColor: 'var(--color-border-primary)',
+                      borderWidth: '1px'
+                    }}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full transition-transform`}
+                      style={{
+                        backgroundColor: 'var(--color-bg-primary)',
+                        transform: showDayLabels ? 'translateX(1.5rem)' : 'translateX(0.25rem)'
+                      }}
+                    />
+                  </button>
+                </div>
               </div>
             </div>
 
-            {/* Show Sprint Goals Toggle */}
+            {/* Customization - Compact */}
             <div className="mb-4 p-4 rounded-lg" style={{ backgroundColor: 'var(--color-bg-secondary)', border: '1px solid var(--color-border-primary)' }}>
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <h3 className="font-medium mb-1" style={{ color: 'var(--color-text-primary)' }}>
-                    Show Sprint Goals
-                  </h3>
-                  <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-                    Display the sprint goals section on the day view. Disable to remove it completely.
-                  </p>
-                </div>
-                <button
-                  onClick={() => setShowSprintGoals(!showSprintGoals)}
-                  className={`ml-4 relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2`}
-                  style={{
-                    backgroundColor: showSprintGoals ? 'var(--color-accent)' : 'var(--color-bg-secondary)',
-                    borderColor: 'var(--color-border-primary)',
-                    borderWidth: '1px'
-                  }}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full transition-transform`}
+              <h3 className="font-medium mb-3" style={{ color: 'var(--color-text-primary)' }}>Customization</h3>
+              <div className="space-y-3">
+                {/* Sprint Name */}
+                <div className="flex items-center gap-3">
+                  <label className="text-sm w-32 flex-shrink-0" style={{ color: 'var(--color-text-primary)' }}>Sprint Name</label>
+                  <input
+                    type="text"
+                    value={sprintName}
+                    onChange={(e) => handleSprintNameChange(e.target.value)}
+                    placeholder="Sprint"
+                    className="flex-1 px-3 py-1.5 rounded-md border text-sm"
                     style={{
                       backgroundColor: 'var(--color-bg-primary)',
-                      transform: showSprintGoals ? 'translateX(1.5rem)' : 'translateX(0.25rem)'
+                      borderColor: 'var(--color-border-primary)',
+                      color: 'var(--color-text-primary)',
                     }}
                   />
-                </button>
-              </div>
-            </div>
+                  {savingSprintName && <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>Saving...</span>}
+                </div>
 
-            {/* Show Quarterly Goals Toggle */}
-            <div className="mb-4 p-4 rounded-lg" style={{ backgroundColor: 'var(--color-bg-secondary)', border: '1px solid var(--color-border-primary)' }}>
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <h3 className="font-medium mb-1" style={{ color: 'var(--color-text-primary)' }}>
-                    Show Quarterly Goals
-                  </h3>
-                  <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-                    Display the quarterly goals section on the day view. Disable to remove it completely.
-                  </p>
-                </div>
-                <button
-                  onClick={() => setShowQuarterlyGoals(!showQuarterlyGoals)}
-                  className={`ml-4 relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2`}
-                  style={{
-                    backgroundColor: showQuarterlyGoals ? 'var(--color-accent)' : 'var(--color-bg-secondary)',
-                    borderColor: 'var(--color-border-primary)',
-                    borderWidth: '1px'
-                  }}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full transition-transform`}
+                {/* Daily Goal End Time */}
+                <div className="flex items-center gap-3">
+                  <label className="text-sm w-32 flex-shrink-0" style={{ color: 'var(--color-text-primary)' }}>Daily Goal End</label>
+                  <input
+                    type="time"
+                    value={dailyGoalEndTime}
+                    onChange={(e) => handleDailyGoalEndTimeChange(e.target.value)}
+                    className="px-3 py-1.5 rounded-md border text-sm"
                     style={{
                       backgroundColor: 'var(--color-bg-primary)',
-                      transform: showQuarterlyGoals ? 'translateX(1.5rem)' : 'translateX(0.25rem)'
+                      borderColor: 'var(--color-border-primary)',
+                      color: 'var(--color-text-primary)',
                     }}
                   />
-                </button>
-              </div>
-            </div>
-
-            {/* Show Day Labels Toggle */}
-            <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--color-bg-secondary)', border: '1px solid var(--color-border-primary)' }}>
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <h3 className="font-medium mb-1" style={{ color: 'var(--color-text-primary)' }}>
-                    Show Day Labels
-                  </h3>
-                  <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-                    Display the day labels section on the day view. Disable to remove it completely.
-                  </p>
+                  {savingDailyGoalEndTime && <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>Saving...</span>}
                 </div>
-                <button
-                  onClick={() => setShowDayLabels(!showDayLabels)}
-                  className={`ml-4 relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2`}
-                  style={{
-                    backgroundColor: showDayLabels ? 'var(--color-accent)' : 'var(--color-bg-secondary)',
-                    borderColor: 'var(--color-border-primary)',
-                    borderWidth: '1px'
-                  }}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full transition-transform`}
-                    style={{
-                      backgroundColor: 'var(--color-bg-primary)',
-                      transform: showDayLabels ? 'translateX(1.5rem)' : 'translateX(0.25rem)'
-                    }}
-                  />
-                </button>
               </div>
             </div>
 
             {/* Emoji Library Selection */}
-            <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--color-bg-secondary)', border: '1px solid var(--color-border-primary)' }}>
+            <div className="mb-4 p-4 rounded-lg" style={{ backgroundColor: 'var(--color-bg-secondary)', border: '1px solid var(--color-border-primary)' }}>
               <div className="flex flex-col gap-4">
                 <div>
                   <h3 className="font-medium mb-1" style={{ color: 'var(--color-text-primary)' }}>
@@ -758,19 +811,6 @@ const Settings = () => {
               })}
             </div>
             
-            {/* Info box */}
-            <div
-              className="mt-4 p-4 rounded-lg"
-              style={{
-                backgroundColor: `${getComputedStyle(document.documentElement).getPropertyValue('--color-info')}15`,
-                border: '1px solid var(--color-info)',
-              }}
-            >
-              <p className="text-sm" style={{ color: 'var(--color-info)' }}>
-                <strong>Theme Customization:</strong> Click any theme to apply it. The active theme shows Edit and Restore buttons. 
-                Click Edit to customize colors. Modified built-in themes show an asterisk (*) and can be restored to default.
-              </p>
-            </div>
           </div>
         </section>
 

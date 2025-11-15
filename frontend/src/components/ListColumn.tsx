@@ -15,9 +15,10 @@ interface ListColumnProps {
   onDragStart?: () => void;
   onDragEnd?: () => void;
   isDragging?: boolean;
+  isKanbanView?: boolean;
 }
 
-const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd, isDragging }: ListColumnProps) => {
+const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd, isDragging, isKanbanView }: ListColumnProps) => {
   const [isDragOver, setIsDragOver] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -262,21 +263,11 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
             </div>
           </div>
           
-          {list.description && (
-            <p 
-              className="text-sm mb-3 ml-3 break-words line-clamp-2"
-              style={{ color: 'var(--color-text-secondary)' }}
-              title={list.description}
-            >
-              {list.description}
-            </p>
-          )}
           <div className="flex items-center gap-2 ml-3">
             <span
-              className="px-3 py-1 rounded-full text-xs font-semibold shadow-sm"
+              className="text-sm"
               style={{
-                backgroundColor: list.color,
-                color: 'white',
+                color: 'var(--color-text-secondary)',
               }}
             >
               {entries.length} {entries.length === 1 ? 'entry' : 'entries'}
@@ -315,6 +306,7 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
                     // Refresh the list to get updated entry data
                     onUpdate();
                   }}
+                  isKanbanView={isKanbanView}
                 />
               ))}
             </div>

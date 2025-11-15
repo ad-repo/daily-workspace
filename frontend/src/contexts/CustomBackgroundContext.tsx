@@ -128,7 +128,6 @@ export const CustomBackgroundProvider: React.FC<{ children: ReactNode }> = ({ ch
 
     const intervalMs = rotationInterval * 60 * 1000;
     const timerId = setInterval(() => {
-      console.log('[CustomBackground] Auto-rotating to next image');
       nextImage();
     }, intervalMs);
 

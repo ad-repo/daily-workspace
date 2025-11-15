@@ -16,6 +16,7 @@ import { TransparentLabelsProvider } from './contexts/TransparentLabelsContext';
 import { FullScreenProvider, useFullScreen } from './contexts/FullScreenContext';
 import { DailyGoalsProvider } from './contexts/DailyGoalsContext';
 import { SprintGoalsProvider } from './contexts/SprintGoalsContext';
+import { SprintNameProvider } from './contexts/SprintNameContext';
 import { QuarterlyGoalsProvider } from './contexts/QuarterlyGoalsContext';
 import { DayLabelsProvider } from './contexts/DayLabelsContext';
 import { EmojiLibraryProvider } from './contexts/EmojiLibraryContext';
@@ -89,13 +90,15 @@ function App() {
             <EmojiLibraryProvider>
               <DailyGoalsProvider>
                 <SprintGoalsProvider>
-                  <QuarterlyGoalsProvider>
-                    <DayLabelsProvider>
-                      <FullScreenProvider>
-                        <AppContent />
-                      </FullScreenProvider>
-                    </DayLabelsProvider>
-                  </QuarterlyGoalsProvider>
+                  <SprintNameProvider>
+                    <QuarterlyGoalsProvider>
+                      <DayLabelsProvider>
+                        <FullScreenProvider>
+                          <AppContent />
+                        </FullScreenProvider>
+                      </DayLabelsProvider>
+                    </QuarterlyGoalsProvider>
+                  </SprintNameProvider>
                 </SprintGoalsProvider>
               </DailyGoalsProvider>
             </EmojiLibraryProvider>

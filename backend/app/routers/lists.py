@@ -171,6 +171,7 @@ def get_list(list_id: int, db: Session = Depends(get_db)):
         .options(
             joinedload(models.List.entries).joinedload(models.NoteEntry.daily_note),
             joinedload(models.List.entries).joinedload(models.NoteEntry.labels),
+            joinedload(models.List.entries).joinedload(models.NoteEntry.lists),
             joinedload(models.List.labels),
         )
         .filter(models.List.id == list_id)
@@ -216,7 +217,17 @@ def get_list(list_id: int, db: Session = Depends(get_db)):
                     }
                     for label in entry.labels
                 ],
-                'lists': [],  # Don't include lists in this response to avoid circular reference
+                'lists': [
+                    {
+                        'id': entry_list.id,
+                        'name': entry_list.name,
+                        'color': entry_list.color,
+                        'is_kanban': bool(entry_list.is_kanban),
+                        'created_at': entry_list.created_at,
+                        'updated_at': entry_list.updated_at,
+                    }
+                    for entry_list in entry.lists
+                ],
             }
             for entry in lst.entries
         ],
@@ -363,6 +374,25 @@ def add_entry_to_list(list_id: int, entry_id: int, order_index: int = 0, db: Ses
     # Check if entry is already in this list
     if entry in lst.entries:
         return {'message': 'Entry already in list'}
+
+    # If this is a Kanban list, remove entry from all other Kanban lists first
+    # (An entry can only be in one Kanban status at a time)
+    if lst.is_kanban == 1:
+        # Get all Kanban lists that contain this entry
+        other_kanban_lists = (
+            db.query(models.List)
+            .join(models.entry_lists)
+            .filter(models.entry_lists.c.entry_id == entry_id)
+            .filter(models.List.is_kanban == 1)
+            .filter(models.List.id != list_id)
+            .all()
+        )
+
+        # Remove entry from all other Kanban lists
+        for other_list in other_kanban_lists:
+            if entry in other_list.entries:
+                other_list.entries.remove(entry)
+                other_list.updated_at = datetime.utcnow()
 
     # Add entry to list
     lst.entries.append(entry)
