@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { List, Clock, Tag } from 'lucide-react';
+import { List, Clock, Tag, Trello } from 'lucide-react';
 import type { NoteEntry } from '../types';
 import { useTimezone } from '../contexts/TimezoneContext';
 import { formatTimestamp } from '../utils/timezone';
@@ -87,11 +87,12 @@ const EntryDropdown = ({ entries }: EntryDropdownProps) => {
 
       {isOpen && (
         <div
-          className="absolute left-1/2 -translate-x-1/2 mt-2 w-80 rounded-lg shadow-lg border z-50 overflow-y-auto"
+          className="absolute left-1/2 -translate-x-1/2 mt-2 rounded-lg shadow-lg border z-50 overflow-y-auto"
           style={{
             backgroundColor: 'var(--color-card-bg)',
             borderColor: 'var(--color-border-primary)',
-            maxHeight: 'calc(100vh - 200px)'
+            maxHeight: 'calc(100vh - 200px)',
+            width: 'min(600px, 90vw)'
           }}
         >
           <div className="p-2">
@@ -117,11 +118,26 @@ const EntryDropdown = ({ entries }: EntryDropdownProps) => {
                       e.currentTarget.style.backgroundColor = 'transparent';
                     }}
                   >
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <Clock className="h-4 w-4 flex-shrink-0" style={{ color: 'var(--color-text-secondary)' }} />
                       <span className="text-sm font-medium" style={{ color: 'var(--color-text-secondary)' }}>
                         {time}
                       </span>
+                      
+                      {/* Kanban Status Badge */}
+                      {entry.lists && entry.lists.filter(list => list.is_kanban).map(kanbanList => (
+                        <span
+                          key={kanbanList.id}
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold"
+                          style={{
+                            backgroundColor: kanbanList.color,
+                            color: '#ffffff',
+                          }}
+                        >
+                          <Trello className="w-3 h-3" />
+                          {kanbanList.name}
+                        </span>
+                      ))}
                     </div>
                     
                     {entry.title && (
