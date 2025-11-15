@@ -125,11 +125,18 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onListsUpdat
       // Close dropdown immediately
       setShowKanbanModal(false);
       
+      // Save scroll position before refresh
+      const scrollY = window.scrollY;
+      
       // Trigger refresh after dropdown is closed
       setTimeout(() => {
         if (onListsUpdate) {
           onListsUpdate();
         }
+        // Restore scroll position after refresh
+        setTimeout(() => {
+          window.scrollTo(0, scrollY);
+        }, 50);
       }, 100);
     } catch (error) {
       console.error('Failed to change Kanban status:', error);
