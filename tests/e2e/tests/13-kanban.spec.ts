@@ -15,7 +15,7 @@ test.describe.skip('Kanban Board', () => {
   test.beforeEach(async ({ page }) => {
     // Navigate to home to ensure app is loaded
     await page.goto('/');
-    await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
+    await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
   });
 
   test('should navigate to Kanban page', async ({ page }) => {
@@ -117,7 +117,7 @@ test.describe.skip('Kanban Board', () => {
     // First create an entry on a daily note
     const testDate = '2024-02-15';
     await page.goto(`/day/${testDate}`);
-    await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
+    await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
     
     // Create entry
     const testContent = `Kanban Test Entry ${Date.now()}`;
@@ -159,7 +159,7 @@ test.describe.skip('Kanban Board', () => {
     // Create a test entry and add it to "To Do"
     const testDate = '2024-02-16';
     await page.goto(`/day/${testDate}`);
-    await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
+    await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
     
     const testContent = `Drag Test ${Date.now()}`;
     await page.getByRole('button', { name: /new entry/i }).click();
@@ -210,7 +210,7 @@ test.describe.skip('Kanban Board', () => {
     // Create a test entry
     const testDate = '2024-02-17';
     await page.goto(`/day/${testDate}`);
-    await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
+    await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
     
     const testContent = `Exclusive Test ${Date.now()}`;
     await page.getByRole('button', { name: /new entry/i }).click();
@@ -260,7 +260,7 @@ test.describe.skip('Kanban Board', () => {
     // Create a test entry and add it to "To Do"
     const testDate = '2024-02-18';
     await page.goto(`/day/${testDate}`);
-    await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
+    await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
     
     const testContent = `Dropdown Test ${Date.now()}`;
     await page.getByRole('button', { name: /new entry/i }).click();
@@ -318,7 +318,7 @@ test.describe.skip('Kanban Board', () => {
     // Create a test entry
     const testDate = '2024-02-19';
     await page.goto(`/day/${testDate}`);
-    await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
+    await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
     
     const testContent = `Multi-List Test ${Date.now()}`;
     await page.getByRole('button', { name: /new entry/i }).click();
