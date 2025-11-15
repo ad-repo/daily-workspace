@@ -513,6 +513,78 @@ All tests must pass before merging.
 ### Link Previews
 - `POST /api/link-preview/preview` - Fetch link preview metadata
 
+## 🧪 Testing
+
+The project includes comprehensive test coverage across backend, frontend, and E2E tests.
+
+### Running Tests
+
+**All Tests** (recommended before committing):
+```bash
+./test_ci_locally.sh
+```
+
+**Backend Tests**:
+```bash
+cd tests/backend
+python -m pytest --tb=short -v --cov=../../backend/app
+```
+
+**Frontend Tests**:
+```bash
+cd frontend
+npx vitest --run --coverage
+```
+
+**E2E Tests**:
+```bash
+docker-compose run --rm e2e npx playwright test
+```
+
+### Test Coverage
+
+**Backend Integration Tests** (`tests/backend/integration/`):
+- Note entries, labels, lists, and Kanban API endpoints
+- Sprint and quarterly goals with overlap validation
+- Search functionality with filters
+- Backup/restore operations
+- Custom emoji CRUD operations
+- Error handling and edge cases
+- Database constraints and cascading deletes
+
+**Frontend Unit Tests** (`frontend/tests/`):
+- Component rendering and interactions
+- Context providers (Theme, Timezone, Goals, etc.)
+- Custom hooks
+- Rich text editor functionality
+
+**E2E Tests** (`tests/e2e/tests/`):
+- **01-basic-navigation.spec.ts**: Page navigation and routing
+- **02-note-entries.spec.ts**: Creating, editing, and managing entries
+- **03-labels.spec.ts**: Label creation, assignment, and deletion
+- **04-search.spec.ts**: Search functionality with filters
+- **05-reports.spec.ts**: Weekly report generation
+- **06-backup-restore.spec.ts**: Data export and import
+- **07-theming.spec.ts**: Theme switching and customization
+- **08-goals.spec.ts**: Sprint and quarterly goal management
+- **09-calendar.spec.ts**: Calendar navigation and indicators
+- **10-rich-text-editor.spec.ts**: Editor features and formatting
+- **11-media-features.spec.ts**: Camera, video, and voice recording
+- **12-lists.spec.ts**: List creation, editing, deletion, drag-and-drop, and multi-list support
+- **13-kanban.spec.ts**: Kanban board initialization, columns, drag-and-drop, exclusive status, and status changes
+- **14-custom-emojis.spec.ts**: Custom emoji upload, display, deletion, and library switching
+- **15-pinned-entries.spec.ts**: Pinning, unpinning, copy behavior, and smart deletion
+- **16-settings-advanced.spec.ts**: Sprint name, daily goal end time, and emoji library settings
+
+### Test Quality Standards
+
+All tests follow these principles:
+- **Meaningful Assertions**: Tests verify specific behavior, not just execution success
+- **Realistic Data**: Test data and mocks represent actual use cases
+- **Clear Intent**: Test names clearly communicate what is being tested
+- **No Test Modification**: Program code is never changed to make tests pass
+- **Comprehensive Coverage**: Both positive and negative test cases are included
+
 ## 🔧 Configuration
 
 ### Environment Variables
