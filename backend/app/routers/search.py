@@ -118,12 +118,7 @@ def search_all(
     results = {'entries': [], 'lists': []}
 
     # Search entries
-    entry_query = db.query(models.NoteEntry).options(
-        joinedload(models.NoteEntry.labels), joinedload(models.NoteEntry.lists), joinedload(models.NoteEntry.daily_note)
-    )
-
-    # Track if we've done any joins that require distinct
-    has_joins = False
+    entry_query = db.query(models.NoteEntry)
 
     if q and q.strip():
         search_term = f'%{q.strip()}%'
@@ -133,8 +128,10 @@ def search_all(
         try:
             label_id_list = [int(lid.strip()) for lid in label_ids.split(',') if lid.strip()]
             if label_id_list:
-                entry_query = entry_query.join(models.NoteEntry.labels).filter(models.Label.id.in_(label_id_list))
-                has_joins = True
+                # Use exists() subquery to avoid join conflicts
+                entry_query = entry_query.filter(
+                    models.NoteEntry.labels.any(models.Label.id.in_(label_id_list))
+                )
         except ValueError:
             pass
 
@@ -143,14 +140,10 @@ def search_all(
         try:
             list_id_list = [int(lid.strip()) for lid in list_ids.split(',') if lid.strip()]
             if list_id_list:
-                # Use a different alias if we already joined labels
-                if has_joins:
-                    from sqlalchemy.orm import aliased
-                    list_alias = aliased(models.List)
-                    entry_query = entry_query.join(list_alias, models.NoteEntry.lists).filter(list_alias.id.in_(list_id_list))
-                else:
-                    entry_query = entry_query.join(models.NoteEntry.lists).filter(models.List.id.in_(list_id_list))
-                has_joins = True
+                # Use exists() subquery to avoid join conflicts
+                entry_query = entry_query.filter(
+                    models.NoteEntry.lists.any(models.List.id.in_(list_id_list))
+                )
         except ValueError:
             pass
 
@@ -164,9 +157,12 @@ def search_all(
         print(f"Filtering by is_completed: {is_completed}, converted to: {1 if is_completed else 0}")
         entry_query = entry_query.filter(models.NoteEntry.is_completed == (1 if is_completed else 0))
 
-    # Add distinct if we did any joins
-    if has_joins:
-        entry_query = entry_query.distinct()
+    # Now add eager loading for relationships and execute
+    entry_query = entry_query.options(
+        joinedload(models.NoteEntry.labels),
+        joinedload(models.NoteEntry.lists),
+        joinedload(models.NoteEntry.daily_note)
+    )
 
     entry_results = entry_query.order_by(models.NoteEntry.created_at.desc()).limit(100).all()
     print(f"Found {len(entry_results)} entries")
