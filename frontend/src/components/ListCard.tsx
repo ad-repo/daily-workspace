@@ -79,7 +79,7 @@ const ListCard = ({ entry, onRemoveFromList, listId, list }: ListCardProps) => {
               border: '1px solid var(--color-border)',
               boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
             }}
-            title="View in daily notes"
+            title="Edit"
           >
             <BookOpen className="w-4 h-4" />
           </button>
