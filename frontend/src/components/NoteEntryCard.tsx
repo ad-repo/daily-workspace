@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Trash2, Clock, FileText, Star, Check, Copy, CheckCheck, ArrowRight, ArrowUp, FileDown, Pin, Trello } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
@@ -48,6 +49,7 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onListsUpdat
   const [isSaving, setIsSaving] = useState(false);
   const [includeInReport, setIncludeInReport] = useState(entry.include_in_report || false);
   const [isImportant, setIsImportant] = useState(entry.is_important || false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState(false);
   const [isCompleted, setIsCompleted] = useState(entry.is_completed || false);
   const [isPinned, setIsPinned] = useState(entry.is_pinned || false);
   const [copied, setCopied] = useState(false);
@@ -181,7 +183,16 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onListsUpdat
   };
 
   const handleDelete = () => {
+    setDeleteConfirmation(true);
+  };
+
+  const confirmDelete = () => {
     onDelete(entry.id);
+    setDeleteConfirmation(false);
+  };
+
+  const cancelDelete = () => {
+    setDeleteConfirmation(false);
   };
 
   const handleReportToggle = async () => {
@@ -457,13 +468,25 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onListsUpdat
 
   return (
     <div 
-      className={`rounded-2xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl ${isSelected ? 'ring-2' : ''}`}
+      className={`rounded-2xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl ${isSelected ? 'ring-2' : ''} relative`}
       style={{
         backgroundColor: 'var(--color-card-bg)',
         borderColor: isSelected ? 'var(--color-accent)' : 'var(--color-card-border)',
         boxShadow: isSelected ? '0 0 0 2px var(--color-accent)' : undefined
       }}
     >
+      {/* Saving Indicator - Fixed Position */}
+      {isSaving && (
+        <div className="absolute top-3 right-3 z-10 px-3 py-1 rounded-full text-xs font-medium shadow-md animate-pulse"
+          style={{
+            backgroundColor: 'var(--color-accent)',
+            color: 'white',
+          }}
+        >
+          Saving...
+        </div>
+      )}
+      
       <div className="p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-4">
@@ -481,9 +504,6 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onListsUpdat
                 <span>
                   {formatTimestamp(entry.created_at, timezone, 'h:mm a zzz')}
                 </span>
-                {isSaving && (
-                  <span className="text-blue-600 ml-2">Saving...</span>
-                )}
               </div>
               
               {/* Kanban State Badge - show if entry is in any Kanban list */}
@@ -798,6 +818,68 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onListsUpdat
         )}
       </div>
 
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmation && createPortal(
+        <div
+          className="fixed inset-0 flex items-center justify-center p-4"
+          style={{
+            zIndex: 10000,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          }}
+          onClick={cancelDelete}
+        >
+          <div
+            className="rounded-xl shadow-2xl p-6 w-full max-w-md"
+            style={{
+              backgroundColor: 'var(--color-card-bg)',
+              border: '1px solid var(--color-border)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2
+              className="text-2xl font-bold mb-4"
+              style={{ color: 'var(--color-text-primary)' }}
+            >
+              Delete Card?
+            </h2>
+            
+            <p
+              className="mb-6 text-base"
+              style={{ color: 'var(--color-text-secondary)' }}
+            >
+              Are you sure you want to delete <strong style={{ color: 'var(--color-text-primary)' }}>"{title || 'this card'}"</strong>?
+              <br />
+              <br />
+              This action cannot be undone.
+            </p>
+
+            <div className="flex gap-3">
+              <button
+                onClick={confirmDelete}
+                className="flex-1 px-6 py-3 rounded-lg font-semibold transition-all hover:scale-105 hover:shadow-lg"
+                style={{
+                  backgroundColor: 'var(--color-error)',
+                  color: 'white',
+                }}
+              >
+                Delete Card
+              </button>
+              <button
+                onClick={cancelDelete}
+                className="px-6 py-3 rounded-lg font-semibold transition-all hover:bg-opacity-80 border-2"
+                style={{
+                  backgroundColor: 'var(--color-background)',
+                  borderColor: 'var(--color-border)',
+                  color: 'var(--color-text-primary)',
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 };
