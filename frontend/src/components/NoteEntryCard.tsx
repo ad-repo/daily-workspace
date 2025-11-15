@@ -58,6 +58,7 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onListsUpdat
   const [showKanbanModal, setShowKanbanModal] = useState(false);
   const [kanbanColumns, setKanbanColumns] = useState<List[]>([]);
   const [isChangingKanban, setIsChangingKanban] = useState(false);
+  const [kanbanButtonRef, setKanbanButtonRef] = useState<HTMLButtonElement | null>(null);
   const isCodeEntry = entry.content_type === 'code';
   const today = format(new Date(), 'yyyy-MM-dd');
   const isFromPastDay = currentDate && currentDate !== today;
@@ -77,6 +78,21 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onListsUpdat
     if (showKanbanModal) {
       loadKanbanColumns();
     }
+  }, [showKanbanModal]);
+
+  // Close modal when clicking outside
+  useEffect(() => {
+    if (!showKanbanModal) return;
+
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('.kanban-status-dropdown') && !target.closest('.kanban-status-button')) {
+        setShowKanbanModal(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showKanbanModal]);
 
   const loadKanbanColumns = async () => {
@@ -106,15 +122,15 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onListsUpdat
       // Add to new Kanban column
       await listsApi.addEntry(newColumnId, entry.id, 0);
       
-      // Close modal first to prevent layout shift
-      setShowKanbanModal(false);
+      // Keep modal open and trigger refresh immediately
+      if (onListsUpdate) {
+        onListsUpdate();
+      }
       
-      // Small delay before triggering refresh to allow modal to fully close
+      // Close modal after a brief moment
       setTimeout(() => {
-        if (onListsUpdate) {
-          onListsUpdate();
-        }
-      }, 100);
+        setShowKanbanModal(false);
+      }, 300);
     } catch (error) {
       console.error('Failed to change Kanban status:', error);
       setShowKanbanModal(false);
@@ -462,20 +478,57 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onListsUpdat
               
               {/* Kanban State Badge - show if entry is in any Kanban list */}
               {entry.lists && entry.lists.filter(list => list.is_kanban).map(kanbanList => (
-                <button
-                  key={kanbanList.id}
-                  onClick={handleKanbanStatusClick}
-                  className="px-2.5 py-1 rounded-md text-xs font-semibold whitespace-nowrap transition-all hover:scale-105 hover:shadow-md cursor-pointer inline-flex items-center gap-1.5"
-                  style={{
-                    backgroundColor: kanbanList.color,
-                    color: '#ffffff',
-                    boxShadow: '0 1px 2px rgba(0,0,0,0.15)',
-                  }}
-                  title="Click to change Kanban status"
-                >
-                  <Trello className="w-3 h-3" />
-                  {kanbanList.name}
-                </button>
+                <div key={kanbanList.id} className="relative">
+                  <button
+                    ref={setKanbanButtonRef}
+                    onClick={handleKanbanStatusClick}
+                    className="kanban-status-button px-2.5 py-1 rounded-md text-xs font-semibold whitespace-nowrap transition-all hover:scale-105 hover:shadow-md cursor-pointer inline-flex items-center gap-1.5"
+                    style={{
+                      backgroundColor: kanbanList.color,
+                      color: '#ffffff',
+                      boxShadow: '0 1px 2px rgba(0,0,0,0.15)',
+                    }}
+                    title="Click to change Kanban status"
+                  >
+                    <Trello className="w-3 h-3" />
+                    {kanbanList.name}
+                  </button>
+
+                  {/* Kanban Status Dropdown */}
+                  {showKanbanModal && (
+                    <div
+                      className="kanban-status-dropdown absolute top-full left-0 mt-1 z-50 rounded-lg shadow-xl border-2 min-w-[200px]"
+                      style={{
+                        backgroundColor: 'var(--color-bg-primary)',
+                        borderColor: 'var(--color-border-primary)',
+                      }}
+                    >
+                      <div className="p-2 max-h-80 overflow-y-auto">
+                        {kanbanColumns.map((column) => (
+                          <button
+                            key={column.id}
+                            onClick={() => handleChangeKanbanStatus(column.id)}
+                            disabled={isChangingKanban}
+                            className="w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                            style={{
+                              backgroundColor: column.color + '20',
+                              color: column.color,
+                              border: `1px solid ${column.color}`,
+                              marginBottom: '0.25rem',
+                            }}
+                          >
+                            {isChangingKanban ? (
+                              <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                              <Trello className="w-4 h-4" />
+                            )}
+                            {column.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
           </div>
@@ -735,85 +788,6 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onListsUpdat
         )}
       </div>
 
-      {/* Kanban Status Change Modal */}
-      {showKanbanModal && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto min-h-full transition-opacity duration-200"
-          onClick={() => setShowKanbanModal(false)}
-        >
-          <div
-            className="rounded-xl shadow-2xl p-6 max-w-md w-full transition-transform duration-200"
-            style={{ backgroundColor: 'var(--color-bg-primary)' }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center gap-3 mb-6">
-              <Trello className="w-6 h-6" style={{ color: 'var(--color-accent)' }} />
-              <h2
-                className="text-2xl font-bold"
-                style={{ color: 'var(--color-text-primary)' }}
-              >
-                Change Kanban Status
-              </h2>
-            </div>
-
-            {kanbanColumns.length === 0 ? (
-              <p
-                className="text-center py-8"
-                style={{ color: 'var(--color-text-secondary)' }}
-              >
-                No Kanban columns available
-              </p>
-            ) : (
-              <div className="space-y-2">
-                {kanbanColumns.map((column) => {
-                  const isCurrentColumn = entry.lists?.some(
-                    list => list.is_kanban && list.id === column.id
-                  );
-                  
-                  return (
-                    <button
-                      key={column.id}
-                      onClick={() => handleChangeKanbanStatus(column.id)}
-                      disabled={isChangingKanban || isCurrentColumn}
-                      className="w-full px-4 py-3 rounded-lg font-semibold transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-3"
-                      style={{
-                        backgroundColor: isCurrentColumn ? 'var(--color-bg-tertiary)' : column.color,
-                        color: isCurrentColumn ? 'var(--color-text-primary)' : '#ffffff',
-                        border: isCurrentColumn ? '2px solid var(--color-border)' : 'none',
-                      }}
-                    >
-                      {isChangingKanban ? (
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      ) : (
-                        <Trello className="w-4 h-4" />
-                      )}
-                      <span className="flex-1 text-left">{column.name}</span>
-                      {isCurrentColumn && !isChangingKanban && (
-                        <CheckCheck className="w-4 h-4" />
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-
-            <div className="flex gap-3 mt-6">
-              <button
-                onClick={() => setShowKanbanModal(false)}
-                disabled={isChangingKanban}
-                className="flex-1 px-6 py-3 rounded-lg font-semibold transition-all hover:bg-opacity-80 border-2"
-                style={{
-                  backgroundColor: 'var(--color-background)',
-                  borderColor: 'var(--color-border)',
-                  color: 'var(--color-text-primary)',
-                }}
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
