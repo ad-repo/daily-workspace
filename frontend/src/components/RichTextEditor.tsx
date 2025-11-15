@@ -336,7 +336,7 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
                 
                 if (response.ok) {
                   const data = await response.json();
-                  const fileUrl = `http://localhost:8000${data.url}`;
+                  const fileUrl = `${API_BASE_URL}${data.url}`;
                   const pos = _view.posAtCoords({ left: event.clientX, top: event.clientY });
                   if (pos && editor) {
                     editor.chain().focus().insertContentAt(pos.pos, `<a href="${fileUrl}" download="${data.filename}" class="inline-flex items-center gap-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700 border border-gray-300">📎 ${data.filename}</a> `).run();
@@ -505,18 +505,6 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
     }
   }, [isRecording, interimText, editor]);
 
-  // Debug: Log context info on mount
-  useEffect(() => {
-    console.log('🎤 Editor Media Context:', {
-      isMobile,
-      isSecureContext,
-      isLocalhost,
-      speechRecognitionSupported: isSupported,
-      getUserMediaAvailable: !!navigator.mediaDevices?.getUserMedia,
-      location: window.location.href,
-      showMediaButtons,
-    });
-  }, [isMobile, isSecureContext, isLocalhost, isSupported, showMediaButtons]);
 
   // Show dictation errors
   useEffect(() => {
@@ -559,6 +547,42 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
     }
   }, [showFontFamilyMenu, showFontSizeMenu, showHeadingMenu]);
 
+  // Add click handler for copy button on pre elements
+  useEffect(() => {
+    const handlePreClick = async (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'PRE') {
+        const rect = target.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const clickY = e.clientY - rect.top;
+        
+        // Check if click is in the top-right area where the copy button is (2rem + padding)
+        if (clickX > rect.width - 48 && clickY < 48) {
+          e.preventDefault();
+          e.stopPropagation();
+          
+          const code = target.querySelector('code');
+          const text = code?.textContent || target.textContent || '';
+          
+          try {
+            await navigator.clipboard.writeText(text);
+            // Temporarily change the icon to show success
+            target.style.setProperty('--copy-text', '"✓"');
+            
+            setTimeout(() => {
+              target.style.removeProperty('--copy-text');
+            }, 2000);
+          } catch (err) {
+            console.error('Failed to copy:', err);
+          }
+        }
+      }
+    };
+    
+    document.addEventListener('click', handlePreClick);
+    return () => document.removeEventListener('click', handlePreClick);
+  }, []);
+
   if (!editor) {
     return null;
   }
@@ -590,8 +614,16 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
         .run();
       return;
     }
-    // Otherwise set current block to preformatted
-    editor.chain().focus().setNode('preformattedText').run();
+    // If no selection and current node is empty paragraph, convert to preformatted
+    const { $from } = editor.state.selection;
+    const currentNode = $from.parent;
+    
+    if (currentNode.type.name === 'paragraph' && currentNode.content.size === 0) {
+      editor.chain().focus().setNode('preformattedText').run();
+    } else {
+      // Otherwise insert a new preformatted block after current position
+      editor.chain().focus().insertContent({ type: 'preformattedText' }).run();
+    }
   };
 
   const handleCodeBlockClick = () => {
@@ -683,7 +715,7 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
       formData.append('file', file);
 
       try {
-        const response = await fetch('http://localhost:8000/api/uploads/file', {
+        const response = await fetch(`${API_BASE_URL}/api/uploads/file`, {
           method: 'POST',
           body: formData,
         });
@@ -691,7 +723,7 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
         if (!response.ok) throw new Error('Upload failed');
 
         const data = await response.json();
-        const fileUrl = `http://localhost:8000${data.url}`;
+        const fileUrl = `${API_BASE_URL}${data.url}`;
 
         // Insert as a download link
         editor
@@ -713,7 +745,7 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
 
     if (isCustom && imageUrl) {
       // Convert relative URL to absolute URL for the editor
-      const absoluteUrl = imageUrl.startsWith('http') ? imageUrl : `http://localhost:8000${imageUrl}`;
+      const absoluteUrl = imageUrl.startsWith('http') ? imageUrl : `${API_BASE_URL}${imageUrl}`;
       
       // Insert custom emoji as raw HTML with data-emoji attribute
       const imgHtml = `<img src="${absoluteUrl}" alt="${emoji}" data-emoji="true" class="inline-emoji" /> `;
@@ -1675,7 +1707,13 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
             <div className="mt-4 flex gap-3 justify-center">
               <button
                 onClick={capturePhoto}
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                className="px-6 py-3 rounded-lg transition-colors font-medium"
+                style={{
+                  backgroundColor: 'var(--color-accent)',
+                  color: 'var(--color-accent-text)',
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--color-accent-hover)'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--color-accent)'}
               >
                 <Camera className="h-5 w-5 inline mr-2" />
                 Capture Photo
@@ -1739,7 +1777,13 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
               ) : (
                 <button
                   onClick={stopVideoRecording}
-                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                  className="px-6 py-3 rounded-lg transition-colors font-medium"
+                  style={{
+                    backgroundColor: 'var(--color-accent)',
+                    color: 'var(--color-accent-text)',
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--color-accent-hover)'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--color-accent)'}
                 >
                   Stop & Save
                 </button>

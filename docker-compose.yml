@@ -86,7 +86,7 @@ services:
     ports:
       - "3001:3000"
     environment:
-      - VITE_API_URL=http://backend-e2e:8000
+      - VITE_API_URL=http://localhost:8001
     volumes:
       - ./frontend:/app
       - /app/node_modules
@@ -101,22 +101,22 @@ services:
       context: ./tests/e2e
       dockerfile: Dockerfile
     environment:
-      - BASE_URL=http://frontend-e2e:3000
-      - API_URL=http://backend-e2e:8000
+      - BASE_URL=http://localhost:3001
+      - API_URL=http://localhost:8001
     volumes:
       - ./tests/e2e:/app
       - ./tests/e2e/playwright-report:/app/playwright-report
       - ./tests/e2e/test-results:/app/test-results
       - /app/node_modules
-    depends_on:
-      - backend-e2e
-      - frontend-e2e
-    networks:
-      - default
+    network_mode: host
     profiles:
       - test
       - e2e
 
 volumes:
   backend_data:
+
+networks:
+  default:
+    name: track-the-thing-network
 

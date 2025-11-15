@@ -6,9 +6,9 @@ set -e
 echo "Starting daily-notes backend..."
 echo ""
 
-# Run database migrations
+# Run database migrations (don't fail if migrations have issues)
 echo "Running database migrations..."
-python3 migrations/run_migrations.py
+python3 migrations/run_migrations.py || echo "⚠️  Some migrations failed, but continuing..."
 
 echo ""
 echo "Starting uvicorn server..."

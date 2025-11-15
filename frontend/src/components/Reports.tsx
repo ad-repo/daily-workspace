@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FileText, Download, Calendar, Copy, Check } from 'lucide-react';
+import { FileText, Download, Calendar, Copy, Check, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { format } from 'date-fns';
@@ -8,6 +8,15 @@ import { useTransparentLabels } from '../contexts/TransparentLabelsContext';
 import { formatTimestamp } from '../utils/timezone';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
+// Fix all absolute API URLs in HTML content to use the actual API_URL
+const fixImageUrls = (html: string): string => {
+  // Replace localhost:8000
+  let fixed = html.replace(/http:\/\/localhost:8000/g, API_URL);
+  // Replace any IP:8000 patterns (like 192.168.0.186:8000)
+  fixed = fixed.replace(/http:\/\/[\d.]+:8000/g, API_URL);
+  return fixed;
+};
 
 interface ReportEntry {
   date: string;
@@ -47,6 +56,8 @@ const Reports = () => {
   const [loadingAll, setLoadingAll] = useState(false);
   const [copiedAllReport, setCopiedAllReport] = useState(false);
   const [copiedEntryId, setCopiedEntryId] = useState<number | null>(null);
+  const [clearingFlags, setClearingFlags] = useState(false);
+  const [clearedFlags, setClearedFlags] = useState(false);
 
   useEffect(() => {
     loadAvailableWeeks();
@@ -88,6 +99,42 @@ const Reports = () => {
       alert('Failed to generate report');
     } finally {
       setLoadingAll(false);
+    }
+  };
+
+  const clearAllReportFlags = async () => {
+    setClearingFlags(true);
+    setClearedFlags(false);
+    try {
+      // Get all entries with report flag
+      const response = await axios.get(`${API_URL}/api/reports/all-entries`);
+      const entries = response.data.entries;
+      
+      if (entries.length === 0) {
+        return;
+      }
+
+      // Clear report flag from all entries
+      await Promise.all(
+        entries.map((entry: ReportEntry) =>
+          axios.patch(`${API_URL}/api/entries/${entry.entry_id}`, {
+            include_in_report: false
+          })
+        )
+      );
+      
+      // Refresh the report if it was loaded
+      if (allEntriesReport) {
+        await generateAllEntriesReport();
+      }
+
+      // Show success state
+      setClearedFlags(true);
+      setTimeout(() => setClearedFlags(false), 2000);
+    } catch (error) {
+      console.error('Failed to clear report flags:', error);
+    } finally {
+      setClearingFlags(false);
     }
   };
 
@@ -461,6 +508,25 @@ const Reports = () => {
 
   return (
     <div className="max-w-5xl mx-auto page-fade-in" style={{ position: 'relative', zIndex: 1 }}>
+      {/* Clear All Button - Outside any report section */}
+      <div className="flex justify-start mb-4">
+        <button
+          onClick={clearAllReportFlags}
+          disabled={clearingFlags || clearedFlags}
+          className="flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all hover:scale-105 disabled:cursor-not-allowed disabled:hover:scale-100"
+          style={{
+            backgroundColor: 'var(--color-accent)',
+            color: 'var(--color-accent-text)',
+            opacity: clearingFlags ? 0.6 : clearedFlags ? 1 : 1,
+            boxShadow: 'var(--color-card-shadow)'
+          }}
+        >
+          {clearingFlags && <Loader2 className="h-5 w-5 animate-spin" />}
+          {clearedFlags && <Check className="h-5 w-5" />}
+          {clearingFlags ? 'Clearing...' : clearedFlags ? 'Cleared!' : 'Clear All Report Flags'}
+        </button>
+      </div>
+
       <div 
         className="rounded-lg shadow-lg p-6 mb-6"
         style={{ backgroundColor: 'var(--color-bg-primary)' }}
@@ -633,7 +699,7 @@ const Reports = () => {
                                     [&_ol]:list-decimal [&_ol]:ml-6
                                     [&_[data-link-preview]]:my-4 [&_[data-link-preview]]:block
                                     [&_.link-preview]:my-4"
-                                  dangerouslySetInnerHTML={{ __html: processLinkPreviews(entry.content) }}
+                                  dangerouslySetInnerHTML={{ __html: processLinkPreviews(fixImageUrls(entry.content)) }}
                                 />
                               )}
                             </div>
@@ -731,7 +797,7 @@ const Reports = () => {
                                     [&_ol]:list-decimal [&_ol]:ml-6
                                     [&_[data-link-preview]]:my-4 [&_[data-link-preview]]:block
                                     [&_.link-preview]:my-4"
-                                  dangerouslySetInnerHTML={{ __html: processLinkPreviews(entry.content) }}
+                                  dangerouslySetInnerHTML={{ __html: processLinkPreviews(fixImageUrls(entry.content)) }}
                                 />
                               )}
                             </div>
@@ -825,6 +891,23 @@ const Reports = () => {
                       Copy
                     </>
                   )}
+                </button>
+                <button
+                  onClick={clearAllReportFlags}
+                  disabled={allEntriesReport.entries.length === 0}
+                  className="px-6 py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{
+                    backgroundColor: 'var(--color-danger, #ef4444)',
+                    color: 'white'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (allEntriesReport.entries.length > 0) e.currentTarget.style.opacity = '0.9';
+                  }}
+                  onMouseLeave={(e) => {
+                    if (allEntriesReport.entries.length > 0) e.currentTarget.style.opacity = '1';
+                  }}
+                >
+                  Clear All
                 </button>
                 <button
                   onClick={exportAllEntriesReport}

@@ -68,6 +68,8 @@ export interface AppSettings {
   quarterly_start_date: string;
   quarterly_end_date: string;
   emoji_library: string;
+  sprint_name: string;
+  daily_goal_end_time: string;
   created_at: string;
   updated_at: string;
 }
@@ -80,6 +82,8 @@ export interface AppSettingsUpdate {
   quarterly_start_date?: string;
   quarterly_end_date?: string;
   emoji_library?: string;
+  sprint_name?: string;
+  daily_goal_end_time?: string;
 }
 
 export interface Goal {

@@ -60,7 +60,7 @@ test.describe('Basic Navigation', () => {
     await page.waitForLoadState('load');
     
     // Should show search input with correct placeholder
-    await expect(page.locator('input[placeholder="Search by text content..."]')).toBeVisible();
+    await expect(page.locator('input[placeholder="Search by text (optional)..."]')).toBeVisible();
   });
 
   test('should handle navigation between pages', async ({ page }) => {
