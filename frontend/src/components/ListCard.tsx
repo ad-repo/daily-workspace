@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Trash2, BookOpen, Clock, Columns, Trello } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import type { NoteEntry, List } from '../types';
 import { useTimezone } from '../contexts/TimezoneContext';
+import { useTransparentLabels } from '../contexts/TransparentLabelsContext';
 import { formatTimestamp } from '../utils/timezone';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -20,7 +22,9 @@ interface ListCardProps {
 const ListCard = ({ entry, onRemoveFromList, listId, list, isKanbanView }: ListCardProps) => {
   const navigate = useNavigate();
   const { timezone } = useTimezone();
+  const { transparentLabels } = useTransparentLabels();
   const [isDragging, setIsDragging] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{ entryId: number; entryTitle: string } | null>(null);
 
   // Check if a label name is a custom emoji URL
   const isCustomEmojiUrl = (str: string): boolean => {
@@ -52,10 +56,19 @@ const ListCard = ({ entry, onRemoveFromList, listId, list, isKanbanView }: ListC
   const handleRemove = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (onRemoveFromList && listId) {
-      if (confirm('Remove this entry from the list?')) {
-        onRemoveFromList(entry.id);
-      }
+      setDeleteConfirmation({ entryId: entry.id, entryTitle: entry.title || 'this card' });
     }
+  };
+
+  const confirmDelete = () => {
+    if (deleteConfirmation && onRemoveFromList) {
+      onRemoveFromList(deleteConfirmation.entryId);
+      setDeleteConfirmation(null);
+    }
+  };
+
+  const cancelDelete = () => {
+    setDeleteConfirmation(null);
   };
 
   const handleViewInDaily = (e: React.MouseEvent) => {
@@ -142,8 +155,9 @@ const ListCard = ({ entry, onRemoveFromList, listId, list, isKanbanView }: ListC
                 {kanbanLists.map(kanbanList => (
                   <div key={kanbanList.id} className="inline-flex items-center gap-1.5 px-3 py-1 rounded text-sm font-medium"
                     style={{
-                      backgroundColor: kanbanList.color,
-                      color: 'white',
+                      backgroundColor: transparentLabels ? 'transparent' : kanbanList.color,
+                      color: transparentLabels ? kanbanList.color : 'white',
+                      border: transparentLabels ? `2px solid ${kanbanList.color}` : 'none',
                     }}
                   >
                     <Trello className="w-3 h-3" />
@@ -166,8 +180,9 @@ const ListCard = ({ entry, onRemoveFromList, listId, list, isKanbanView }: ListC
                 {regularLists.map(regularList => (
                   <div key={regularList.id} className="inline-flex items-center gap-1.5 px-3 py-1 rounded text-sm font-medium"
                     style={{
-                      backgroundColor: regularList.color,
-                      color: 'white',
+                      backgroundColor: transparentLabels ? 'transparent' : regularList.color,
+                      color: transparentLabels ? regularList.color : 'white',
+                      border: transparentLabels ? `2px solid ${regularList.color}` : 'none',
                     }}
                   >
                     <Columns className="h-3 w-3" />
@@ -246,6 +261,69 @@ const ListCard = ({ entry, onRemoveFromList, listId, list, isKanbanView }: ListC
           />
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmation && createPortal(
+        <div
+          className="fixed inset-0 flex items-center justify-center p-4"
+          style={{
+            zIndex: 10000,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          }}
+          onClick={cancelDelete}
+        >
+          <div
+            className="rounded-xl shadow-2xl p-6 w-full max-w-md"
+            style={{
+              backgroundColor: 'var(--color-card-bg)',
+              border: '1px solid var(--color-border)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2
+              className="text-2xl font-bold mb-4"
+              style={{ color: 'var(--color-text-primary)' }}
+            >
+              Remove Card?
+            </h2>
+            
+            <p
+              className="mb-6 text-base"
+              style={{ color: 'var(--color-text-secondary)' }}
+            >
+              Are you sure you want to remove <strong style={{ color: 'var(--color-text-primary)' }}>"{deleteConfirmation.entryTitle}"</strong> from this list?
+              <br />
+              <br />
+              The card will not be deleted and can still be accessed from daily notes.
+            </p>
+
+            <div className="flex gap-3">
+              <button
+                onClick={confirmDelete}
+                className="flex-1 px-6 py-3 rounded-lg font-semibold transition-all hover:scale-105 hover:shadow-lg"
+                style={{
+                  backgroundColor: 'var(--color-error)',
+                  color: 'white',
+                }}
+              >
+                Remove Card
+              </button>
+              <button
+                onClick={cancelDelete}
+                className="px-6 py-3 rounded-lg font-semibold transition-all hover:bg-opacity-80 border-2"
+                style={{
+                  backgroundColor: 'var(--color-background)',
+                  borderColor: 'var(--color-border)',
+                  color: 'var(--color-text-primary)',
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 };

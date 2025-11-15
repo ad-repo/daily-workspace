@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { ListWithEntries } from '../types';
 import { kanbanApi, listsApi } from '../api';
 import ListColumn from './ListColumn';
@@ -17,6 +18,7 @@ export default function Kanban() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [draggedListId, setDraggedListId] = useState<number | null>(null);
   const [dragOverListId, setDragOverListId] = useState<number | null>(null);
+  const [deleteConfirmation, setDeleteConfirmation] = useState<{ listId: number; listName: string } | null>(null);
 
   useEffect(() => {
     loadBoards();
@@ -76,18 +78,25 @@ export default function Kanban() {
     }
   };
 
-  const handleDeleteColumn = async (listId: number, listName: string) => {
-    if (!confirm(`Delete column "${listName}"? Entries will not be deleted.`)) {
-      return;
-    }
+  const handleDeleteColumn = (listId: number, listName: string) => {
+    setDeleteConfirmation({ listId, listName });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteConfirmation) return;
 
     try {
-      await listsApi.delete(listId);
+      await listsApi.delete(deleteConfirmation.listId);
       loadBoards(true);
+      setDeleteConfirmation(null);
     } catch (err: any) {
       alert(err?.response?.data?.detail || 'Failed to delete column');
       console.error('Error deleting column:', err);
     }
+  };
+
+  const cancelDelete = () => {
+    setDeleteConfirmation(null);
   };
 
   const handleScroll = useCallback(() => {
@@ -232,10 +241,10 @@ export default function Kanban() {
           </div>
         ) : (
           <div 
-            className="flex gap-6 py-6 items-start justify-center"
+            className="flex gap-6 py-6 items-start justify-start"
             style={{
-              paddingLeft: '2rem',
-              paddingRight: '2rem',
+              paddingLeft: '3rem',
+              paddingRight: '3rem',
             }}
           >
             {boards.map((board) => (
@@ -408,6 +417,69 @@ export default function Kanban() {
             </div>
           </div>
         )}
+
+        {/* Delete Confirmation Modal */}
+        {deleteConfirmation && createPortal(
+          <div
+            className="fixed inset-0 flex items-center justify-center p-4"
+            style={{
+              zIndex: 10000,
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            }}
+            onClick={cancelDelete}
+          >
+            <div
+              className="rounded-xl shadow-2xl p-6 w-full max-w-md"
+              style={{
+                backgroundColor: 'var(--color-card-bg)',
+                border: '1px solid var(--color-border)',
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h2
+                className="text-2xl font-bold mb-4"
+                style={{ color: 'var(--color-text-primary)' }}
+              >
+                Delete Column?
+              </h2>
+              
+              <p
+                className="mb-6 text-base"
+                style={{ color: 'var(--color-text-secondary)' }}
+              >
+                Are you sure you want to delete <strong style={{ color: 'var(--color-text-primary)' }}>"{deleteConfirmation.listName}"</strong>?
+                <br />
+                <br />
+                Cards will not be deleted and can still be accessed from daily notes.
+              </p>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={confirmDelete}
+                  className="flex-1 px-6 py-3 rounded-lg font-semibold transition-all hover:scale-105 hover:shadow-lg"
+                  style={{
+                    backgroundColor: 'var(--color-error)',
+                    color: 'white',
+                  }}
+                >
+                  Delete Column
+                </button>
+                <button
+                  onClick={cancelDelete}
+                  className="px-6 py-3 rounded-lg font-semibold transition-all hover:bg-opacity-80 border-2"
+                  style={{
+                    backgroundColor: 'var(--color-background)',
+                    borderColor: 'var(--color-border)',
+                    color: 'var(--color-text-primary)',
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
       </div>
 
       {/* Scroll Indicator - Outside page-fade-in container */}
@@ -459,4 +531,3 @@ export default function Kanban() {
     </>
   );
 }
-

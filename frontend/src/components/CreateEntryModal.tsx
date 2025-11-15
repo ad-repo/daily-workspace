@@ -141,10 +141,10 @@ const CreateEntryModal = ({ list, onClose, onSuccess }: CreateEntryModalProps) =
         >
           <div>
             <h2 className="text-2xl font-bold" style={{ color: 'var(--color-text-primary)' }}>
-              Create New Entry
+              Create New Card
             </h2>
             <p className="text-sm mt-1" style={{ color: 'var(--color-text-secondary)' }}>
-              {list ? `Will be added to "${list.name}" and today's notes` : "Will be added to today's notes"}
+              {list ? `Card will be added to "${list.name}" and today's notes` : "Card will be added to today's notes"}
             </p>
           </div>
           <button

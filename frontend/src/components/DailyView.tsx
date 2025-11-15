@@ -1240,7 +1240,7 @@ const DailyView = () => {
               }}
             >
               <Plus className="h-5 w-5" />
-              New Entry
+              New Card
             </button>
           </div>
         ) : (
