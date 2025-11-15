@@ -43,6 +43,14 @@ vi.mock('@/api', () => ({
 // Mock axios - defined inline to avoid hoisting issues  
 vi.mock('axios', () => ({
   default: {
+    get: vi.fn().mockResolvedValue({
+      data: {
+        daily_goal_end_time: '17:00',
+        emoji_library: 'emoji-picker-react',
+        sprint_name: 'Sprint',
+        transparent_labels: false,
+      },
+    }),
     post: vi.fn(),
     patch: vi.fn(),
   },

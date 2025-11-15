@@ -82,7 +82,7 @@ const EntryDropdown = ({ entries }: EntryDropdownProps) => {
         title="Jump to entry"
       >
         <List className="h-5 w-5" />
-        <span className="hidden sm:inline text-sm font-medium">Jump to Entry</span>
+        <span className="hidden sm:inline text-sm font-medium">Jump to Card</span>
       </button>
 
       {isOpen && (
@@ -97,7 +97,7 @@ const EntryDropdown = ({ entries }: EntryDropdownProps) => {
           <div className="p-2">
             <div className="px-3 py-2 border-b" style={{ borderColor: 'var(--color-border-primary)' }}>
               <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--color-text-tertiary)' }}>
-                {entries.length} {entries.length === 1 ? 'Entry' : 'Entries'}
+                {entries.length} {entries.length === 1 ? 'Card' : 'Cards'}
               </p>
             </div>
             <div className="py-1">

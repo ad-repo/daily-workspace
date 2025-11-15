@@ -22,7 +22,7 @@ test.describe('Label Management', () => {
     const testRunDate = `2024-02-${String(dayNum).padStart(2, '0')}`; // Feb for labels
     
     await page.goto(`/day/${testRunDate}`);
-    await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
+    await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
     
     // Delete any existing entries for this date (cleanup from previous runs)
     let deleteCount = await page.locator('button[title*="Delete" i]').count();
@@ -30,6 +30,12 @@ test.describe('Label Management', () => {
       try {
         const deleteButton = page.locator('button[title*="Delete" i]').first();
         await deleteButton.click({ timeout: 2000 });
+        
+        // Wait for and confirm the delete modal
+        await expect(page.locator('text="Delete Card?"')).toBeVisible({ timeout: 2000 });
+        const confirmButton = page.locator('button:has-text("Delete Card")').first();
+        await confirmButton.click();
+        
         await page.waitForTimeout(1000); // Wait for deletion and DOM update
         deleteCount = await page.locator('button[title*="Delete" i]').count();
       } catch (e) {
@@ -46,7 +52,7 @@ test.describe('Label Management', () => {
     const labelName = `TestLabel${Date.now()}`;
     
     // Create entry
-    await page.click('button:has-text("New Entry")');
+    await page.click('button:has-text("New Card")');
     await expect(page.locator('.ProseMirror').first()).toBeVisible({ timeout: 10000 });
     
     // Find label input and add button
@@ -68,7 +74,7 @@ test.describe('Label Management', () => {
     
     // Reload and verify persistence
     await page.reload();
-    await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
+    await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
     await expect(page.getByRole('button', { name: labelName })).toBeVisible();
   });
 
@@ -77,7 +83,7 @@ test.describe('Label Management', () => {
     const label2 = `Label2-${Date.now()}`;
     
     // Create entry
-    await page.click('button:has-text("New Entry")');
+    await page.click('button:has-text("New Card")');
     await expect(page.locator('.ProseMirror').first()).toBeVisible();
     
     // Add first label
@@ -106,7 +112,7 @@ test.describe('Label Management', () => {
     const labelName = `ReuseLabel${Date.now()}`;
     
     // Create first entry with label
-    await page.click('button:has-text("New Entry")');
+    await page.click('button:has-text("New Card")');
     await expect(page.locator('.ProseMirror').first()).toBeVisible();
     const labelInput1 = page.locator('input[placeholder*="label" i]').first();
     await labelInput1.fill(labelName);
@@ -117,7 +123,7 @@ test.describe('Label Management', () => {
     );
     
     // Create second entry
-    await page.click('button:has-text("New Entry")');
+    await page.click('button:has-text("New Card")');
     await expect(page.locator('.ProseMirror').nth(1)).toBeVisible();
     
     // Type label name to trigger autocomplete/dropdown
@@ -143,7 +149,7 @@ test.describe('Label Management', () => {
     const emojiLabel = `🎉TestEmoji${Date.now()}`;
     
     // Create entry
-    await page.click('button:has-text("New Entry")');
+    await page.click('button:has-text("New Card")');
     await expect(page.locator('.ProseMirror').first()).toBeVisible();
     
     // Add emoji label
@@ -163,7 +169,7 @@ test.describe('Label Management', () => {
     const labelName = `RemoveMe${Date.now()}`;
     
     // Create entry with label
-    await page.click('button:has-text("New Entry")');
+    await page.click('button:has-text("New Card")');
     await expect(page.locator('.ProseMirror').first()).toBeVisible();
     const labelInput = page.locator('input[placeholder*="label" i]').first();
     await labelInput.fill(labelName);
@@ -204,7 +210,7 @@ test.describe('Label Management', () => {
     const label2 = `Beta${Date.now()}`;
     
     // Create entry with two labels
-    await page.click('button:has-text("New Entry")');
+    await page.click('button:has-text("New Card")');
     await expect(page.locator('.ProseMirror').first()).toBeVisible();
     
     const labelInput = page.locator('input[placeholder*="label" i]').first();
@@ -231,7 +237,7 @@ test.describe('Label Management', () => {
     const dayLabel = `DayLabel${Date.now()}`;
     
     // Create an entry first to ensure daily note exists
-    await page.click('button:has-text("New Entry")');
+    await page.click('button:has-text("New Card")');
     await expect(page.locator('.ProseMirror').first()).toBeVisible();
     await page.locator('.ProseMirror').first().fill('.');
     await page.locator('body').click({ position: { x: 0, y: 0 } });
@@ -263,7 +269,7 @@ test.describe('Label Management', () => {
     
     // Reload and verify persistence
     await page.reload();
-    await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
+    await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
     await expect(page.getByRole('button', { name: dayLabel })).toBeVisible();
   });
 
@@ -272,7 +278,7 @@ test.describe('Label Management', () => {
     const entryLabel2 = `Entry2-${Date.now()}`;
     
     // Create first entry and SAVE IT FIRST before adding labels
-    await page.click('button:has-text("New Entry")');
+    await page.click('button:has-text("New Card")');
     await expect(page.locator('.ProseMirror').first()).toBeVisible();
     
     // Add content and save entry FIRST
@@ -299,7 +305,7 @@ test.describe('Label Management', () => {
     await expect(page.getByRole('button', { name: entryLabel1 })).toBeVisible({ timeout: 10000 });
     
     // Create second entry with different label  
-    await page.click('button:has-text("New Entry")');
+    await page.click('button:has-text("New Card")');
     await expect(page.locator('.ProseMirror').nth(1)).toBeVisible();
     
     // Add content and save FIRST (entry must exist before adding labels)

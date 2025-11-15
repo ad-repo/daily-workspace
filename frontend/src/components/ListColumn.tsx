@@ -188,7 +188,7 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
                     border: '1px solid var(--color-border)',
                     boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
                   }}
-                  title="Create new entry"
+                  title="Create new card"
                 >
                   <PlusCircle className="w-4 h-4" />
                 </button>
@@ -201,7 +201,7 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
                     border: '1px solid var(--color-border)',
                     boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
                   }}
-                  title="Add entries via search"
+                  title="Add cards via search"
                 >
                   <Plus className="w-4 h-4" />
                 </button>
@@ -270,7 +270,7 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
                 color: 'var(--color-text-secondary)',
               }}
             >
-              {entries.length} {entries.length === 1 ? 'entry' : 'entries'}
+              {entries.length} {entries.length === 1 ? 'card' : 'cards'}
             </span>
           </div>
         </div>
@@ -286,10 +286,10 @@ const ListColumn = ({ list, entries, onUpdate, onDelete, onDragStart, onDragEnd,
                 <Plus className="w-8 h-8" style={{ color: list.color }} />
               </div>
               <p className="font-medium" style={{ color: 'var(--color-text-secondary)' }}>
-                No entries yet
+                No cards yet
               </p>
               <p className="text-xs mt-1" style={{ color: 'var(--color-text-secondary)' }}>
-                Drag entries here or add from daily notes
+                Drag cards here or add from daily notes
               </p>
             </div>
           ) : (
