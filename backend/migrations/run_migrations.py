@@ -71,6 +71,19 @@ def main():
     db_path = get_db_path_from_env()
     print(f"Database: {db_path}")
     print()
+    
+    # Create initial database schema if it doesn't exist
+    print("Ensuring database schema exists...")
+    try:
+        # Import here to avoid circular imports
+        sys.path.insert(0, str(Path(__file__).parent.parent))
+        from app.database import Base, engine
+        Base.metadata.create_all(bind=engine)
+        print("✓ Database schema initialized")
+        print()
+    except Exception as e:
+        print(f"✗ Error initializing schema: {e}")
+        print()
 
     migration_files = get_migration_files()
 
