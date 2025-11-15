@@ -563,7 +563,7 @@ const DailyView = () => {
 
         {/* Jump to Entry - centered below date */}
         {entries.length > 0 && (
-          <div className="flex justify-center mt-4 pb-4 border-b" style={{ borderColor: 'var(--color-border-primary)' }}>
+          <div className="flex justify-center mt-4 pb-4 mb-4 border-b" style={{ borderColor: 'var(--color-border-primary)' }}>
             <EntryDropdown entries={entries} />
           </div>
         )}
@@ -969,11 +969,11 @@ const DailyView = () => {
               {/* Quarterly Goals Section - only show if enabled */}
               {showQuarterlyGoals && (
                 <div className="w-full">
-                  <div className="flex items-center justify-between mb-2 gap-3">
+                  <div className="flex items-center justify-between mb-2 gap-4">
                     <label className="text-lg font-semibold whitespace-nowrap" style={{ color: 'var(--color-text-primary)' }}>🌟 Quarterly Goals</label>
                     {quarterlyGoal && hasGoalContent(quarterlyGoal.text) && date && (
                       <div 
-                        className="flex items-center gap-2 px-3 py-1 rounded-full flex-shrink-0"
+                        className="flex items-center gap-2 px-3 py-1 rounded-full flex-shrink-0 ml-2"
                         style={{ 
                           backgroundColor: 'var(--color-bg-secondary)',
                           color: 'var(--color-accent)',
