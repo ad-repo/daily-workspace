@@ -19,9 +19,7 @@ const Search = () => {
   const { transparentLabels } = useTransparentLabels();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLabels, setSelectedLabels] = useState<number[]>([]);
-  const [selectedLists, setSelectedLists] = useState<number[]>([]);
   const [allLabels, setAllLabels] = useState<Label[]>([]);
-  const [allLists, setAllLists] = useState<List[]>([]);
   const [results, setResults] = useState<NoteEntry[]>([]);
   const [listResults, setListResults] = useState<List[]>([]);
   const [loading, setLoading] = useState(false);
@@ -33,7 +31,6 @@ const Search = () => {
 
   useEffect(() => {
     loadLabels();
-    loadLists();
     loadSearchHistory();
   }, []);
 
@@ -46,14 +43,6 @@ const Search = () => {
     }
   };
 
-  const loadLists = async () => {
-    try {
-      const response = await axios.get<List[]>(`${API_URL}/api/lists`);
-      setAllLists(response.data);
-    } catch (error) {
-      console.error('Failed to load lists:', error);
-    }
-  };
 
   const loadSearchHistory = async () => {
     try {
@@ -81,18 +70,16 @@ const Search = () => {
   const performSearch = async (overrides?: {
     query?: string;
     labels?: number[];
-    lists?: number[];
     starred?: boolean | null;
     completed?: boolean | null;
   }) => {
     const query = overrides?.query !== undefined ? overrides.query : searchQuery;
     const labels = overrides?.labels !== undefined ? overrides.labels : selectedLabels;
-    const lists = overrides?.lists !== undefined ? overrides.lists : selectedLists;
     const starred = overrides?.starred !== undefined ? overrides.starred : filterStarred;
     const completed = overrides?.completed !== undefined ? overrides.completed : filterCompleted;
 
     // Don't search if nothing is entered
-    if (!query.trim() && labels.length === 0 && lists.length === 0 && starred === null && completed === null) {
+    if (!query.trim() && labels.length === 0 && starred === null && completed === null) {
       setResults([]);
       setListResults([]);
       setHasSearched(false);
@@ -114,9 +101,6 @@ const Search = () => {
       }
       if (labels.length > 0) {
         params.label_ids = labels.join(',');
-      }
-      if (lists.length > 0) {
-        params.list_ids = lists.join(',');
       }
       if (starred !== null) {
         params.is_important = starred;
@@ -160,7 +144,6 @@ const Search = () => {
   const clearSearch = () => {
     setSearchQuery('');
     setSelectedLabels([]);
-    setSelectedLists([]);
     setFilterStarred(null);
     setFilterCompleted(null);
     setResults([]);
@@ -212,24 +195,24 @@ const Search = () => {
             />
             <button
               onClick={handleSearch}
-              disabled={loading || (!searchQuery.trim() && selectedLabels.length === 0 && selectedLists.length === 0 && filterStarred === null && filterCompleted === null)}
+              disabled={loading || (!searchQuery.trim() && selectedLabels.length === 0 && filterStarred === null && filterCompleted === null)}
               className="px-6 py-3 rounded-lg transition-colors flex items-center gap-2"
               style={{
-                backgroundColor: (loading || (!searchQuery.trim() && selectedLabels.length === 0 && selectedLists.length === 0 && filterStarred === null && filterCompleted === null)) 
+                backgroundColor: (loading || (!searchQuery.trim() && selectedLabels.length === 0 && filterStarred === null && filterCompleted === null)) 
                   ? 'var(--color-bg-tertiary)' 
                   : 'var(--color-accent)',
-                color: (loading || (!searchQuery.trim() && selectedLabels.length === 0 && selectedLists.length === 0 && filterStarred === null && filterCompleted === null))
+                color: (loading || (!searchQuery.trim() && selectedLabels.length === 0 && filterStarred === null && filterCompleted === null))
                   ? 'var(--color-text-tertiary)'
                   : 'var(--color-accent-text)',
-                cursor: (loading || (!searchQuery.trim() && selectedLabels.length === 0 && selectedLists.length === 0 && filterStarred === null && filterCompleted === null)) ? 'not-allowed' : 'pointer',
+                cursor: (loading || (!searchQuery.trim() && selectedLabels.length === 0 && filterStarred === null && filterCompleted === null)) ? 'not-allowed' : 'pointer',
               }}
               onMouseEnter={(e) => {
-                if (!loading && (searchQuery.trim() || selectedLabels.length > 0 || selectedLists.length > 0 || filterStarred !== null || filterCompleted !== null)) {
+                if (!loading && (searchQuery.trim() || selectedLabels.length > 0 || filterStarred !== null || filterCompleted !== null)) {
                   e.currentTarget.style.backgroundColor = 'var(--color-accent-hover)';
                 }
               }}
               onMouseLeave={(e) => {
-                if (!loading && (searchQuery.trim() || selectedLabels.length > 0 || selectedLists.length > 0 || filterStarred !== null || filterCompleted !== null)) {
+                if (!loading && (searchQuery.trim() || selectedLabels.length > 0 || filterStarred !== null || filterCompleted !== null)) {
                   e.currentTarget.style.backgroundColor = 'var(--color-accent)';
                 }
               }}
@@ -393,43 +376,6 @@ const Search = () => {
           </div>
         </div>
 
-        {/* Lists Filter */}
-        <div className="mb-6">
-          <label className="block text-sm font-medium mb-2 flex items-center gap-2" style={{ color: 'var(--color-text-primary)' }}>
-            <Columns className="h-4 w-4" />
-            Search by Lists (optional):
-          </label>
-          <div className="flex flex-wrap gap-2">
-            {allLists.length === 0 ? (
-              <p className="text-sm" style={{ color: 'var(--color-text-tertiary)' }}>No lists available</p>
-            ) : (
-              allLists.map((list) => (
-                <button
-                  key={list.id}
-                  onClick={() => {
-                    const newLists = selectedLists.includes(list.id)
-                      ? selectedLists.filter(id => id !== list.id)
-                      : [...selectedLists, list.id];
-                    
-                    setSelectedLists(newLists);
-                    performSearch({ lists: newLists });
-                  }}
-                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                    selectedLists.includes(list.id)
-                      ? 'ring-2 ring-offset-2'
-                      : 'opacity-70 hover:opacity-100'
-                  }`}
-                  style={{
-                    backgroundColor: list.color,
-                    color: 'white',
-                  }}
-                >
-                  {list.name}
-                </button>
-              ))
-            )}
-          </div>
-        </div>
 
         {/* Search History */}
         {searchHistory.length > 0 && !hasSearched && (
@@ -484,7 +430,6 @@ const Search = () => {
               Searching by:
               {searchQuery.trim() && <span className="ml-2 px-2 py-1 rounded" style={{ backgroundColor: 'var(--color-bg-tertiary)' }}>Text: "{searchQuery}"</span>}
               {selectedLabels.length > 0 && <span className="ml-2 px-2 py-1 rounded" style={{ backgroundColor: 'var(--color-bg-tertiary)' }}>{selectedLabels.length} label{selectedLabels.length !== 1 ? 's' : ''}</span>}
-              {selectedLists.length > 0 && <span className="ml-2 px-2 py-1 rounded" style={{ backgroundColor: 'var(--color-bg-tertiary)' }}>{selectedLists.length} list{selectedLists.length !== 1 ? 's' : ''}</span>}
               {filterStarred === true && <span className="ml-2 px-2 py-1 rounded" style={{ backgroundColor: 'var(--color-bg-tertiary)' }}>Starred</span>}
               {filterCompleted === true && <span className="ml-2 px-2 py-1 rounded" style={{ backgroundColor: 'var(--color-bg-tertiary)' }}>Completed</span>}
               {filterCompleted === false && <span className="ml-2 px-2 py-1 rounded" style={{ backgroundColor: 'var(--color-bg-tertiary)' }}>Not completed</span>}
