@@ -12,13 +12,33 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 interface EmojiPickerProps {
   onEmojiSelect: (emoji: string, isCustom?: boolean, imageUrl?: string) => void;
+  variant?: 'toolbar' | 'accent'; // toolbar = gray, accent = blue
 }
 
-const EmojiPicker = ({ onEmojiSelect }: EmojiPickerProps) => {
+const EmojiPicker = ({ onEmojiSelect, variant = 'toolbar' }: EmojiPickerProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [customEmojis, setCustomEmojis] = useState<CustomEmoji[]>([]);
   const [showManager, setShowManager] = useState(false);
   const { emojiLibrary, isLoading } = useEmojiLibrary();
+
+  // Determine button styles based on variant
+  const getButtonStyles = () => {
+    if (variant === 'accent') {
+      return {
+        backgroundColor: isOpen ? '#2563eb' : '#3b82f6', // blue-700 : blue-600
+        color: 'white',
+        hoverClass: 'hover:bg-blue-700'
+      };
+    }
+    // toolbar variant (default)
+    return {
+      backgroundColor: isOpen ? 'var(--color-bg-hover)' : 'var(--color-bg-secondary)',
+      color: 'var(--color-text-primary)',
+      hoverClass: 'hover:opacity-90'
+    };
+  };
+
+  const buttonStyles = getButtonStyles();
 
   useEffect(() => {
     if (isOpen) {
@@ -62,8 +82,11 @@ const EmojiPicker = ({ onEmojiSelect }: EmojiPickerProps) => {
       <button
         type="button"
         disabled
-        className="flex items-center gap-1 px-3 py-2 rounded-lg transition-colors opacity-50"
-        style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-accent-text)' }}
+        className={`flex items-center gap-1 px-3 py-2 rounded-lg transition-colors opacity-50 ${buttonStyles.hoverClass}`}
+        style={{ 
+          backgroundColor: buttonStyles.backgroundColor, 
+          color: buttonStyles.color 
+        }}
         title="Loading emoji picker..."
       >
         <Smile className="h-4 w-4" />
@@ -77,8 +100,11 @@ const EmojiPicker = ({ onEmojiSelect }: EmojiPickerProps) => {
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
-          className="flex items-center gap-1 px-3 py-2 rounded-lg hover:opacity-90 transition-colors"
-          style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-accent-text)' }}
+          className={`flex items-center gap-1 px-3 py-2 rounded-lg transition-colors ${buttonStyles.hoverClass}`}
+          style={{ 
+            backgroundColor: buttonStyles.backgroundColor, 
+            color: buttonStyles.color 
+          }}
           title="Pick emoji"
         >
           <Smile className="h-4 w-4" />
