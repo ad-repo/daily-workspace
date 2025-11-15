@@ -87,10 +87,11 @@ const EntryDropdown = ({ entries }: EntryDropdownProps) => {
 
       {isOpen && (
         <div
-          className="absolute left-1/2 -translate-x-1/2 mt-2 w-80 rounded-lg shadow-lg border z-50 max-h-96 overflow-y-auto"
+          className="absolute left-1/2 -translate-x-1/2 mt-2 w-80 rounded-lg shadow-lg border z-50 overflow-y-auto"
           style={{
             backgroundColor: 'var(--color-card-bg)',
-            borderColor: 'var(--color-border-primary)'
+            borderColor: 'var(--color-border-primary)',
+            maxHeight: 'calc(100vh - 200px)'
           }}
         >
           <div className="p-2">
