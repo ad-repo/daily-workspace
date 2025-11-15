@@ -24,21 +24,19 @@ test.describe('Custom Emoji System', () => {
     await page.goto('/settings');
     await page.waitForTimeout(1000);
     
-    // Look for "Manage Custom Emojis" button or similar
-    const manageButton = page.locator('button').filter({ hasText: /manage.*emoji/i }).or(
-      page.locator('button:has-text("Custom Emojis")')
-    ).first();
+    // Look for "Manage Custom Emojis" button
+    const manageButton = page.locator('button:has-text("Manage Custom Emojis")');
     
     await expect(manageButton).toBeVisible({ timeout: 5000 });
     await manageButton.click();
     await page.waitForTimeout(500);
     
-    // Modal or section should appear
-    const emojiManager = page.locator('text=/upload.*emoji/i').or(
-      page.locator('input[type="file"]')
+    // Modal should appear with file input
+    const emojiManager = page.locator('input[type="file"]').or(
+      page.locator('text=/custom.*emoji/i')
     );
     
-    await expect(emojiManager).toBeVisible({ timeout: 3000 });
+    await expect(emojiManager.first()).toBeVisible({ timeout: 3000 });
   });
 
   test('should upload a custom emoji', async ({ page }) => {

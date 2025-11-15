@@ -48,27 +48,24 @@ test.describe('Lists Feature', () => {
     await page.goto('/lists');
     await page.waitForTimeout(1000);
     
-    // Click "New List" button
-    const newListButton = page.locator('button:has-text("New List")');
+    // Click "New List" button (it's a Plus icon button with title)
+    const newListButton = page.locator('button[title="Create New List"]');
     await expect(newListButton).toBeVisible({ timeout: 5000 });
     await newListButton.click();
     await page.waitForTimeout(500);
     
     // Fill in list name
-    const listNameInput = page.locator('input[placeholder*="list name" i]').first();
+    const listNameInput = page.locator('input[placeholder="Enter list name"]').or(
+      page.locator('input[type="text"]').first()
+    );
     await expect(listNameInput).toBeVisible({ timeout: 3000 });
     
     const testListName = `Test List ${Date.now()}`;
     await listNameInput.fill(testListName);
     
-    // Optionally fill description
-    const descriptionInput = page.locator('textarea, input').filter({ hasText: /description/i }).first();
-    if (await descriptionInput.isVisible().catch(() => false)) {
-      await descriptionInput.fill('Test list description');
-    }
-    
-    // Submit the form
-    const createButton = page.locator('button:has-text("Create")').first();
+    // Submit the form - look for "Create List" button
+    const createButton = page.locator('button:has-text("Create List")');
+    await expect(createButton).toBeVisible({ timeout: 3000 });
     await createButton.click();
     
     // Wait for API response

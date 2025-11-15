@@ -31,8 +31,8 @@ test.describe('Pinned Entries', () => {
     await page.locator('body').click({ position: { x: 0, y: 0 } });
     await page.waitForTimeout(1500);
     
-    // Find pin button (usually a pin icon)
-    const pinButton = page.locator('button').filter({ has: page.locator('svg') }).filter({ hasText: /pin/i }).or(
+    // Find pin button - it has title "Pin (copy to future days)"
+    const pinButton = page.locator('button[title*="Pin (copy to future days)"]').or(
       page.locator('button[title*="pin" i]')
     ).first();
     
@@ -47,9 +47,9 @@ test.describe('Pinned Entries', () => {
     
     await page.waitForTimeout(1000);
     
-    // Verify pin button shows pinned state (might change color or icon)
-    // This is UI-specific, but we can check if the button is still visible
-    await expect(pinButton).toBeVisible();
+    // Verify pin button shows pinned state - title should change to "Unpin"
+    const unpinButton = page.locator('button[title*="Unpin"]').first();
+    await expect(unpinButton).toBeVisible({ timeout: 3000 });
   });
 
   test('should copy pinned entry to next day', async ({ page }) => {
