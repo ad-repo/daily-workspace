@@ -196,7 +196,7 @@ const AddEntryToListModal = ({ list, onClose, onUpdate }: AddEntryToListModalPro
               </p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {filteredEntries.map((entry) => {
                 const inList = isEntryInList(entry);
                 const isAdding = adding === entry.id;
@@ -204,11 +204,12 @@ const AddEntryToListModal = ({ list, onClose, onUpdate }: AddEntryToListModalPro
                 return (
                   <div
                     key={entry.id}
-                    className="rounded-lg border-2 p-4 transition-all"
+                    className="rounded-xl border-2 p-6 transition-all"
                     style={{
                       backgroundColor: inList ? `${list.color}10` : 'var(--color-background)',
                       borderColor: inList ? list.color : 'var(--color-border)',
                       opacity: inList ? 0.6 : 1,
+                      minHeight: '150px',
                     }}
                   >
                     <div className="flex justify-between items-start gap-4">
@@ -216,20 +217,27 @@ const AddEntryToListModal = ({ list, onClose, onUpdate }: AddEntryToListModalPro
                         {/* Title */}
                         {entry.title && (
                           <h3
-                            className="font-semibold mb-1 truncate"
+                            className="text-xl font-bold mb-3"
                             style={{ color: 'var(--color-text-primary)' }}
                           >
                             {entry.title}
                           </h3>
                         )}
 
-                        {/* Content preview */}
-                        <p
-                          className="text-sm mb-2"
-                          style={{ color: 'var(--color-text-secondary)' }}
-                        >
-                          {getTextPreview(entry.content)}
-                        </p>
+                        {/* Rich content */}
+                        <div 
+                          className="prose max-w-none text-base leading-relaxed mb-3"
+                          style={{ 
+                            color: 'var(--color-text-primary)',
+                            maxHeight: '200px',
+                            overflowY: 'auto'
+                          }}
+                          dangerouslySetInnerHTML={{ 
+                            __html: entry.content_type === 'code' 
+                              ? `<pre><code>${entry.content}</code></pre>` 
+                              : entry.content 
+                          }}
+                        />
 
                         {/* Labels */}
                         {entry.labels && entry.labels.length > 0 && (
@@ -262,7 +270,7 @@ const AddEntryToListModal = ({ list, onClose, onUpdate }: AddEntryToListModalPro
                         )}
 
                         {/* Date */}
-                        <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+                        <p className="text-sm font-medium" style={{ color: 'var(--color-text-secondary)' }}>
                           {format(new Date(entry.created_at), 'MMM d, yyyy')}
                         </p>
                       </div>
