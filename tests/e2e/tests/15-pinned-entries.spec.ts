@@ -14,14 +14,14 @@ test.describe.skip('Pinned Entries', () => {
 
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
+    await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
   });
 
   test('should pin an entry', async ({ page }) => {
     // Create an entry
     const testDate = '2024-05-01';
     await page.goto(`/day/${testDate}`);
-    await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
+    await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
     
     const testContent = `Pin Test ${Date.now()}`;
     await page.getByRole('button', { name: /new entry/i }).click();
@@ -56,7 +56,7 @@ test.describe.skip('Pinned Entries', () => {
     // Create and pin an entry on a specific date
     const testDate1 = '2024-05-02';
     await page.goto(`/day/${testDate1}`);
-    await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
+    await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
     
     const testContent = `Pinned Copy Test ${Date.now()}`;
     await page.getByRole('button', { name: /new entry/i }).click();
@@ -87,7 +87,7 @@ test.describe.skip('Pinned Entries', () => {
     // Create and pin an entry
     const testDate = '2024-05-04';
     await page.goto(`/day/${testDate}`);
-    await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
+    await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
     
     const testContent = `Unpin Test ${Date.now()}`;
     await page.getByRole('button', { name: /new entry/i }).click();
@@ -133,7 +133,7 @@ test.describe.skip('Pinned Entries', () => {
     // Create an entry without pinning
     const testDate1 = '2024-05-06';
     await page.goto(`/day/${testDate1}`);
-    await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
+    await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
     
     const testContent = `Not Pinned ${Date.now()}`;
     await page.getByRole('button', { name: /new entry/i }).click();
@@ -158,7 +158,7 @@ test.describe.skip('Pinned Entries', () => {
     // Create and pin an entry
     const testDate1 = '2024-05-08';
     await page.goto(`/day/${testDate1}`);
-    await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
+    await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
     
     const testContent = `Delete Pinned ${Date.now()}`;
     await page.getByRole('button', { name: /new entry/i }).click();
@@ -224,7 +224,7 @@ test.describe.skip('Pinned Entries', () => {
     // Create and pin multiple entries
     const testDate = '2024-05-11';
     await page.goto(`/day/${testDate}`);
-    await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
+    await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
     
     const entry1Content = `Multi Pin 1 ${Date.now()}`;
     const entry2Content = `Multi Pin 2 ${Date.now()}`;
@@ -273,7 +273,7 @@ test.describe.skip('Pinned Entries', () => {
     // Create and pin an entry
     const testDate = '2024-05-13';
     await page.goto(`/day/${testDate}`);
-    await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
+    await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
     
     const testContent = `Duplicate Prevention ${Date.now()}`;
     await page.getByRole('button', { name: /new entry/i }).click();
@@ -313,7 +313,7 @@ test.describe.skip('Pinned Entries', () => {
     // Create and pin an entry
     const testDate = '2024-05-15';
     await page.goto(`/day/${testDate}`);
-    await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
+    await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
     
     const testContent = `Pin Persistence ${Date.now()}`;
     await page.getByRole('button', { name: /new entry/i }).click();

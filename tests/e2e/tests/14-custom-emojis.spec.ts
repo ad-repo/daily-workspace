@@ -16,7 +16,7 @@ test.describe.skip('Custom Emoji System', () => {
 
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
-    await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
+    await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
   });
 
   test('should navigate to Settings and open custom emoji manager', async ({ page }) => {
@@ -87,7 +87,7 @@ test.describe.skip('Custom Emoji System', () => {
   test('should use custom emoji in label', async ({ page }) => {
     // Navigate to daily view
     await page.goto('/');
-    await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
+    await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
     
     // Create a new entry
     await page.getByRole('button', { name: /new entry/i }).click();
@@ -138,7 +138,7 @@ test.describe.skip('Custom Emoji System', () => {
   test('should use custom emoji in rich text editor', async ({ page }) => {
     // Navigate to daily view
     await page.goto('/');
-    await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
+    await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
     
     // Create a new entry
     await page.getByRole('button', { name: /new entry/i }).click();
@@ -181,7 +181,7 @@ test.describe.skip('Custom Emoji System', () => {
     // Create an entry with custom emoji (if available)
     const testDate = '2024-04-01';
     await page.goto(`/day/${testDate}`);
-    await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
+    await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
     
     await page.getByRole('button', { name: /new entry/i }).click();
     const editor = page.locator('.ProseMirror').first();
@@ -336,7 +336,7 @@ test.describe.skip('Custom Emoji System', () => {
   test('should verify custom emoji persists across page reloads', async ({ page }) => {
     // Navigate to daily view and create entry with custom emoji
     await page.goto('/');
-    await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
+    await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
     
     await page.getByRole('button', { name: /new entry/i }).click();
     const editor = page.locator('.ProseMirror').first();
@@ -368,7 +368,7 @@ test.describe.skip('Custom Emoji System', () => {
           
           // Reload page
           await page.reload();
-          await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
+          await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
           
           // Verify custom emoji still appears
           const persistedEmoji = page.locator(`img[src="${emojiSrc}"]`).first();

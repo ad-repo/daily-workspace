@@ -27,8 +27,8 @@ test.describe('Note Entry Management', () => {
     
     // Navigate to unique date for clean slate
     await page.goto(`/day/${testRunDate}`);
-    // Wait for the New Entry button (indicates React app is ready)
-    await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
+    // Wait for the New Card button (indicates React app is ready)
+    await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
     
     // Delete any existing entries for this date (cleanup from previous runs)
     let deleteCount = await page.locator('button[title*="Delete" i]').count();
@@ -49,7 +49,7 @@ test.describe('Note Entry Management', () => {
   });
 
   test('should create a new note entry', async ({ page }) => {
-    // Click New Entry button
+    // Click New Card button
     await page.getByRole('button', { name: /new entry/i }).click();
     
     // Wait for editor to appear (editor initialization can take time)
@@ -70,7 +70,7 @@ test.describe('Note Entry Management', () => {
     
     // Reload page
     await page.reload();
-    await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
+    await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
     
     // Verify entry persists
     await expect(page.locator('.ProseMirror').first()).toBeVisible();
@@ -80,7 +80,7 @@ test.describe('Note Entry Management', () => {
     const testTitle = `Test Title ${Date.now()}`;
     const testContent = 'Test content for entry';
     
-    // Click New Entry
+    // Click New Card
     await page.getByRole('button', { name: /new entry/i }).click();
     
     // Wait for editor to appear (editor initialization can take time)
@@ -113,7 +113,7 @@ test.describe('Note Entry Management', () => {
     
     // Reload
     await page.reload();
-    await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
+    await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
     
     // Verify title persists after reload
     const titleInputAfterReload = page.getByPlaceholder(/add a title/i).first();
@@ -126,7 +126,7 @@ test.describe('Note Entry Management', () => {
 
   test('should edit an existing entry', async ({ page }) => {
     // Create entry
-    await page.click('button:has-text("New Entry")');
+    await page.click('button:has-text("New Card")');
     const editor = page.locator('.ProseMirror').first();
     await expect(editor).toBeVisible();
     
@@ -145,7 +145,7 @@ test.describe('Note Entry Management', () => {
     
     // Reload
     await page.reload();
-    await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
+    await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
     
     // Edit content
     const editorAfterReload = page.locator('.ProseMirror').first();
@@ -162,7 +162,7 @@ test.describe('Note Entry Management', () => {
     
     // Reload again
     await page.reload();
-    await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
+    await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
     
     // Verify updated content persists
     await expect(page.locator('.ProseMirror').getByText('Updated content')).toBeVisible();
@@ -172,7 +172,7 @@ test.describe('Note Entry Management', () => {
     const uniqueText = `Delete me ${Date.now()}`;
     
     // Create entry with unique content
-    await page.click('button:has-text("New Entry")');
+    await page.click('button:has-text("New Card")');
     const editor = page.locator('.ProseMirror').first();
     await expect(editor).toBeVisible();
     
@@ -200,7 +200,7 @@ test.describe('Note Entry Management', () => {
     
     // Reload
     await page.reload();
-    await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
+    await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
     
     // Verify entry is gone
     await expect(page.locator('.ProseMirror').getByText(uniqueText)).not.toBeVisible();
@@ -208,7 +208,7 @@ test.describe('Note Entry Management', () => {
 
   test('should toggle important flag', async ({ page }) => {
     // Create entry
-    await page.click('button:has-text("New Entry")');
+    await page.click('button:has-text("New Card")');
     await expect(page.locator('.ProseMirror').first()).toBeVisible({ timeout: 2000 });
     await page.waitForLoadState('load');
     
@@ -229,7 +229,7 @@ test.describe('Note Entry Management', () => {
 
   test('should toggle completed flag', async ({ page }) => {
     // Create entry
-    await page.click('button:has-text("New Entry")');
+    await page.click('button:has-text("New Card")');
     await expect(page.locator('.ProseMirror').first()).toBeVisible({ timeout: 2000 });
     await page.waitForLoadState('load');
     
@@ -250,7 +250,7 @@ test.describe('Note Entry Management', () => {
 
   test('should move entry to top', async ({ page }) => {
     // Create first entry
-    await page.click('button:has-text("New Entry")');
+    await page.click('button:has-text("New Card")');
     const editor1 = page.locator('.ProseMirror').first();
     await expect(editor1).toBeVisible();
     await editor1.click();
@@ -263,7 +263,7 @@ test.describe('Note Entry Management', () => {
     );
     
     // Create second entry
-    await page.click('button:has-text("New Entry")');
+    await page.click('button:has-text("New Card")');
     const editor2 = page.locator('.ProseMirror').nth(1);
     await expect(editor2).toBeVisible();
     await editor2.click();
@@ -289,7 +289,7 @@ test.describe('Note Entry Management', () => {
     
     // Reload
     await page.reload();
-    await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
+    await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
     
     // Verify order changed (second entry should now be first)
     const firstEditorAfter = page.locator('.ProseMirror').first();
@@ -299,7 +299,7 @@ test.describe('Note Entry Management', () => {
   test('should create multiple entries on same day', async ({ page }) => {
     // Create 3 entries
     for (let i = 0; i < 3; i++) {
-      await page.click('button:has-text("New Entry")');
+      await page.click('button:has-text("New Card")');
       // Wait for the API call (CI needs longer timeout)
       await page.waitForResponse(
         resp => resp.url().includes('/api/entries') && resp.status() >= 200 && resp.status() < 300,
@@ -316,7 +316,7 @@ test.describe('Note Entry Management', () => {
     
     // Reload
     await page.reload();
-    await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
+    await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
     
     // Verify 3 editors still exist after reload
     await expect(editors).toHaveCount(3);
@@ -324,7 +324,7 @@ test.describe('Note Entry Management', () => {
 
   test('should persist entries after page reload', async ({ page }) => {
     // Create entry
-    await page.click('button:has-text("New Entry")');
+    await page.click('button:has-text("New Card")');
     await expect(page.locator('.ProseMirror').first()).toBeVisible({ timeout: 2000 });
     await page.waitForLoadState('load');
     

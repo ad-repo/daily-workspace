@@ -18,8 +18,8 @@ export async function navigateToDate(page: Page, date: string) {
  * Create a new note entry
  */
 export async function createNoteEntry(page: Page, content: string, title?: string) {
-  // Click "New Entry" button
-  await page.click('button:has-text("New Entry")');
+  // Click "New Card" button
+  await page.click('button:has-text("New Card")');
   await page.waitForTimeout(500);
   
   if (title) {

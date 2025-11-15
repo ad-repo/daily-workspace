@@ -37,7 +37,7 @@ test.describe.skip('Advanced Settings', () => {
     
     // Navigate to daily view
     await page.goto('/');
-    await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
+    await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
     
     // The custom name should appear in the goals section if there's a sprint goal
     // If no sprint goal exists, the name won't be visible, which is expected
@@ -86,7 +86,7 @@ test.describe.skip('Advanced Settings', () => {
       
       // Navigate to daily view
       await page.goto('/');
-      await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
+      await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
       
       // Look for daily goal section
       const dailyGoalSection = page.locator('text=/daily.*goal/i').first();
@@ -121,7 +121,7 @@ test.describe.skip('Advanced Settings', () => {
   test('should display daily goal countdown when goal is set', async ({ page }) => {
     // Navigate to daily view
     await page.goto('/');
-    await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
+    await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
     
     // Look for daily goal input
     const dailyGoalEditor = page.locator('.ProseMirror').filter({ has: page.locator('text=/daily.*goal/i') }).or(
@@ -149,7 +149,7 @@ test.describe.skip('Advanced Settings', () => {
   test('should hide daily goal countdown when goal is empty', async ({ page }) => {
     // Navigate to daily view
     await page.goto('/');
-    await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
+    await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
     
     // Look for daily goal input
     const dailyGoalEditor = page.locator('.ProseMirror').filter({ has: page.locator('text=/daily.*goal/i') }).or(
@@ -250,7 +250,7 @@ test.describe.skip('Advanced Settings', () => {
       
       // Navigate to daily view
       await page.goto('/');
-      await page.waitForSelector('button:has-text("New Entry")', { timeout: 10000 });
+      await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
       
       // Look for sprint goal section with custom name
       const sprintSection = page.locator(`text="${customName}"`).first();
