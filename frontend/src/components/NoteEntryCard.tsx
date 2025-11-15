@@ -122,15 +122,15 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onListsUpdat
       // Add to new Kanban column
       await listsApi.addEntry(newColumnId, entry.id, 0);
       
-      // Keep modal open and trigger refresh immediately
-      if (onListsUpdate) {
-        onListsUpdate();
-      }
+      // Close dropdown immediately
+      setShowKanbanModal(false);
       
-      // Close modal after a brief moment
+      // Trigger refresh after dropdown is closed
       setTimeout(() => {
-        setShowKanbanModal(false);
-      }, 300);
+        if (onListsUpdate) {
+          onListsUpdate();
+        }
+      }, 100);
     } catch (error) {
       console.error('Failed to change Kanban status:', error);
       setShowKanbanModal(false);
