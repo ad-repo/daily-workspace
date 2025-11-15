@@ -87,12 +87,11 @@ const EntryDropdown = ({ entries }: EntryDropdownProps) => {
 
       {isOpen && (
         <div
-          className="absolute left-1/2 -translate-x-1/2 mt-2 rounded-lg shadow-lg border z-50 overflow-y-auto"
+          className="absolute left-1/2 -translate-x-1/2 mt-2 w-80 rounded-lg shadow-lg border z-50 overflow-y-auto"
           style={{
             backgroundColor: 'var(--color-card-bg)',
             borderColor: 'var(--color-border-primary)',
-            maxHeight: 'calc(100vh - 200px)',
-            width: 'min(600px, 90vw)'
+            maxHeight: 'calc(100vh - 200px)'
           }}
         >
           <div className="p-2">
@@ -149,7 +148,7 @@ const EntryDropdown = ({ entries }: EntryDropdownProps) => {
                     {entry.labels.length > 0 && (
                       <div className="flex items-center gap-1 flex-wrap">
                         <Tag className="h-3 w-3 flex-shrink-0" style={{ color: 'var(--color-text-tertiary)' }} />
-                        {entry.labels.slice(0, 3).map((label) => {
+                        {entry.labels.map((label) => {
                           const isEmoji = isEmojiOnly(label.name);
                           const isCustomEmoji = isCustomEmojiUrl(label.name);
                           
@@ -181,11 +180,6 @@ const EntryDropdown = ({ entries }: EntryDropdownProps) => {
                             </span>
                           );
                         })}
-                        {entry.labels.length > 3 && (
-                          <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
-                            +{entry.labels.length - 3}
-                          </span>
-                        )}
                       </div>
                     )}
                   </button>
