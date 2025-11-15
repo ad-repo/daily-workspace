@@ -10,6 +10,9 @@ def get_sample_app_settings():
         'sprint_end_date': '2025-11-14',
         'quarterly_start_date': '2025-10-01',
         'quarterly_end_date': '2025-12-31',
+        'sprint_name': 'Sprint',
+        'daily_goal_end_time': '17:00',
+        'emoji_library': 'emoji-picker-react',
     }
 
 
@@ -22,4 +25,7 @@ def get_empty_app_settings():
         'sprint_end_date': '',
         'quarterly_start_date': '',
         'quarterly_end_date': '',
+        'sprint_name': 'Sprint',
+        'daily_goal_end_time': '17:00',
+        'emoji_library': 'emoji-picker-react',
     }

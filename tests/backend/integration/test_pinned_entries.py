@@ -248,3 +248,84 @@ def test_pinned_entry_in_backup(client: TestClient, db_session: Session):
         entries = notes[0].get('entries', [])
         if len(entries) > 0:
             assert entries[0]['is_pinned'] is True
+
+
+def test_delete_pinned_entry_unpins_all_copies(client: TestClient, db_session: Session):
+    """
+    CRITICAL TEST: When deleting a pinned entry (or any copy of a pinned entry),
+    all copies should be unpinned first to prevent them from being re-created.
+
+    This test verifies the fix for the bug where deleted pinned entries would
+    reappear after refresh because they were being copied forward again.
+    """
+    # Create a daily note for Day 1
+    date1 = '2025-01-15'
+    client.post(f'/api/notes/{date1}')
+
+    # Create an entry on Day 1
+    entry_response = client.post(
+        f'/api/entries/note/{date1}',
+        json={
+            'title': 'Important Task',
+            'content': 'This is a pinned task that should not reappear after deletion',
+            'content_type': 'rich_text',
+        },
+    )
+    entry1_id = entry_response.json()['id']
+
+    # Pin the entry
+    client.patch(f'/api/entries/{entry1_id}', json={'is_pinned': True})
+
+    # Access Day 2 - should create a copy
+    date2 = '2025-01-16'
+    response = client.get(f'/api/notes/{date2}')
+    day2_entries = response.json()['entries']
+    assert len(day2_entries) == 1
+    entry2_id = day2_entries[0]['id']
+    assert entry2_id != entry1_id  # Different entry
+    assert day2_entries[0]['is_pinned'] == 1  # Copy is also pinned
+
+    # Access Day 3 - should create another copy
+    date3 = '2025-01-17'
+    response = client.get(f'/api/notes/{date3}')
+    day3_entries = response.json()['entries']
+    assert len(day3_entries) == 1
+    entry3_id = day3_entries[0]['id']
+    assert entry3_id != entry1_id and entry3_id != entry2_id  # Different entry
+    assert day3_entries[0]['is_pinned'] == 1  # Copy is also pinned
+
+    # Now delete the Day 2 copy
+    # This should unpin ALL copies (Day 1, Day 2, Day 3) before deleting Day 2
+    delete_response = client.delete(f'/api/entries/{entry2_id}')
+    assert delete_response.status_code == 204
+
+    # Verify Day 2 entry is deleted
+    response = client.get(f'/api/notes/{date2}')
+    day2_entries = response.json()['entries']
+    assert len(day2_entries) == 0
+
+    # Verify Day 1 entry is now UNPINNED
+    response = client.get(f'/api/entries/{entry1_id}')
+    assert response.status_code == 200
+    assert response.json()['is_pinned'] == 0
+
+    # Verify Day 3 entry is now UNPINNED
+    response = client.get(f'/api/entries/{entry3_id}')
+    assert response.status_code == 200
+    assert response.json()['is_pinned'] == 0
+
+    # Access Day 4 - should NOT create a new copy (because all are unpinned)
+    date4 = '2025-01-18'
+    response = client.get(f'/api/notes/{date4}')
+    day4_entries = response.json()['entries']
+    assert len(day4_entries) == 0  # No pinned entries to copy
+
+    # Verify Day 1 entry still exists (not deleted)
+    response = client.get(f'/api/entries/{entry1_id}')
+    assert response.status_code == 200
+    assert response.json()['title'] == 'Important Task'
+
+    # Verify Day 3 entry still exists (not deleted)
+    response = client.get(f'/api/entries/{entry3_id}')
+    assert response.status_code == 200
+    assert response.json()['title'] == 'Important Task'

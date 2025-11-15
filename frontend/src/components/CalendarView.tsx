@@ -5,6 +5,7 @@ import { format } from 'date-fns';
 import { Star, Check } from 'lucide-react';
 import { notesApi, goalsApi } from '../api';
 import type { DailyNote, Goal } from '../types';
+import { useSprintName } from '../contexts/SprintNameContext';
 import 'react-calendar/dist/Calendar.css';
 
 interface CalendarViewProps {
@@ -14,6 +15,7 @@ interface CalendarViewProps {
 
 const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
   const navigate = useNavigate();
+  const { sprintName } = useSprintName();
   const [notes, setNotes] = useState<DailyNote[]>([]);
   const [sprintGoals, setSprintGoals] = useState<Goal[]>([]);
   const [quarterlyGoals, setQuarterlyGoals] = useState<Goal[]>([]);
@@ -120,7 +122,7 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
     navigate(`/day/${dateStr}`);
   };
 
-  const handleActiveStartDateChange = ({ activeStartDate }: { activeStartDate: Date | null }) => {
+  const handleActiveStartDateChange = ({ activeStartDate, action }: { activeStartDate: Date | null; action: string }) => {
     if (activeStartDate) {
       setCurrentMonth(activeStartDate);
     }
@@ -165,7 +167,7 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
               <Check className="h-4 w-4 text-green-500 stroke-[3] animate-bounce" />
             )}
             {!hasImportantEntries && !hasCompletedEntries && (
-              <div className="w-1.5 h-1.5 bg-blue-500 rounded-full" />
+              <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: 'var(--color-accent)' }} />
             )}
           </div>
         )}
@@ -214,6 +216,7 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
             >
               <Calendar
                 value={selectedDate}
+                activeStartDate={currentMonth}
                 onClickDay={handleDateClick}
                 onActiveStartDateChange={handleActiveStartDateChange}
                 tileContent={getTileContent}
@@ -239,7 +242,7 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
                 <span className="text-xs font-medium">Has completed</span>
               </div>
               <div className="flex items-center gap-2 p-2 rounded-lg" style={{ backgroundColor: 'var(--color-card-bg)' }}>
-                <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0" />
+                <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: 'var(--color-accent)' }} />
                 <span className="text-xs font-medium">Has notes</span>
               </div>
             </div>
@@ -251,7 +254,7 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3" style={{ color: 'var(--color-text-secondary)' }}>
               <div className="flex items-center gap-2 p-2 rounded-lg" style={{ backgroundColor: 'var(--color-card-bg)' }}>
                 <span className="text-base flex-shrink-0">🚀</span>
-                <span className="text-xs font-medium">Sprint Goal</span>
+                <span className="text-xs font-medium">{sprintName} Goal</span>
               </div>
               <div className="flex items-center gap-2 p-2 rounded-lg" style={{ backgroundColor: 'var(--color-card-bg)' }}>
                 <span className="text-base flex-shrink-0">🌟</span>

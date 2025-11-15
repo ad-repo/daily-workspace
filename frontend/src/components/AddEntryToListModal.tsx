@@ -1,9 +1,13 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Search, Plus } from 'lucide-react';
+import { X, Search, Plus, RefreshCw } from 'lucide-react';
 import { notesApi, listsApi } from '../api';
 import type { NoteEntry, List } from '../types';
 import { format } from 'date-fns';
+import { useTimezone } from '../contexts/TimezoneContext';
+import { formatTimestamp } from '../utils/timezone';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 interface AddEntryToListModalProps {
   list: List;
@@ -12,6 +16,7 @@ interface AddEntryToListModalProps {
 }
 
 const AddEntryToListModal = ({ list, onClose, onUpdate }: AddEntryToListModalProps) => {
+  const { timezone } = useTimezone();
   const [searchQuery, setSearchQuery] = useState('');
   const [allEntries, setAllEntries] = useState<NoteEntry[]>([]);
   const [filteredEntries, setFilteredEntries] = useState<NoteEntry[]>([]);
@@ -110,8 +115,22 @@ const AddEntryToListModal = ({ list, onClose, onUpdate }: AddEntryToListModalPro
     return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
   };
 
+  // Fix all absolute API URLs in HTML content to use the actual API_URL
+  const fixImageUrls = (html: string): string => {
+    // Replace localhost:8000
+    let fixed = html.replace(/http:\/\/localhost:8000/g, API_URL);
+    // Replace any IP:8000 patterns (like 192.168.0.186:8000)
+    fixed = fixed.replace(/http:\/\/[\d.]+:8000/g, API_URL);
+    return fixed;
+  };
+
   const isEntryInList = (entry: NoteEntry) => {
     return entry.lists?.some((l) => l.id === list.id);
+  };
+
+  // Check if a label name is a custom emoji URL
+  const isCustomEmojiUrl = (str: string): boolean => {
+    return str.startsWith('/api/uploads/') || str.startsWith('http');
   };
 
   return createPortal(
@@ -145,20 +164,37 @@ const AddEntryToListModal = ({ list, onClose, onUpdate }: AddEntryToListModalPro
             <h2 className="text-2xl font-bold" style={{ color: 'var(--color-text-primary)' }}>
               Add Entries to {list.name}
             </h2>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onClose();
-              }}
-              className="p-2 rounded-lg transition-all hover:scale-110"
-              style={{
-                color: 'var(--color-text-secondary)',
-                backgroundColor: 'var(--color-background)',
-              }}
-              title="Close (Esc)"
-            >
-              <X className="w-5 h-5" />
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  loadEntries();
+                }}
+                className="p-2 rounded-lg transition-all hover:scale-110"
+                style={{
+                  color: 'var(--color-text-secondary)',
+                  backgroundColor: 'var(--color-background)',
+                }}
+                title="Refresh entries"
+                disabled={loading}
+              >
+                <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onClose();
+                }}
+                className="p-2 rounded-lg transition-all hover:scale-110"
+                style={{
+                  color: 'var(--color-text-secondary)',
+                  backgroundColor: 'var(--color-background)',
+                }}
+                title="Close (Esc)"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
           {/* Search Input */}
@@ -235,26 +271,43 @@ const AddEntryToListModal = ({ list, onClose, onUpdate }: AddEntryToListModalPro
                           dangerouslySetInnerHTML={{ 
                             __html: entry.content_type === 'code' 
                               ? `<pre><code>${entry.content}</code></pre>` 
-                              : entry.content 
+                              : fixImageUrls(entry.content)
                           }}
                         />
 
                         {/* Labels */}
                         {entry.labels && entry.labels.length > 0 && (
                           <div className="flex flex-wrap gap-1 mb-2">
-                            {entry.labels.slice(0, 3).map((label) => (
-                              <span
-                                key={label.id}
-                                className="px-2 py-0.5 rounded text-xs"
-                                style={{
-                                  backgroundColor: label.color + '20',
-                                  color: label.color,
-                                  border: `1px solid ${label.color}`,
-                                }}
-                              >
-                                {label.name}
-                              </span>
-                            ))}
+                            {entry.labels.slice(0, 3).map((label) => {
+                              const isCustomEmoji = isCustomEmojiUrl(label.name);
+                              
+                              if (isCustomEmoji) {
+                                const imageUrl = label.name.startsWith('http') ? label.name : `${API_URL}${label.name}`;
+                                return (
+                                  <img 
+                                    key={label.id}
+                                    src={imageUrl} 
+                                    alt="emoji" 
+                                    className="inline-emoji"
+                                    style={{ width: '1.5rem', height: '1.5rem' }}
+                                  />
+                                );
+                              }
+                              
+                              return (
+                                <span
+                                  key={label.id}
+                                  className="px-2 py-0.5 rounded text-xs"
+                                  style={{
+                                    backgroundColor: label.color + '20',
+                                    color: label.color,
+                                    border: `1px solid ${label.color}`,
+                                  }}
+                                >
+                                  {label.name}
+                                </span>
+                              );
+                            })}
                             {entry.labels.length > 3 && (
                               <span
                                 className="px-2 py-0.5 rounded text-xs"
@@ -269,9 +322,12 @@ const AddEntryToListModal = ({ list, onClose, onUpdate }: AddEntryToListModalPro
                           </div>
                         )}
 
-                        {/* Date */}
+                        {/* Date and Time */}
                         <p className="text-sm font-medium" style={{ color: 'var(--color-text-secondary)' }}>
-                          {format(new Date(entry.created_at), 'MMM d, yyyy')}
+                          {entry.daily_note_date 
+                            ? `${format(new Date(entry.daily_note_date + 'T12:00:00'), 'MMM d, yyyy')} ${formatTimestamp(entry.created_at, timezone, 'h:mm a zzz')}`
+                            : formatTimestamp(entry.created_at, timezone, 'MMM d, yyyy h:mm a zzz')
+                          }
                         </p>
                       </div>
 

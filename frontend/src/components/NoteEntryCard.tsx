@@ -111,6 +111,9 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onListsUpdat
   const handleChangeKanbanStatus = async (newColumnId: number) => {
     setIsChangingKanban(true);
     try {
+      // Save scroll position BEFORE any state changes
+      const scrollY = window.scrollY;
+      
       // Get current Kanban columns this entry is in
       const currentKanbanLists = entry.lists?.filter(list => list.is_kanban) || [];
       
@@ -122,22 +125,20 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onListsUpdat
       // Add to new Kanban column
       await listsApi.addEntry(newColumnId, entry.id, 0);
       
-      // Close dropdown immediately
+      // Close dropdown
       setShowKanbanModal(false);
       
-      // Save scroll position before refresh
-      const scrollY = window.scrollY;
+      // Trigger parent refresh if provided
+      if (onListsUpdate) {
+        onListsUpdate();
+        // Restore scroll immediately after calling update
+        window.scrollTo(0, scrollY);
+        // And again after a brief delay to catch any async renders
+        setTimeout(() => window.scrollTo(0, scrollY), 0);
+        setTimeout(() => window.scrollTo(0, scrollY), 50);
+        setTimeout(() => window.scrollTo(0, scrollY), 100);
+      }
       
-      // Trigger refresh after dropdown is closed
-      setTimeout(() => {
-        if (onListsUpdate) {
-          onListsUpdate();
-        }
-        // Restore scroll position after refresh
-        setTimeout(() => {
-          window.scrollTo(0, scrollY);
-        }, 50);
-      }, 100);
     } catch (error) {
       console.error('Failed to change Kanban status:', error);
       setShowKanbanModal(false);
@@ -752,7 +753,7 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onListsUpdat
             value={title}
             onChange={(e) => handleTitleChange(e.target.value)}
             placeholder="Add a title to the thing"
-            className="w-full text-lg font-semibold border-none focus:outline-none focus:ring-0 px-0"
+            className="w-full text-xl font-semibold border-none focus:outline-none focus:ring-0 px-0"
             style={{ 
               backgroundColor: 'transparent',
               color: 'var(--color-text-primary)',

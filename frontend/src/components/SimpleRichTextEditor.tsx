@@ -124,7 +124,7 @@ const SimpleRichTextEditor = ({ content, onChange, placeholder = 'Start writing.
 
     if (isCustom && imageUrl) {
       // Convert relative URL to absolute URL for the editor
-      const absoluteUrl = imageUrl.startsWith('http') ? imageUrl : `http://localhost:8000${imageUrl}`;
+      const absoluteUrl = imageUrl.startsWith('http') ? imageUrl : `${API_BASE_URL}${imageUrl}`;
       
       // Insert custom emoji as raw HTML with data-emoji attribute
       const imgHtml = `<img src="${absoluteUrl}" alt="${emoji}" data-emoji="true" class="inline-emoji" /> `;
