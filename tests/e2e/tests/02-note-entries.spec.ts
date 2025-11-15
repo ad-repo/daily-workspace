@@ -50,7 +50,7 @@ test.describe('Note Entry Management', () => {
 
   test('should create a new note entry', async ({ page }) => {
     // Click New Card button
-    await page.getByRole('button', { name: /new entry/i }).click();
+    await page.getByRole('button', { name: /new card/i }).click();
     
     // Wait for editor to appear (editor initialization can take time)
     const editor = page.locator('.ProseMirror').first();
@@ -81,7 +81,7 @@ test.describe('Note Entry Management', () => {
     const testContent = 'Test content for entry';
     
     // Click New Card
-    await page.getByRole('button', { name: /new entry/i }).click();
+    await page.getByRole('button', { name: /new card/i }).click();
     
     // Wait for editor to appear (editor initialization can take time)
     const editor = page.locator('.ProseMirror').first();

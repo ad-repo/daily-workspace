@@ -89,8 +89,8 @@ test.describe.skip('Custom Emoji System', () => {
     await page.goto('/');
     await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
     
-    // Create a new entry
-    await page.getByRole('button', { name: /new entry/i }).click();
+    // Create a new card
+    await page.getByRole('button', { name: /new card/i }).click();
     const editor = page.locator('.ProseMirror').first();
     await expect(editor).toBeVisible({ timeout: 10000 });
     await editor.fill('Test entry for custom emoji label');
@@ -140,8 +140,8 @@ test.describe.skip('Custom Emoji System', () => {
     await page.goto('/');
     await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
     
-    // Create a new entry
-    await page.getByRole('button', { name: /new entry/i }).click();
+    // Create a new card
+    await page.getByRole('button', { name: /new card/i }).click();
     const editor = page.locator('.ProseMirror').first();
     await expect(editor).toBeVisible({ timeout: 10000 });
     
@@ -183,7 +183,7 @@ test.describe.skip('Custom Emoji System', () => {
     await page.goto(`/day/${testDate}`);
     await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
     
-    await page.getByRole('button', { name: /new entry/i }).click();
+    await page.getByRole('button', { name: /new card/i }).click();
     const editor = page.locator('.ProseMirror').first();
     await expect(editor).toBeVisible({ timeout: 10000 });
     
@@ -338,7 +338,7 @@ test.describe.skip('Custom Emoji System', () => {
     await page.goto('/');
     await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
     
-    await page.getByRole('button', { name: /new entry/i }).click();
+    await page.getByRole('button', { name: /new card/i }).click();
     const editor = page.locator('.ProseMirror').first();
     await expect(editor).toBeVisible({ timeout: 10000 });
     
