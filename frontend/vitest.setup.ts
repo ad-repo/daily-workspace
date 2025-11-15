@@ -217,12 +217,12 @@ vi.mock('./src/contexts/SprintNameContext', () => ({
 // Mock window.scrollTo
 window.scrollTo = vi.fn();
 
-// Mock TransparentLabelsContext
-vi.mock('./src/contexts/TransparentLabelsContext', () => ({
-  TransparentLabelsProvider: ({ children }: { children: React.ReactNode }) => children,
-  useTransparentLabels: () => ({
-    transparentLabels: false,
-    setTransparentLabels: vi.fn(),
-  }),
-}));
+// Mock TransparentLabelsContext - but allow real implementation for context tests
+vi.mock('./src/contexts/TransparentLabelsContext', async () => {
+  const actual = await vi.importActual<typeof import('./src/contexts/TransparentLabelsContext')>('./src/contexts/TransparentLabelsContext');
+  return {
+    ...actual,
+    // Only mock for components that don't explicitly test the context
+  };
+});
 
