@@ -561,80 +561,101 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
 
   // Add copy buttons to code blocks
   useEffect(() => {
+    if (!editor) return;
+
     const addCopyButtons = () => {
-      const codeBlocks = document.querySelectorAll('pre:not(.copy-button-added)');
-      
-      codeBlocks.forEach((pre) => {
-        pre.classList.add('copy-button-added');
-        (pre as HTMLElement).style.position = 'relative';
+      try {
+        const editorElement = editor.view.dom;
+        if (!editorElement) return;
         
-        const button = document.createElement('button');
-        button.innerHTML = '📋 Copy';
-        button.className = 'code-copy-button';
-        button.style.cssText = `
-          position: absolute;
-          top: 0.5rem;
-          right: 0.5rem;
-          padding: 0.25rem 0.5rem;
-          font-size: 0.75rem;
-          background-color: rgba(0, 0, 0, 0.7);
-          color: white;
-          border: none;
-          border-radius: 0.25rem;
-          cursor: pointer;
-          opacity: 0;
-          transition: opacity 0.2s;
-          z-index: 10;
-        `;
+        const codeBlocks = editorElement.querySelectorAll('pre:not(.copy-button-added)');
         
-        button.addEventListener('click', async (e) => {
-          e.stopPropagation();
-          const code = pre.querySelector('code');
-          const text = code?.textContent || pre.textContent || '';
+        codeBlocks.forEach((pre) => {
+          if (pre.querySelector('.code-copy-button')) return; // Skip if button already exists
           
-          try {
-            await navigator.clipboard.writeText(text);
-            button.innerHTML = '✓ Copied!';
-            setTimeout(() => {
-              button.innerHTML = '📋 Copy';
-            }, 2000);
-          } catch (err) {
-            console.error('Failed to copy:', err);
-          }
+          pre.classList.add('copy-button-added');
+          (pre as HTMLElement).style.position = 'relative';
+          
+          const button = document.createElement('button');
+          button.innerHTML = '📋 Copy';
+          button.className = 'code-copy-button';
+          button.style.cssText = `
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            border: none;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 10;
+          `;
+          
+          const handleClick = async (e: Event) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const code = pre.querySelector('code');
+            const text = code?.textContent || pre.textContent || '';
+            
+            try {
+              await navigator.clipboard.writeText(text);
+              button.innerHTML = '✓ Copied!';
+              setTimeout(() => {
+                button.innerHTML = '📋 Copy';
+              }, 2000);
+            } catch (err) {
+              console.error('Failed to copy:', err);
+            }
+          };
+          
+          const handleMouseEnter = () => {
+            button.style.opacity = '1';
+          };
+          
+          const handleMouseLeave = () => {
+            button.style.opacity = '0';
+          };
+          
+          button.addEventListener('click', handleClick);
+          pre.addEventListener('mouseenter', handleMouseEnter);
+          pre.addEventListener('mouseleave', handleMouseLeave);
+          
+          pre.appendChild(button);
         });
-        
-        pre.addEventListener('mouseenter', () => {
-          button.style.opacity = '1';
-        });
-        
-        pre.addEventListener('mouseleave', () => {
-          button.style.opacity = '0';
-        });
-        
-        pre.appendChild(button);
-      });
+      } catch (err) {
+        console.error('Error adding copy buttons:', err);
+      }
     };
     
-    // Run initially and whenever editor content changes
-    addCopyButtons();
+    // Run after a short delay to ensure DOM is ready
+    const timeoutId = setTimeout(addCopyButtons, 100);
     
-    // Set up a mutation observer to catch dynamically added code blocks
-    const observer = new MutationObserver(addCopyButtons);
-    const editorElement = document.querySelector('.ProseMirror');
+    // Listen to editor updates
+    const updateHandler = () => {
+      setTimeout(addCopyButtons, 100);
+    };
     
-    if (editorElement) {
-      observer.observe(editorElement, {
-        childList: true,
-        subtree: true,
-      });
-    }
+    editor.on('update', updateHandler);
     
     return () => {
-      observer.disconnect();
+      clearTimeout(timeoutId);
+      editor.off('update', updateHandler);
+      
       // Clean up copy buttons
-      document.querySelectorAll('.code-copy-button').forEach(btn => btn.remove());
+      try {
+        const editorElement = editor.view.dom;
+        if (editorElement) {
+          editorElement.querySelectorAll('.code-copy-button').forEach(btn => btn.remove());
+        }
+      } catch (err) {
+        console.error('Error cleaning up copy buttons:', err);
+      }
     };
-  }, [editor?.state.doc]);
+  }, [editor]);
 
   if (!editor) {
     return null;
