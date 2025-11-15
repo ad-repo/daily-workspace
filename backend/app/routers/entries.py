@@ -39,8 +39,8 @@ def copy_pinned_entries_to_date(date: str, db: Session):
     existing_entries = db.query(models.NoteEntry).filter(models.NoteEntry.daily_note_id == note.id).all()
 
     # Create a set of content hashes to check for duplicates
-    # We'll consider an entry a duplicate if it has the same content and is_pinned
-    existing_pinned_content = {(entry.content, entry.title) for entry in existing_entries if entry.is_pinned}
+    # Check against ALL entries, not just pinned ones, to avoid creating duplicates of unpinned entries
+    existing_pinned_content = {(entry.content, entry.title) for entry in existing_entries}
 
     # Copy each pinned entry if it doesn't already exist for this date
     for pinned_entry in all_pinned:
