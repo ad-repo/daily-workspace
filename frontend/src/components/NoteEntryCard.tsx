@@ -181,12 +181,6 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onListsUpdat
 
   const handleDelete = () => {
     onDelete(entry.id);
-    // Trigger refresh if callback exists
-    if (onListsUpdate) {
-      setTimeout(() => {
-        onListsUpdate();
-      }, 100);
-    }
   };
 
   const handleReportToggle = async () => {
