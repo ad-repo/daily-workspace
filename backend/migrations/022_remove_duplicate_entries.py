@@ -39,6 +39,16 @@ def migrate_up(db_path):
     cursor = conn.cursor()
 
     try:
+        # Check if note_entries table exists
+        cursor.execute("""
+            SELECT name FROM sqlite_master 
+            WHERE type='table' AND name='note_entries'
+        """)
+        if not cursor.fetchone():
+            print("note_entries table does not exist yet. Skipping migration.")
+            conn.close()
+            return True
+        
         print("Finding duplicate entries...")
         
         # Find all duplicate entries (same daily_note_id, content, and title)
