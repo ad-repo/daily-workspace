@@ -798,26 +798,37 @@ img[data-emoji="true"] {
 }
 
 .prose pre::before {
-  content: var(--copy-text, '📋 Copy');
+  content: var(--copy-text, '📋');
   position: absolute;
   top: 0.5rem;
   right: 0.5rem;
-  padding: 0.25rem 0.5rem;
-  font-size: 0.75rem;
-  background-color: rgba(0, 0, 0, 0.7);
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.9), rgba(37, 99, 235, 0.9));
   color: white;
-  border-radius: 0.25rem;
+  border-radius: 0.5rem;
   cursor: pointer;
   opacity: 0;
-  transition: opacity 0.2s;
+  transition: all 0.2s ease;
   z-index: 10;
   pointer-events: none;
   user-select: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(4px);
 }
 
 .prose pre:hover::before {
   opacity: 1;
   pointer-events: auto;
+  transform: scale(1.05);
+}
+
+.prose pre::before:active {
+  transform: scale(0.95);
 }
 
 .prose pre code {

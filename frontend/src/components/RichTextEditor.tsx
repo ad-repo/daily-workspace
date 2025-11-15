@@ -568,8 +568,8 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
         const clickX = e.clientX - rect.left;
         const clickY = e.clientY - rect.top;
         
-        // Check if click is in the top-right area where the copy button is
-        if (clickX > rect.width - 80 && clickY < 40) {
+        // Check if click is in the top-right area where the copy button is (2rem + padding)
+        if (clickX > rect.width - 48 && clickY < 48) {
           e.preventDefault();
           e.stopPropagation();
           
@@ -578,13 +578,10 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
           
           try {
             await navigator.clipboard.writeText(text);
-            // Temporarily change the content to show "Copied!"
-            const originalContent = target.getAttribute('data-copy-text') || '📋 Copy';
-            target.setAttribute('data-copy-text', '✓ Copied!');
-            target.style.setProperty('--copy-text', '"✓ Copied!"');
+            // Temporarily change the icon to show success
+            target.style.setProperty('--copy-text', '"✓"');
             
             setTimeout(() => {
-              target.setAttribute('data-copy-text', originalContent);
               target.style.removeProperty('--copy-text');
             }, 2000);
           } catch (err) {
