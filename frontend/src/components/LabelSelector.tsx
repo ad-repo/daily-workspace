@@ -312,7 +312,7 @@ const LabelSelector = ({ date, entryId, selectedLabels, onOptimisticUpdate }: La
           Add
         </button>
         
-        <EmojiPicker onEmojiSelect={handleEmojiSelect} />
+        <EmojiPicker onEmojiSelect={handleEmojiSelect} variant="accent" />
       </div>
 
       {/* Display selected labels */}
