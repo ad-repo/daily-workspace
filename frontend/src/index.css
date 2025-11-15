@@ -794,6 +794,30 @@ img[data-emoji="true"] {
   overflow-x: auto;
   margin: 1em 0;
   border: 1px solid var(--color-border-primary);
+  position: relative;
+}
+
+.prose pre::before {
+  content: var(--copy-text, '📋 Copy');
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s;
+  z-index: 10;
+  pointer-events: none;
+  user-select: none;
+}
+
+.prose pre:hover::before {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .prose pre code {

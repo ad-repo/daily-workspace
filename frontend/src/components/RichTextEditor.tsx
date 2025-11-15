@@ -559,6 +559,44 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
     }
   }, [showFontFamilyMenu, showFontSizeMenu, showHeadingMenu]);
 
+  // Add click handler for copy button on pre elements
+  useEffect(() => {
+    const handlePreClick = async (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'PRE') {
+        const rect = target.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const clickY = e.clientY - rect.top;
+        
+        // Check if click is in the top-right area where the copy button is
+        if (clickX > rect.width - 80 && clickY < 40) {
+          e.preventDefault();
+          e.stopPropagation();
+          
+          const code = target.querySelector('code');
+          const text = code?.textContent || target.textContent || '';
+          
+          try {
+            await navigator.clipboard.writeText(text);
+            // Temporarily change the content to show "Copied!"
+            const originalContent = target.getAttribute('data-copy-text') || '📋 Copy';
+            target.setAttribute('data-copy-text', '✓ Copied!');
+            target.style.setProperty('--copy-text', '"✓ Copied!"');
+            
+            setTimeout(() => {
+              target.setAttribute('data-copy-text', originalContent);
+              target.style.removeProperty('--copy-text');
+            }, 2000);
+          } catch (err) {
+            console.error('Failed to copy:', err);
+          }
+        }
+      }
+    };
+    
+    document.addEventListener('click', handlePreClick);
+    return () => document.removeEventListener('click', handlePreClick);
+  }, []);
 
   if (!editor) {
     return null;
