@@ -114,6 +114,7 @@ def search_all(
     Global search across entries AND lists.
     Returns both entries and lists that match the search criteria.
     """
+    print(f"Search params: q={q}, label_ids={label_ids}, list_ids={list_ids}, is_important={is_important}, is_completed={is_completed}")
     results = {'entries': [], 'lists': []}
 
     # Search entries
@@ -155,10 +156,12 @@ def search_all(
 
     # Filter by starred/important status if provided
     if is_important is not None:
+        print(f"Filtering by is_important: {is_important}, converted to: {1 if is_important else 0}")
         entry_query = entry_query.filter(models.NoteEntry.is_important == (1 if is_important else 0))
 
     # Filter by completed status if provided
     if is_completed is not None:
+        print(f"Filtering by is_completed: {is_completed}, converted to: {1 if is_completed else 0}")
         entry_query = entry_query.filter(models.NoteEntry.is_completed == (1 if is_completed else 0))
 
     # Add distinct if we did any joins
@@ -166,6 +169,7 @@ def search_all(
         entry_query = entry_query.distinct()
 
     entry_results = entry_query.order_by(models.NoteEntry.created_at.desc()).limit(100).all()
+    print(f"Found {len(entry_results)} entries")
 
     for entry in entry_results:
         # Separate regular lists and kanban columns
