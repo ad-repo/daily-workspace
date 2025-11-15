@@ -69,3 +69,10 @@ tests/e2e/test-results/
 .pytest_cache/
 test_output.log
 test_results.txt
+
+# Tauri
+src-tauri/target/
+src-tauri/Cargo.lock
+backend/backend.spec
+backend/dist/
+backend/build/
