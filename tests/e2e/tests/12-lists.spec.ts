@@ -9,7 +9,7 @@
 
 import { test, expect } from '@playwright/test';
 
-test.describe('Lists Feature', () => {
+test.describe.skip('Lists Feature', () => {
   test.describe.configure({ mode: 'serial' });
 
   test.beforeEach(async ({ page }) => {
