@@ -421,12 +421,8 @@ const Search = () => {
                 <button
                   key={index}
                   onClick={() => {
-                    setSearchQuery(item.query);
-                    // Trigger search after setting query
-                    setTimeout(() => {
-                      const event = new KeyboardEvent('keypress', { key: 'Enter' });
-                      handleSearch();
-                    }, 0);
+                    // Perform search directly without updating the search input
+                    performSearch({ query: item.query });
                   }}
                   className="px-3 py-1.5 rounded-full text-sm transition-colors flex items-center gap-2"
                   style={{
