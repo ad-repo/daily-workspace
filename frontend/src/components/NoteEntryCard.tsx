@@ -224,16 +224,8 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onListsUpdat
     
     try {
       await axios.post(`${API_URL}/api/entries/${entry.id}/toggle-pin`);
-      // Trigger parent refresh if callback exists
-      if (onListsUpdate) {
-        // Save scroll position before refresh
-        const scrollY = window.scrollY;
-        onListsUpdate();
-        // Restore scroll position after a brief delay
-        setTimeout(() => {
-          window.scrollTo(0, scrollY);
-        }, 50);
-      }
+      // Don't refresh - the local state update is sufficient
+      // The change is persisted to the backend and will be reflected on next page load
     } catch (error) {
       console.error('Failed to toggle pin status:', error);
       setIsPinned(!newValue); // Revert on error
