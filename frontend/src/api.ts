@@ -19,7 +19,28 @@ import type {
   CustomEmojiUpdate,
 } from './types';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+// Check if running in Tauri
+const isTauri = typeof window !== 'undefined' && '__TAURI__' in window;
+
+// Get API base URL
+let API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
+// If running in Tauri, use the backend URL from the sidecar
+if (isTauri) {
+  // @ts-ignore - Tauri types
+  const { invoke } = window.__TAURI__;
+  
+  // Get backend URL from Tauri command
+  invoke('get_backend_url')
+    .then((url: string) => {
+      API_BASE_URL = url;
+      api.defaults.baseURL = url;
+      console.log('[Tauri] Using backend URL:', url);
+    })
+    .catch((error: any) => {
+      console.error('[Tauri] Failed to get backend URL:', error);
+    });
+}
 
 const api = axios.create({
   baseURL: API_BASE_URL,

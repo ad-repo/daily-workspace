@@ -43,9 +43,24 @@ fn main() {
                 backend_port: Arc::new(Mutex::new(port)),
             });
             
+            // Get the app data directory for database storage
+            let app_data_dir = app.path().app_data_dir()
+                .expect("failed to get app data directory");
+            
+            // Create the directory if it doesn't exist
+            std::fs::create_dir_all(&app_data_dir)
+                .expect("failed to create app data directory");
+            
+            // Set up the database path
+            let db_path = app_data_dir.join("daily_notes.db");
+            let db_url = format!("sqlite:///{}", db_path.display());
+            
+            println!("Database path: {}", db_url);
+            
             // Get the sidecar command
             let sidecar_command = app.shell().sidecar("daily-notes-backend")
-                .expect("failed to create sidecar command");
+                .expect("failed to create sidecar command")
+                .env("DATABASE_URL", db_url);
             
             // Spawn the backend process
             let (mut rx, _child) = sidecar_command
