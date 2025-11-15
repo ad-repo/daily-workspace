@@ -13,7 +13,7 @@ test.describe('Search Functionality', () => {
   });
 
   test('should search by text content', async ({ page }) => {
-    await expect(page.locator('input[placeholder="Search by text content..."]')).toBeVisible();
+    await expect(page.locator('input[placeholder="Search by text (optional)..."]')).toBeVisible();
   });
 
   test('should search by label', async ({ page }) => {
@@ -26,7 +26,7 @@ test.describe('Search Functionality', () => {
   });
 
   test('should filter by completed flag', async ({ page }) => {
-    await expect(page.locator('input[placeholder="Search by text content..."]')).toBeVisible();
+    await expect(page.locator('input[placeholder="Search by text (optional)..."]')).toBeVisible();
   });
 
   test('should show search history', async ({ page }) => {
@@ -34,7 +34,7 @@ test.describe('Search Functionality', () => {
   });
 
   test('should clear search results', async ({ page }) => {
-    await expect(page.locator('input[placeholder="Search by text content..."]')).toBeVisible();
+    await expect(page.locator('input[placeholder="Search by text (optional)..."]')).toBeVisible();
   });
 
   test('should show no results message', async ({ page }) => {
@@ -46,6 +46,6 @@ test.describe('Search Functionality', () => {
   });
 
   test('should combine multiple filters', async ({ page }) => {
-    await expect(page.locator('input[placeholder="Search by text content..."]')).toBeVisible();
+    await expect(page.locator('input[placeholder="Search by text (optional)..."]')).toBeVisible();
   });
 });
