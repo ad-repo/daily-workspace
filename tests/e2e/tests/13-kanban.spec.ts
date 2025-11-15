@@ -23,8 +23,8 @@ test.describe('Kanban Board', () => {
     await page.locator('a:has-text("Kanban")').click();
     await page.waitForTimeout(1000);
     
-    // Should see either "Initialize Kanban" button or Kanban board
-    const initButton = page.locator('button:has-text("Initialize Kanban")');
+    // Should see either "Initialize Kanban Board" button or Kanban board
+    const initButton = page.locator('button:has-text("Initialize Kanban Board")');
     const kanbanBoard = page.locator('text=/To Do|In Progress|Done/');
     
     const hasInitButton = await initButton.isVisible().catch(() => false);
@@ -38,7 +38,7 @@ test.describe('Kanban Board', () => {
     await page.waitForTimeout(1000);
     
     // Check if already initialized
-    const initButton = page.locator('button:has-text("Initialize Kanban")');
+    const initButton = page.locator('button:has-text("Initialize Kanban Board")');
     const isInitialized = !(await initButton.isVisible().catch(() => false));
     
     if (!isInitialized) {
