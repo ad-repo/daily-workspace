@@ -25,16 +25,16 @@ const EmojiPicker = ({ onEmojiSelect, variant = 'toolbar' }: EmojiPickerProps) =
   const getButtonStyles = () => {
     if (variant === 'accent') {
       return {
-        backgroundColor: isOpen ? '#2563eb' : '#3b82f6', // blue-700 : blue-600
+        backgroundColor: '#3b82f6', // blue-600 always
         color: 'white',
         hoverClass: 'hover:bg-blue-700'
       };
     }
-    // toolbar variant (default)
+    // toolbar variant (default) - matches ToolbarButton behavior
     return {
-      backgroundColor: isOpen ? 'var(--color-bg-hover)' : 'var(--color-bg-secondary)',
-      color: 'var(--color-text-primary)',
-      hoverClass: 'hover:opacity-90'
+      backgroundColor: isOpen ? 'var(--color-accent)' : 'transparent',
+      color: isOpen ? 'var(--color-accent-text)' : 'var(--color-text-primary)',
+      hoverClass: 'hover:bg-gray-100'
     };
   };
 
