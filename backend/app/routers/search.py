@@ -116,10 +116,13 @@ def search_all(
     """
     results = {'entries': [], 'lists': []}
 
-    # Search entries (existing logic)
+    # Search entries
     entry_query = db.query(models.NoteEntry).options(
         joinedload(models.NoteEntry.labels), joinedload(models.NoteEntry.lists), joinedload(models.NoteEntry.daily_note)
     )
+
+    # Track if we need to add distinct() due to joins
+    needs_distinct = False
 
     if q and q.strip():
         search_term = f'%{q.strip()}%'
@@ -129,9 +132,8 @@ def search_all(
         try:
             label_id_list = [int(lid.strip()) for lid in label_ids.split(',') if lid.strip()]
             if label_id_list:
-                entry_query = (
-                    entry_query.join(models.NoteEntry.labels).filter(models.Label.id.in_(label_id_list)).distinct()
-                )
+                # Use has() to avoid join conflicts
+                entry_query = entry_query.filter(models.NoteEntry.labels.any(models.Label.id.in_(label_id_list)))
         except ValueError:
             pass
 
@@ -140,7 +142,8 @@ def search_all(
         try:
             list_id_list = [int(lid.strip()) for lid in list_ids.split(',') if lid.strip()]
             if list_id_list:
-                entry_query = entry_query.join(models.NoteEntry.lists).filter(models.List.id.in_(list_id_list)).distinct()
+                # Use has() to avoid join conflicts
+                entry_query = entry_query.filter(models.NoteEntry.lists.any(models.List.id.in_(list_id_list)))
         except ValueError:
             pass
 
