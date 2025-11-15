@@ -195,6 +195,7 @@ const EmojiPicker = ({ onEmojiSelect, variant = 'toolbar' }: EmojiPickerProps) =
                     height="300px"
                     searchPlaceHolder="Search emoji..."
                     previewConfig={{ showPreview: false }}
+                    theme="auto"
                   />
                 ) : (
                   <EmojiMartPicker
@@ -202,6 +203,10 @@ const EmojiPicker = ({ onEmojiSelect, variant = 'toolbar' }: EmojiPickerProps) =
                     onEmojiSelect={handleEmojiClick}
                     theme="auto"
                     previewPosition="none"
+                    style={{
+                      backgroundColor: 'var(--color-bg-primary)',
+                      borderColor: 'var(--color-border-primary)',
+                    }}
                   />
                 )}
               </div>
