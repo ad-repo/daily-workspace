@@ -378,7 +378,7 @@ const Search = () => {
 
 
         {/* Search History */}
-        {searchHistory.length > 0 && !hasSearched && (
+        {searchHistory.length > 0 && (
           <div className="mb-6">
             <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text-primary)' }}>
               Recent Searches:
