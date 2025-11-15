@@ -559,6 +559,83 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start writing...' }:
     }
   }, [showFontFamilyMenu, showFontSizeMenu, showHeadingMenu]);
 
+  // Add copy buttons to code blocks
+  useEffect(() => {
+    const addCopyButtons = () => {
+      const codeBlocks = document.querySelectorAll('pre:not(.copy-button-added)');
+      
+      codeBlocks.forEach((pre) => {
+        pre.classList.add('copy-button-added');
+        (pre as HTMLElement).style.position = 'relative';
+        
+        const button = document.createElement('button');
+        button.innerHTML = '📋 Copy';
+        button.className = 'code-copy-button';
+        button.style.cssText = `
+          position: absolute;
+          top: 0.5rem;
+          right: 0.5rem;
+          padding: 0.25rem 0.5rem;
+          font-size: 0.75rem;
+          background-color: rgba(0, 0, 0, 0.7);
+          color: white;
+          border: none;
+          border-radius: 0.25rem;
+          cursor: pointer;
+          opacity: 0;
+          transition: opacity 0.2s;
+          z-index: 10;
+        `;
+        
+        button.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          const code = pre.querySelector('code');
+          const text = code?.textContent || pre.textContent || '';
+          
+          try {
+            await navigator.clipboard.writeText(text);
+            button.innerHTML = '✓ Copied!';
+            setTimeout(() => {
+              button.innerHTML = '📋 Copy';
+            }, 2000);
+          } catch (err) {
+            console.error('Failed to copy:', err);
+          }
+        });
+        
+        pre.addEventListener('mouseenter', () => {
+          button.style.opacity = '1';
+        });
+        
+        pre.addEventListener('mouseleave', () => {
+          button.style.opacity = '0';
+        });
+        
+        pre.appendChild(button);
+      });
+    };
+    
+    // Run initially and whenever editor content changes
+    addCopyButtons();
+    
+    // Set up a mutation observer to catch dynamically added code blocks
+    const observer = new MutationObserver(addCopyButtons);
+    const editorElement = document.querySelector('.ProseMirror');
+    
+    if (editorElement) {
+      observer.observe(editorElement, {
+        childList: true,
+        subtree: true,
+      });
+    }
+    
+    return () => {
+      observer.disconnect();
+      // Clean up copy buttons
+      document.querySelectorAll('.code-copy-button').forEach(btn => btn.remove());
+    };
+  }, [editor?.state.doc]);
+
   if (!editor) {
     return null;
   }
