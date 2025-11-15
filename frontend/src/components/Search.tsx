@@ -19,9 +19,7 @@ const Search = () => {
   const { transparentLabels } = useTransparentLabels();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLabels, setSelectedLabels] = useState<number[]>([]);
-  const [selectedLists, setSelectedLists] = useState<number[]>([]);
   const [allLabels, setAllLabels] = useState<Label[]>([]);
-  const [allLists, setAllLists] = useState<List[]>([]);
   const [results, setResults] = useState<NoteEntry[]>([]);
   const [listResults, setListResults] = useState<List[]>([]);
   const [loading, setLoading] = useState(false);
@@ -33,32 +31,8 @@ const Search = () => {
 
   useEffect(() => {
     loadLabels();
-    loadLists();
     loadSearchHistory();
   }, []);
-
-  useEffect(() => {
-    // Reset search when component unmounts or navigates away
-    return () => {
-      setSearchQuery('');
-      setSelectedLabels([]);
-      setSelectedLists([]);
-      setResults([]);
-      setListResults([]);
-      setHasSearched(false);
-    };
-  }, []);
-
-  // Auto-search when labels, lists, or filters change
-  useEffect(() => {
-    if (selectedLabels.length > 0 || selectedLists.length > 0 || filterStarred !== null || filterCompleted !== null) {
-      handleSearch();
-    } else if (hasSearched && !searchQuery.trim()) {
-      // Clear results if no filters and no query
-      setResults([]);
-      setHasSearched(false);
-    }
-  }, [selectedLabels, selectedLists, filterStarred, filterCompleted]);
 
   const loadLabels = async () => {
     try {
@@ -69,14 +43,6 @@ const Search = () => {
     }
   };
 
-  const loadLists = async () => {
-    try {
-      const response = await axios.get<List[]>(`${API_URL}/api/lists`);
-      setAllLists(response.data);
-    } catch (error) {
-      console.error('Failed to load lists:', error);
-    }
-  };
 
   const loadSearchHistory = async () => {
     try {
@@ -101,8 +67,22 @@ const Search = () => {
     }
   };
 
-  const handleSearch = async () => {
-    if (!searchQuery.trim() && selectedLabels.length === 0 && selectedLists.length === 0 && filterStarred === null && filterCompleted === null) {
+  const performSearch = async (overrides?: {
+    query?: string;
+    labels?: number[];
+    starred?: boolean | null;
+    completed?: boolean | null;
+  }) => {
+    const query = overrides?.query !== undefined ? overrides.query : searchQuery;
+    const labels = overrides?.labels !== undefined ? overrides.labels : selectedLabels;
+    const starred = overrides?.starred !== undefined ? overrides.starred : filterStarred;
+    const completed = overrides?.completed !== undefined ? overrides.completed : filterCompleted;
+
+    // Don't search if nothing is entered
+    if (!query.trim() && labels.length === 0 && starred === null && completed === null) {
+      setResults([]);
+      setListResults([]);
+      setHasSearched(false);
       return;
     }
 
@@ -110,26 +90,23 @@ const Search = () => {
     setHasSearched(true);
 
     // Save to history if there's a text query
-    if (searchQuery.trim()) {
-      saveToHistory(searchQuery);
+    if (query.trim()) {
+      saveToHistory(query);
     }
 
     try {
       const params: any = {};
-      if (searchQuery.trim()) {
-        params.q = searchQuery.trim();
+      if (query.trim()) {
+        params.q = query.trim();
       }
-      if (selectedLabels.length > 0) {
-        params.label_ids = selectedLabels.join(',');
+      if (labels.length > 0) {
+        params.label_ids = labels.join(',');
       }
-      if (selectedLists.length > 0) {
-        params.list_ids = selectedLists.join(',');
+      if (starred !== null) {
+        params.is_important = starred;
       }
-      if (filterStarred !== null) {
-        params.is_important = filterStarred;
-      }
-      if (filterCompleted !== null) {
-        params.is_completed = filterCompleted;
+      if (completed !== null) {
+        params.is_completed = completed;
       }
 
       const response = await axios.get<{entries: NoteEntry[], lists: List[]}>(`${API_URL}/api/search/all`, { params });
@@ -144,6 +121,11 @@ const Search = () => {
     }
   };
 
+  const handleSearch = () => {
+    setHasSearched(true);
+    performSearch();
+  };
+
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       handleSearch();
@@ -151,17 +133,17 @@ const Search = () => {
   };
 
   const toggleLabel = (labelId: number) => {
-    setSelectedLabels(prev =>
-      prev.includes(labelId)
-        ? prev.filter(id => id !== labelId)
-        : [...prev, labelId]
-    );
+    const newLabels = selectedLabels.includes(labelId)
+      ? selectedLabels.filter(id => id !== labelId)
+      : [...selectedLabels, labelId];
+    
+    setSelectedLabels(newLabels);
+    performSearch({ labels: newLabels });
   };
 
   const clearSearch = () => {
     setSearchQuery('');
     setSelectedLabels([]);
-    setSelectedLists([]);
     setFilterStarred(null);
     setFilterCompleted(null);
     setResults([]);
@@ -177,6 +159,19 @@ const Search = () => {
     const tmp = document.createElement('div');
     tmp.innerHTML = html;
     return tmp.textContent || tmp.innerText || '';
+  };
+
+  const isCustomEmojiUrl = (name: string) => {
+    return name.startsWith('/api/uploads/') || name.startsWith('http');
+  };
+
+  // Fix all absolute API URLs in HTML content to use the actual API_URL
+  const fixImageUrls = (html: string): string => {
+    // Replace localhost:8000
+    let fixed = html.replace(/http:\/\/localhost:8000/g, API_URL);
+    // Replace any IP:8000 patterns (like 192.168.0.186:8000)
+    fixed = fixed.replace(/http:\/\/[\d.]+:8000/g, API_URL);
+    return fixed;
   };
 
   return (
@@ -195,7 +190,7 @@ const Search = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Search by text content..."
+              placeholder="Search by text (optional)..."
               className="flex-1 px-4 py-3 rounded-lg focus:outline-none"
               style={{
                 backgroundColor: 'var(--color-bg-primary)',
@@ -213,24 +208,24 @@ const Search = () => {
             />
             <button
               onClick={handleSearch}
-              disabled={loading || (!searchQuery.trim() && selectedLabels.length === 0 && selectedLists.length === 0 && filterStarred === null && filterCompleted === null)}
+              disabled={loading || (!searchQuery.trim() && selectedLabels.length === 0 && filterStarred === null && filterCompleted === null)}
               className="px-6 py-3 rounded-lg transition-colors flex items-center gap-2"
               style={{
-                backgroundColor: (loading || (!searchQuery.trim() && selectedLabels.length === 0 && selectedLists.length === 0 && filterStarred === null && filterCompleted === null)) 
+                backgroundColor: (loading || (!searchQuery.trim() && selectedLabels.length === 0 && filterStarred === null && filterCompleted === null)) 
                   ? 'var(--color-bg-tertiary)' 
                   : 'var(--color-accent)',
-                color: (loading || (!searchQuery.trim() && selectedLabels.length === 0 && selectedLists.length === 0 && filterStarred === null && filterCompleted === null))
+                color: (loading || (!searchQuery.trim() && selectedLabels.length === 0 && filterStarred === null && filterCompleted === null))
                   ? 'var(--color-text-tertiary)'
                   : 'var(--color-accent-text)',
-                cursor: (loading || (!searchQuery.trim() && selectedLabels.length === 0 && selectedLists.length === 0 && filterStarred === null && filterCompleted === null)) ? 'not-allowed' : 'pointer',
+                cursor: (loading || (!searchQuery.trim() && selectedLabels.length === 0 && filterStarred === null && filterCompleted === null)) ? 'not-allowed' : 'pointer',
               }}
               onMouseEnter={(e) => {
-                if (!loading && (searchQuery.trim() || selectedLabels.length > 0 || selectedLists.length > 0 || filterStarred !== null || filterCompleted !== null)) {
+                if (!loading && (searchQuery.trim() || selectedLabels.length > 0 || filterStarred !== null || filterCompleted !== null)) {
                   e.currentTarget.style.backgroundColor = 'var(--color-accent-hover)';
                 }
               }}
               onMouseLeave={(e) => {
-                if (!loading && (searchQuery.trim() || selectedLabels.length > 0 || selectedLists.length > 0 || filterStarred !== null || filterCompleted !== null)) {
+                if (!loading && (searchQuery.trim() || selectedLabels.length > 0 || filterStarred !== null || filterCompleted !== null)) {
                   e.currentTarget.style.backgroundColor = 'var(--color-accent)';
                 }
               }}
@@ -259,15 +254,19 @@ const Search = () => {
           </div>
         </div>
 
-        {/* Status Filters */}
+        {/* Status Selection */}
         <div className="mb-6">
           <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text-primary)' }}>
-            Filter by Status:
+            Search by Status (optional):
           </label>
           <div className="flex flex-wrap gap-3">
             {/* Starred Filter */}
             <button
-              onClick={() => setFilterStarred(filterStarred === true ? null : true)}
+              onClick={() => {
+                const newValue = filterStarred === true ? null : true;
+                setFilterStarred(newValue);
+                performSearch({ starred: newValue });
+              }}
               className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all"
               style={{
                 backgroundColor: filterStarred === true ? 'var(--color-accent)' : 'var(--color-bg-tertiary)',
@@ -296,7 +295,11 @@ const Search = () => {
 
             {/* Completed Filter */}
             <button
-              onClick={() => setFilterCompleted(filterCompleted === true ? null : true)}
+              onClick={() => {
+                const newValue = filterCompleted === true ? null : true;
+                setFilterCompleted(newValue);
+                performSearch({ completed: newValue });
+              }}
               className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all"
               style={{
                 backgroundColor: filterCompleted === true ? 'var(--color-accent)' : 'var(--color-bg-tertiary)',
@@ -325,7 +328,11 @@ const Search = () => {
 
             {/* Not Completed Filter */}
             <button
-              onClick={() => setFilterCompleted(filterCompleted === false ? null : false)}
+              onClick={() => {
+                const newValue = filterCompleted === false ? null : false;
+                setFilterCompleted(newValue);
+                performSearch({ completed: newValue });
+              }}
               className="flex items-center gap-2 px-4 py-2 rounded-lg transition-all"
               style={{
                 backgroundColor: filterCompleted === false ? 'var(--color-accent)' : 'var(--color-bg-tertiary)',
@@ -351,74 +358,69 @@ const Search = () => {
           </div>
         </div>
 
-        {/* Label Filter */}
+        {/* Label Selection */}
         <div className="mb-6">
           <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text-primary)' }}>
-            Filter by Labels:
+            Search by Labels (optional):
           </label>
           <div className="flex flex-wrap gap-2">
             {allLabels.length === 0 ? (
               <p className="text-sm" style={{ color: 'var(--color-text-tertiary)' }}>No labels available</p>
             ) : (
-              allLabels.map((label) => (
-                <button
-                  key={label.id}
-                  onClick={() => toggleLabel(label.id)}
-                  className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
-                    selectedLabels.includes(label.id)
-                      ? 'ring-2 ring-offset-2 ring-blue-500'
-                      : 'opacity-70 hover:opacity-100'
-                  }`}
-                  style={{
-                    backgroundColor: transparentLabels ? 'transparent' : label.color,
-                    color: transparentLabels ? label.color : 'white',
-                    border: transparentLabels ? `1px solid ${label.color}` : 'none'
-                  }}
-                >
-                  {label.name}
-                </button>
-              ))
+              allLabels.map((label) => {
+                const isCustomEmoji = isCustomEmojiUrl(label.name);
+                
+                if (isCustomEmoji) {
+                  const imageUrl = label.name.startsWith('http') ? label.name : `${API_URL}${label.name}`;
+                  return (
+                    <button
+                      key={label.id}
+                      onClick={() => toggleLabel(label.id)}
+                      className={`p-1.5 rounded-lg transition-all ${
+                        selectedLabels.includes(label.id)
+                          ? 'ring-2 ring-offset-2 ring-blue-500'
+                          : 'opacity-70 hover:opacity-100'
+                      }`}
+                      style={{
+                        backgroundColor: 'var(--color-bg-tertiary)',
+                      }}
+                    >
+                      <img 
+                        src={imageUrl} 
+                        alt="emoji" 
+                        className="inline-emoji"
+                        style={{ width: '1.5rem', height: '1.5rem' }}
+                      />
+                    </button>
+                  );
+                }
+                
+                return (
+                  <button
+                    key={label.id}
+                    onClick={() => toggleLabel(label.id)}
+                    className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                      selectedLabels.includes(label.id)
+                        ? 'ring-2 ring-offset-2 ring-blue-500'
+                        : 'opacity-70 hover:opacity-100'
+                    }`}
+                    style={{
+                      backgroundColor: transparentLabels ? 'transparent' : label.color,
+                      color: transparentLabels ? label.color : 'white',
+                      border: transparentLabels ? `1px solid ${label.color}` : 'none'
+                    }}
+                  >
+                    {label.name}
+                  </button>
+                );
+              })
             )}
           </div>
         </div>
 
-        {/* Lists Filter */}
-        <div className="mb-6">
-          <label className="block text-sm font-medium mb-2 flex items-center gap-2" style={{ color: 'var(--color-text-primary)' }}>
-            <Columns className="h-4 w-4" />
-            Filter by Lists:
-          </label>
-          <div className="flex flex-wrap gap-2">
-            {allLists.length === 0 ? (
-              <p className="text-sm" style={{ color: 'var(--color-text-tertiary)' }}>No lists available</p>
-            ) : (
-              allLists.map((list) => (
-                <button
-                  key={list.id}
-                  onClick={() => setSelectedLists(prev => 
-                    prev.includes(list.id)
-                      ? prev.filter(id => id !== list.id)
-                      : [...prev, list.id]
-                  )}
-                  className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                    selectedLists.includes(list.id)
-                      ? 'ring-2 ring-offset-2'
-                      : 'opacity-70 hover:opacity-100'
-                  }`}
-                  style={{
-                    backgroundColor: list.color,
-                    color: 'white',
-                  }}
-                >
-                  {list.name}
-                </button>
-              ))
-            )}
-          </div>
-        </div>
 
         {/* Search History */}
-        {searchHistory.length > 0 && !hasSearched && (
+        {searchHistory.length > 0 && (
           <div className="mb-6">
             <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text-primary)' }}>
               Recent Searches:
@@ -428,12 +430,8 @@ const Search = () => {
                 <button
                   key={index}
                   onClick={() => {
-                    setSearchQuery(item.query);
-                    // Trigger search after setting query
-                    setTimeout(() => {
-                      const event = new KeyboardEvent('keypress', { key: 'Enter' });
-                      handleSearch();
-                    }, 0);
+                    // Perform search directly without updating the search input
+                    performSearch({ query: item.query });
                   }}
                   className="px-3 py-1.5 rounded-full text-sm transition-colors flex items-center gap-2"
                   style={{
@@ -456,15 +454,36 @@ const Search = () => {
         )}
 
         {/* Search Info */}
-        {hasSearched && (
-          <div className="text-sm mb-4" style={{ color: 'var(--color-text-secondary)' }}>
-            Found {results.length} entr{results.length !== 1 ? 'ies' : 'y'} and {listResults.length} list{listResults.length !== 1 ? 's' : ''}
-            {searchQuery.trim() && ` for "${searchQuery}"`}
-            {selectedLabels.length > 0 && ` with selected labels`}
-            {selectedLists.length > 0 && ` in selected lists`}
-            {filterStarred === true && ` (starred only)`}
-            {filterCompleted === true && ` (completed only)`}
-            {filterCompleted === false && ` (not completed)`}
+        {hasSearched && !loading && (
+          <div 
+            className="text-sm mb-4 p-3 rounded-lg" 
+            style={{ 
+              color: 'var(--color-text-primary)',
+              backgroundColor: 'var(--color-bg-secondary)',
+              border: '1px solid var(--color-border-primary)'
+            }}
+          >
+            <strong>Found {results.length} entr{results.length !== 1 ? 'ies' : 'y'} and {listResults.length} list{listResults.length !== 1 ? 's' : ''}</strong>
+            <div className="mt-2 text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+              Searching by:
+              {searchQuery.trim() && <span className="ml-2 px-2 py-1 rounded" style={{ backgroundColor: 'var(--color-bg-tertiary)' }}>Text: "{searchQuery}"</span>}
+              {selectedLabels.length > 0 && <span className="ml-2 px-2 py-1 rounded" style={{ backgroundColor: 'var(--color-bg-tertiary)' }}>{selectedLabels.length} label{selectedLabels.length !== 1 ? 's' : ''}</span>}
+              {filterStarred === true && <span className="ml-2 px-2 py-1 rounded" style={{ backgroundColor: 'var(--color-bg-tertiary)' }}>Starred</span>}
+              {filterCompleted === true && <span className="ml-2 px-2 py-1 rounded" style={{ backgroundColor: 'var(--color-bg-tertiary)' }}>Completed</span>}
+              {filterCompleted === false && <span className="ml-2 px-2 py-1 rounded" style={{ backgroundColor: 'var(--color-bg-tertiary)' }}>Not completed</span>}
+            </div>
+          </div>
+        )}
+        
+        {loading && (
+          <div 
+            className="text-sm mb-4 p-3 rounded-lg text-center" 
+            style={{ 
+              color: 'var(--color-text-secondary)',
+              backgroundColor: 'var(--color-bg-secondary)',
+            }}
+          >
+            Searching...
           </div>
         )}
       </div>
@@ -494,40 +513,45 @@ const Search = () => {
                         style={{
                           backgroundColor: 'var(--color-card-bg)',
                           border: `2px solid ${list.color}`,
-                          animation: `fadeIn 0.3s ease-in ${index * 0.05}s both`
+                          animation: `fadeIn 0.3s ease-in ${index * 0.05}s both`,
+                          minHeight: '200px'
                         }}
                       >
-                        <div className="flex items-start justify-between mb-4">
-                          <div className="flex items-center gap-3 flex-1">
-                            <div
-                              className="w-2 h-12 rounded-full flex-shrink-0"
-                              style={{ backgroundColor: list.color }}
-                            />
-                            <div className="flex-1">
-                              <h3 className="text-2xl font-bold mb-2" style={{ color: 'var(--color-text-primary)' }}>
-                                {list.name}
-                              </h3>
-                              {list.description && (
-                                <p className="text-sm mb-3" style={{ color: 'var(--color-text-secondary)' }}>
-                                  {list.description}
-                                </p>
-                              )}
-                              <div className="flex items-center gap-3">
-                                <span
-                                  className="px-3 py-1 rounded-full text-sm font-semibold"
-                                  style={{
-                                    backgroundColor: list.color,
-                                    color: 'white',
-                                  }}
-                                >
-                                  {list.entry_count || 0} {list.entry_count === 1 ? 'entry' : 'entries'}
+                        <div className="flex items-start gap-3 mb-4">
+                          <div
+                            className="w-2 h-16 rounded-full flex-shrink-0"
+                            style={{ backgroundColor: list.color }}
+                          />
+                          <div className="flex-1">
+                            <h3 className="text-2xl font-bold mb-3" style={{ color: 'var(--color-text-primary)' }}>
+                              {list.name}
+                            </h3>
+                            {list.description && (
+                              <div 
+                                className="prose max-w-none text-base leading-relaxed mb-4"
+                                style={{ 
+                                  color: 'var(--color-text-secondary)',
+                                  maxHeight: '200px',
+                                  overflowY: 'auto'
+                                }}
+                                dangerouslySetInnerHTML={{ __html: fixImageUrls(list.description) }}
+                              />
+                            )}
+                            <div className="flex items-center gap-3">
+                              <span
+                                className="px-3 py-1 rounded-full text-sm font-semibold"
+                                style={{
+                                  backgroundColor: list.color,
+                                  color: 'white',
+                                }}
+                              >
+                                {list.entry_count || 0} {list.entry_count === 1 ? 'entry' : 'entries'}
+                              </span>
+                              {list.is_archived && (
+                                <span className="px-3 py-1 rounded-full text-sm font-medium" style={{ backgroundColor: 'var(--color-bg-tertiary)', color: 'var(--color-text-secondary)' }}>
+                                  Archived
                                 </span>
-                                {list.is_archived && (
-                                  <span className="px-3 py-1 rounded-full text-sm font-medium" style={{ backgroundColor: 'var(--color-bg-tertiary)', color: 'var(--color-text-secondary)' }}>
-                                    Archived
-                                  </span>
-                                )}
-                              </div>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -566,20 +590,17 @@ const Search = () => {
                     {results.map((entry: any, index) => {
               // Extract date from the search result
               const date = entry.date || 'Unknown';
-              const content = entry.content_type === 'code' 
-                ? entry.content 
-                : stripHtml(entry.content);
-              const preview = content.slice(0, 200) + (content.length > 200 ? '...' : '');
 
               return (
                 <div
                   key={entry.id}
                   onClick={() => goToEntry(entry, date)}
-                  className="rounded-xl shadow-lg p-8 hover:shadow-2xl transition-all duration-300 cursor-pointer"
+                  className="rounded-xl shadow-lg p-6 hover:shadow-2xl transition-all duration-300 cursor-pointer"
                   style={{
                     backgroundColor: 'var(--color-card-bg)',
-                    border: '1px solid var(--color-border-primary)',
-                    animation: `fadeIn 0.3s ease-in ${index * 0.05}s both`
+                    border: '2px solid var(--color-border-primary)',
+                    animation: `fadeIn 0.3s ease-in ${index * 0.05}s both`,
+                    minHeight: '200px'
                   }}
                 >
                   <div className="flex items-start justify-between mb-4">
@@ -678,7 +699,19 @@ const Search = () => {
                       </div>
                     </div>
                   </div>
-                  <p className="text-base leading-relaxed whitespace-pre-wrap" style={{ color: 'var(--color-text-primary)' }}>{preview}</p>
+                  <div 
+                    className="prose max-w-none text-base leading-relaxed"
+                    style={{ 
+                      color: 'var(--color-text-primary)',
+                      maxHeight: '300px',
+                      overflowY: 'auto'
+                    }}
+                    dangerouslySetInnerHTML={{ 
+                      __html: entry.content_type === 'code' 
+                        ? `<pre><code>${entry.content}</code></pre>` 
+                        : fixImageUrls(entry.content)
+                    }}
+                  />
                 </div>
               );
             })}

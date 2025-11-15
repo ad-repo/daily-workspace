@@ -627,9 +627,9 @@ ul[data-type="taskList"] li[data-checked="true"] > div {
 .inline-emoji,
 img[data-emoji="true"] {
   display: inline-block;
-  height: 1.2em;
-  width: 1.2em;
-  vertical-align: -0.2em;
+  height: 2em;
+  width: 2em;
+  vertical-align: -0.4em;
   margin: 0 0.1em;
   object-fit: contain;
 }
@@ -794,6 +794,41 @@ img[data-emoji="true"] {
   overflow-x: auto;
   margin: 1em 0;
   border: 1px solid var(--color-border-primary);
+  position: relative;
+}
+
+.prose pre::before {
+  content: var(--copy-text, '📋');
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.9), rgba(37, 99, 235, 0.9));
+  color: white;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.2s ease;
+  z-index: 10;
+  pointer-events: none;
+  user-select: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(4px);
+}
+
+.prose pre:hover::before {
+  opacity: 1;
+  pointer-events: auto;
+  transform: scale(1.05);
+}
+
+.prose pre::before:active {
+  transform: scale(0.95);
 }
 
 .prose pre code {
@@ -911,4 +946,48 @@ img[data-emoji="true"] {
 
 .prose > *:last-child {
   margin-bottom: 0;
+}
+
+/* Emoji Picker Theme Overrides */
+/* Force emoji-picker-react to use app theme colors */
+.epr-main,
+.epr-body,
+.epr-search-container,
+.epr-category-nav,
+aside.epr-emoji-category-label {
+  background-color: var(--color-bg-primary) !important;
+  color: var(--color-text-primary) !important;
+}
+
+.epr-search {
+  background-color: var(--color-bg-secondary) !important;
+  border-color: var(--color-border-primary) !important;
+  color: var(--color-text-primary) !important;
+}
+
+.epr-emoji-category-label {
+  background-color: var(--color-bg-secondary) !important;
+  color: var(--color-text-secondary) !important;
+}
+
+.epr-btn:hover,
+.epr-emoji-category-label:hover {
+  background-color: var(--color-bg-hover) !important;
+}
+
+/* Force emoji-mart to use app theme colors */
+em-emoji-picker {
+  --background-rgb: var(--color-bg-primary);
+  --rgb-background: var(--color-bg-primary);
+  --rgb-input: var(--color-bg-secondary);
+  --rgb-color: var(--color-text-primary);
+  --color-border: var(--color-border-primary);
+  --color-border-over: var(--color-border-secondary);
+}
+
+em-emoji-picker,
+.em-emoji-picker {
+  background-color: var(--color-bg-primary) !important;
+  color: var(--color-text-primary) !important;
+  border-color: var(--color-border-primary) !important;
 }

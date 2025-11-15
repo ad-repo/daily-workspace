@@ -39,8 +39,8 @@ def copy_pinned_entries_to_date(date: str, db: Session):
     existing_entries = db.query(models.NoteEntry).filter(models.NoteEntry.daily_note_id == note.id).all()
 
     # Create a set of content hashes to check for duplicates
-    # We'll consider an entry a duplicate if it has the same content and is_pinned
-    existing_pinned_content = {(entry.content, entry.title) for entry in existing_entries if entry.is_pinned}
+    # Check against ALL entries, not just pinned ones, to avoid creating duplicates of unpinned entries
+    existing_pinned_content = {(entry.content, entry.title) for entry in existing_entries}
 
     # Copy each pinned entry if it doesn't already exist for this date
     for pinned_entry in all_pinned:
@@ -61,6 +61,8 @@ def copy_pinned_entries_to_date(date: str, db: Session):
             )
             db.add(new_entry)
             db.flush()  # Flush to assign ID
+            # Add to set to prevent duplicates within this loop
+            existing_pinned_content.add(content_key)
 
             # Copy labels using direct SQL insert to avoid lazy loading
             label_rows = db.execute(
@@ -151,11 +153,38 @@ def update_entry(entry_id: int, entry_update: schemas.NoteEntryUpdate, db: Sessi
 
 @router.delete('/{entry_id}', status_code=204)
 def delete_entry(entry_id: int, db: Session = Depends(get_db)):
-    """Delete a specific entry"""
+    """
+    Delete a specific entry.
+    If the entry is pinned OR is a copy of a pinned entry, unpin all copies first,
+    then delete only this specific entry.
+    """
     db_entry = db.query(models.NoteEntry).filter(models.NoteEntry.id == entry_id).first()
     if not db_entry:
         raise HTTPException(status_code=404, detail='Entry not found')
 
+    # Find all entries with the same content and title (potential copies of a pinned entry)
+    all_matching = (
+        db.query(models.NoteEntry)
+        .filter(models.NoteEntry.content == db_entry.content)
+        .filter(models.NoteEntry.title == db_entry.title)
+        .all()
+    )
+
+    # Check if ANY of the matching entries are pinned
+    has_pinned = any(entry.is_pinned == 1 for entry in all_matching)
+
+    if has_pinned:
+        # Unpin all matching entries to prevent them from being copied forward
+        for entry in all_matching:
+            if entry.is_pinned == 1:
+                entry.is_pinned = 0
+
+        db.commit()
+
+        # Refresh to ensure changes are persisted
+        db.refresh(db_entry)
+
+    # Now delete this specific entry
     db.delete(db_entry)
     db.commit()
     return None

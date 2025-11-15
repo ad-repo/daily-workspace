@@ -71,7 +71,8 @@ const LabelSelector = ({ date, entryId, selectedLabels, onOptimisticUpdate }: La
     if (value.trim()) {
       const filtered = allLabels.filter(label => 
         label.name.toLowerCase().includes(value.toLowerCase()) &&
-        !selectedLabels.some(sl => sl.id === label.id)
+        !selectedLabels.some(sl => sl.id === label.id) &&
+        !isCustomEmojiUrl(label.name) // Exclude custom emoji URLs from suggestions
       );
       setFilteredSuggestions(filtered);
       setShowSuggestions(filtered.length > 0);
@@ -306,13 +307,19 @@ const LabelSelector = ({ date, entryId, selectedLabels, onOptimisticUpdate }: La
         <button
           onClick={handleAddLabel}
           disabled={loading || !newLabelName.trim()}
-          className="flex items-center gap-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center gap-1 px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          style={{
+            backgroundColor: 'var(--color-accent)',
+            color: 'var(--color-accent-text)',
+          }}
+          onMouseEnter={(e) => !e.currentTarget.disabled && (e.currentTarget.style.backgroundColor = 'var(--color-accent-hover)')}
+          onMouseLeave={(e) => !e.currentTarget.disabled && (e.currentTarget.style.backgroundColor = 'var(--color-accent)')}
         >
           <Plus className="h-4 w-4" />
           Add
         </button>
         
-        <EmojiPicker onEmojiSelect={handleEmojiSelect} />
+        <EmojiPicker onEmojiSelect={handleEmojiSelect} variant="accent" />
       </div>
 
       {/* Display selected labels */}

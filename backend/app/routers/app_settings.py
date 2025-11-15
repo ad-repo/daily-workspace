@@ -26,6 +26,8 @@ def get_app_settings(db: Session = Depends(get_db)):
             quarterly_start_date='',
             quarterly_end_date='',
             emoji_library='emoji-picker-react',
+            sprint_name='Sprint',
+            daily_goal_end_time='17:00',
         )
         db.add(settings)
         db.commit()
@@ -40,6 +42,8 @@ def get_app_settings(db: Session = Depends(get_db)):
         'quarterly_start_date': settings.quarterly_start_date or '',
         'quarterly_end_date': settings.quarterly_end_date or '',
         'emoji_library': settings.emoji_library or 'emoji-picker-react',
+        'sprint_name': settings.sprint_name or 'Sprint',
+        'daily_goal_end_time': settings.daily_goal_end_time or '17:00',
         'created_at': settings.created_at.isoformat(),
         'updated_at': settings.updated_at.isoformat(),
     }
@@ -61,6 +65,8 @@ def update_app_settings(settings_update: schemas.AppSettingsUpdate, db: Session 
             quarterly_start_date=settings_update.quarterly_start_date or '',
             quarterly_end_date=settings_update.quarterly_end_date or '',
             emoji_library=settings_update.emoji_library or 'emoji-picker-react',
+            sprint_name=settings_update.sprint_name or 'Sprint',
+            daily_goal_end_time=settings_update.daily_goal_end_time or '17:00',
         )
         db.add(settings)
     else:
@@ -79,6 +85,10 @@ def update_app_settings(settings_update: schemas.AppSettingsUpdate, db: Session 
             settings.quarterly_end_date = settings_update.quarterly_end_date
         if settings_update.emoji_library is not None:
             settings.emoji_library = settings_update.emoji_library
+        if settings_update.sprint_name is not None:
+            settings.sprint_name = settings_update.sprint_name
+        if settings_update.daily_goal_end_time is not None:
+            settings.daily_goal_end_time = settings_update.daily_goal_end_time
 
     db.commit()
     db.refresh(settings)
@@ -91,6 +101,8 @@ def update_app_settings(settings_update: schemas.AppSettingsUpdate, db: Session 
         'quarterly_start_date': settings.quarterly_start_date or '',
         'quarterly_end_date': settings.quarterly_end_date or '',
         'emoji_library': settings.emoji_library or 'emoji-picker-react',
+        'sprint_name': settings.sprint_name or 'Sprint',
+        'daily_goal_end_time': settings.daily_goal_end_time or '17:00',
         'created_at': settings.created_at.isoformat(),
         'updated_at': settings.updated_at.isoformat(),
     }
