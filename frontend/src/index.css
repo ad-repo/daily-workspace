@@ -947,3 +947,47 @@ img[data-emoji="true"] {
 .prose > *:last-child {
   margin-bottom: 0;
 }
+
+/* Emoji Picker Theme Overrides */
+/* Force emoji-picker-react to use app theme colors */
+.epr-main,
+.epr-body,
+.epr-search-container,
+.epr-category-nav,
+aside.epr-emoji-category-label {
+  background-color: var(--color-bg-primary) !important;
+  color: var(--color-text-primary) !important;
+}
+
+.epr-search {
+  background-color: var(--color-bg-secondary) !important;
+  border-color: var(--color-border-primary) !important;
+  color: var(--color-text-primary) !important;
+}
+
+.epr-emoji-category-label {
+  background-color: var(--color-bg-secondary) !important;
+  color: var(--color-text-secondary) !important;
+}
+
+.epr-btn:hover,
+.epr-emoji-category-label:hover {
+  background-color: var(--color-bg-hover) !important;
+}
+
+/* Force emoji-mart to use app theme colors */
+em-emoji-picker {
+  --background-rgb: var(--color-bg-primary);
+  --rgb-background: var(--color-bg-primary);
+  --rgb-input: var(--color-bg-secondary);
+  --rgb-color: var(--color-text-primary);
+  --color-border: var(--color-border-primary);
+  --color-border-over: var(--color-border-secondary);
+}
+
+em-emoji-picker,
+.em-emoji-picker {
+  background-color: var(--color-bg-primary) !important;
+  color: var(--color-text-primary) !important;
+  border-color: var(--color-border-primary) !important;
+}
