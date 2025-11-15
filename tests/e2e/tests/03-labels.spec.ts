@@ -30,6 +30,12 @@ test.describe('Label Management', () => {
       try {
         const deleteButton = page.locator('button[title*="Delete" i]').first();
         await deleteButton.click({ timeout: 2000 });
+        
+        // Wait for and confirm the delete modal
+        await expect(page.locator('text="Delete Card?"')).toBeVisible({ timeout: 2000 });
+        const confirmButton = page.locator('button:has-text("Delete Card")').first();
+        await confirmButton.click();
+        
         await page.waitForTimeout(1000); // Wait for deletion and DOM update
         deleteCount = await page.locator('button[title*="Delete" i]').count();
       } catch (e) {

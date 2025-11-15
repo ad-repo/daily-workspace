@@ -193,6 +193,11 @@ test.describe.skip('Pinned Entries', () => {
     await expect(deleteButton).toBeVisible({ timeout: 5000 });
     await deleteButton.click();
     
+    // Wait for and confirm the delete modal
+    await expect(page.locator('text="Delete Card?"')).toBeVisible({ timeout: 2000 });
+    const confirmButton = page.locator('button:has-text("Delete Card")').first();
+    await confirmButton.click();
+    
     // Wait for delete API call
     await page.waitForResponse(
       resp => resp.url().includes('/api/entries/') && resp.status() >= 200 && resp.status() < 300,

@@ -29,6 +29,12 @@ test.describe('Rich Text Editor', () => {
       try {
         const deleteButton = page.locator('button[title*="Delete" i]').first();
         await deleteButton.click({ timeout: 5000 });
+        
+        // Wait for and confirm the delete modal
+        await expect(page.locator('text="Delete Card?"')).toBeVisible({ timeout: 2000 });
+        const confirmButton = page.locator('button:has-text("Delete Card")').first();
+        await confirmButton.click();
+        
         // Wait for delete API call to complete
         await page.waitForResponse(
           resp => resp.url().includes('/api/entries') && resp.request().method() === 'DELETE',

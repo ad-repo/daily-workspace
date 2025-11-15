@@ -36,6 +36,12 @@ test.describe('Note Entry Management', () => {
       try {
         const deleteButton = page.locator('button[title*="Delete" i]').first();
         await deleteButton.click({ timeout: 2000 });
+        
+        // Wait for and confirm the delete modal
+        await expect(page.locator('text="Delete Card?"')).toBeVisible({ timeout: 2000 });
+        const confirmButton = page.locator('button:has-text("Delete Card")').first();
+        await confirmButton.click();
+        
         await page.waitForTimeout(1000); // Wait for deletion and DOM update
         deleteCount = await page.locator('button[title*="Delete" i]').count();
       } catch (e) {
@@ -192,6 +198,12 @@ test.describe('Note Entry Management', () => {
     // Find and click delete button - use title or accessible name
     const deleteButton = page.locator('button[title*="Delete" i]').first();
     await deleteButton.click();
+    
+    // Wait for and confirm the delete modal
+    await expect(page.locator('text="Delete Card?"')).toBeVisible();
+    const confirmButton = page.locator('button:has-text("Delete Card")').first();
+    await confirmButton.click();
+    
     // Wait for delete API call
     await page.waitForResponse(
       resp => resp.url().includes('/api/entries') && resp.request().method() === 'DELETE',
