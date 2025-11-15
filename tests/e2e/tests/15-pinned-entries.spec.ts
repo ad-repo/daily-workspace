@@ -24,7 +24,7 @@ test.describe.skip('Pinned Entries', () => {
     await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
     
     const testContent = `Pin Test ${Date.now()}`;
-    await page.getByRole('button', { name: /new entry/i }).click();
+    await page.getByRole('button', { name: /new card/i }).click();
     const editor = page.locator('.ProseMirror').first();
     await expect(editor).toBeVisible({ timeout: 10000 });
     await editor.fill(testContent);
@@ -59,7 +59,7 @@ test.describe.skip('Pinned Entries', () => {
     await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
     
     const testContent = `Pinned Copy Test ${Date.now()}`;
-    await page.getByRole('button', { name: /new entry/i }).click();
+    await page.getByRole('button', { name: /new card/i }).click();
     let editor = page.locator('.ProseMirror').first();
     await expect(editor).toBeVisible({ timeout: 10000 });
     await editor.fill(testContent);
@@ -90,7 +90,7 @@ test.describe.skip('Pinned Entries', () => {
     await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
     
     const testContent = `Unpin Test ${Date.now()}`;
-    await page.getByRole('button', { name: /new entry/i }).click();
+    await page.getByRole('button', { name: /new card/i }).click();
     const editor = page.locator('.ProseMirror').first();
     await expect(editor).toBeVisible({ timeout: 10000 });
     await editor.fill(testContent);
@@ -136,7 +136,7 @@ test.describe.skip('Pinned Entries', () => {
     await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
     
     const testContent = `Not Pinned ${Date.now()}`;
-    await page.getByRole('button', { name: /new entry/i }).click();
+    await page.getByRole('button', { name: /new card/i }).click();
     const editor = page.locator('.ProseMirror').first();
     await expect(editor).toBeVisible({ timeout: 10000 });
     await editor.fill(testContent);
@@ -161,7 +161,7 @@ test.describe.skip('Pinned Entries', () => {
     await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
     
     const testContent = `Delete Pinned ${Date.now()}`;
-    await page.getByRole('button', { name: /new entry/i }).click();
+    await page.getByRole('button', { name: /new card/i }).click();
     let editor = page.locator('.ProseMirror').first();
     await expect(editor).toBeVisible({ timeout: 10000 });
     await editor.fill(testContent);
@@ -230,7 +230,7 @@ test.describe.skip('Pinned Entries', () => {
     const entry2Content = `Multi Pin 2 ${Date.now()}`;
     
     // Create first entry
-    await page.getByRole('button', { name: /new entry/i }).click();
+    await page.getByRole('button', { name: /new card/i }).click();
     let editor = page.locator('.ProseMirror').first();
     await expect(editor).toBeVisible({ timeout: 10000 });
     await editor.fill(entry1Content);
@@ -245,7 +245,7 @@ test.describe.skip('Pinned Entries', () => {
     await page.waitForTimeout(1500);
     
     // Create second entry
-    await page.getByRole('button', { name: /new entry/i }).click();
+    await page.getByRole('button', { name: /new card/i }).click();
     editor = page.locator('.ProseMirror').last();
     await expect(editor).toBeVisible({ timeout: 10000 });
     await editor.fill(entry2Content);
@@ -276,7 +276,7 @@ test.describe.skip('Pinned Entries', () => {
     await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
     
     const testContent = `Duplicate Prevention ${Date.now()}`;
-    await page.getByRole('button', { name: /new entry/i }).click();
+    await page.getByRole('button', { name: /new card/i }).click();
     const editor = page.locator('.ProseMirror').first();
     await expect(editor).toBeVisible({ timeout: 10000 });
     await editor.fill(testContent);
@@ -316,7 +316,7 @@ test.describe.skip('Pinned Entries', () => {
     await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
     
     const testContent = `Pin Persistence ${Date.now()}`;
-    await page.getByRole('button', { name: /new entry/i }).click();
+    await page.getByRole('button', { name: /new card/i }).click();
     const editor = page.locator('.ProseMirror').first();
     await expect(editor).toBeVisible({ timeout: 10000 });
     await editor.fill(testContent);

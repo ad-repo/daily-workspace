@@ -121,7 +121,7 @@ test.describe.skip('Kanban Board', () => {
     
     // Create entry
     const testContent = `Kanban Test Entry ${Date.now()}`;
-    await page.getByRole('button', { name: /new entry/i }).click();
+    await page.getByRole('button', { name: /new card/i }).click();
     const editor = page.locator('.ProseMirror').first();
     await expect(editor).toBeVisible({ timeout: 10000 });
     await editor.fill(testContent);
@@ -162,7 +162,7 @@ test.describe.skip('Kanban Board', () => {
     await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
     
     const testContent = `Drag Test ${Date.now()}`;
-    await page.getByRole('button', { name: /new entry/i }).click();
+    await page.getByRole('button', { name: /new card/i }).click();
     const editor = page.locator('.ProseMirror').first();
     await expect(editor).toBeVisible({ timeout: 10000 });
     await editor.fill(testContent);
@@ -213,7 +213,7 @@ test.describe.skip('Kanban Board', () => {
     await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
     
     const testContent = `Exclusive Test ${Date.now()}`;
-    await page.getByRole('button', { name: /new entry/i }).click();
+    await page.getByRole('button', { name: /new card/i }).click();
     const editor = page.locator('.ProseMirror').first();
     await expect(editor).toBeVisible({ timeout: 10000 });
     await editor.fill(testContent);
@@ -263,7 +263,7 @@ test.describe.skip('Kanban Board', () => {
     await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
     
     const testContent = `Dropdown Test ${Date.now()}`;
-    await page.getByRole('button', { name: /new entry/i }).click();
+    await page.getByRole('button', { name: /new card/i }).click();
     const editor = page.locator('.ProseMirror').first();
     await expect(editor).toBeVisible({ timeout: 10000 });
     await editor.fill(testContent);
@@ -321,7 +321,7 @@ test.describe.skip('Kanban Board', () => {
     await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
     
     const testContent = `Multi-List Test ${Date.now()}`;
-    await page.getByRole('button', { name: /new entry/i }).click();
+    await page.getByRole('button', { name: /new card/i }).click();
     const editor = page.locator('.ProseMirror').first();
     await expect(editor).toBeVisible({ timeout: 10000 });
     await editor.fill(testContent);

@@ -310,7 +310,7 @@ test.describe('Rich Text Editor', () => {
   // ============================================
 
   test('should create task list in note entry', async ({ page }) => {
-    // Create new entry
+    // Create new card
     await page.locator('button:has-text("New Card")').click();
     await page.waitForTimeout(1000);
 

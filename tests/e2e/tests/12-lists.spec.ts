@@ -182,7 +182,7 @@ test.describe.skip('Lists Feature', () => {
   });
 
   test('should add entry to list via list selector', async ({ page }) => {
-    // Create a new entry first
+    // Create a new card first
     await page.locator('button:has-text("New Card")').click();
     await page.waitForTimeout(1000);
     
@@ -210,7 +210,7 @@ test.describe.skip('Lists Feature', () => {
     await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
     
     const testContent = `Remove Test ${Date.now()}`;
-    await page.getByRole('button', { name: /new entry/i }).click();
+    await page.getByRole('button', { name: /new card/i }).click();
     const editor = page.locator('.ProseMirror').first();
     await expect(editor).toBeVisible({ timeout: 10000 });
     await editor.fill(testContent);
@@ -274,7 +274,7 @@ test.describe.skip('Lists Feature', () => {
     const entry2Content = `Drag Entry 2 ${Date.now()}`;
     
     // Create first entry
-    await page.getByRole('button', { name: /new entry/i }).click();
+    await page.getByRole('button', { name: /new card/i }).click();
     let editor = page.locator('.ProseMirror').first();
     await expect(editor).toBeVisible({ timeout: 10000 });
     await editor.fill(entry1Content);
@@ -282,7 +282,7 @@ test.describe.skip('Lists Feature', () => {
     await page.waitForTimeout(1500);
     
     // Create second entry
-    await page.getByRole('button', { name: /new entry/i }).click();
+    await page.getByRole('button', { name: /new card/i }).click();
     editor = page.locator('.ProseMirror').last();
     await expect(editor).toBeVisible({ timeout: 10000 });
     await editor.fill(entry2Content);
@@ -353,7 +353,7 @@ test.describe.skip('Lists Feature', () => {
     await page.waitForSelector('button:has-text("New Card")', { timeout: 10000 });
     
     const testContent = `Multi-List Entry ${Date.now()}`;
-    await page.getByRole('button', { name: /new entry/i }).click();
+    await page.getByRole('button', { name: /new card/i }).click();
     const editor = page.locator('.ProseMirror').first();
     await expect(editor).toBeVisible({ timeout: 10000 });
     await editor.fill(testContent);
