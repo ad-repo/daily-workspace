@@ -39,15 +39,16 @@ class TestSprintGoalsAPI:
         assert response.status_code == 400
         assert 'end_date must be after start_date' in response.json()['detail']
 
-    def test_create_sprint_goal_overlapping_returns_400(self, client: TestClient):
-        """Test POST /api/goals/sprint with overlapping dates returns 400."""
+    def test_create_sprint_goal_overlapping_allowed(self, client: TestClient):
+        """Test POST /api/goals/sprint with overlapping dates is now allowed."""
         # Create first goal
-        client.post(
+        response1 = client.post(
             '/api/goals/sprint', json={'text': 'Sprint 1', 'start_date': '2025-11-01', 'end_date': '2025-11-14'}
         )
+        assert response1.status_code == 201
 
-        # Try to create overlapping goal
-        response = client.post(
+        # Create overlapping goal - should now be allowed
+        response2 = client.post(
             '/api/goals/sprint',
             json={
                 'text': 'Sprint 2',
@@ -56,8 +57,11 @@ class TestSprintGoalsAPI:
             },
         )
 
-        assert response.status_code == 400
-        assert 'already exists that overlaps' in response.json()['detail']
+        assert response2.status_code == 201
+        data = response2.json()
+        assert data['text'] == 'Sprint 2'
+        assert data['start_date'] == '2025-11-10'
+        assert data['end_date'] == '2025-11-20'
 
     def test_create_sprint_goal_adjacent_allowed(self, client: TestClient):
         """Test creating adjacent sprint goals (end date + 1 day = start date) is allowed."""
@@ -208,8 +212,8 @@ class TestSprintGoalsAPI:
         assert response.status_code == 404
         assert 'not found' in response.json()['detail']
 
-    def test_update_sprint_goal_overlapping_returns_400(self, client: TestClient):
-        """Test updating sprint goal to overlap with another returns 400."""
+    def test_update_sprint_goal_overlapping_allowed(self, client: TestClient):
+        """Test updating sprint goal to overlap with another is now allowed."""
         # Create two goals
         create1 = client.post(
             '/api/goals/sprint', json={'text': 'Sprint 1', 'start_date': '2025-11-01', 'end_date': '2025-11-14'}
@@ -220,7 +224,7 @@ class TestSprintGoalsAPI:
             '/api/goals/sprint', json={'text': 'Sprint 2', 'start_date': '2025-12-01', 'end_date': '2025-12-14'}
         )
 
-        # Try to update goal 1 to overlap with goal 2
+        # Update goal 1 to overlap with goal 2 - should now be allowed
         response = client.put(
             f'/api/goals/sprint/{goal1_id}',
             json={
@@ -229,8 +233,10 @@ class TestSprintGoalsAPI:
             },
         )
 
-        assert response.status_code == 400
-        assert 'already exists that overlaps' in response.json()['detail']
+        assert response.status_code == 200
+        data = response.json()
+        assert data['start_date'] == '2025-11-20'
+        assert data['end_date'] == '2025-12-05'
 
     def test_delete_sprint_goal_success(self, client: TestClient):
         """Test DELETE /api/goals/sprint/{id} deletes goal."""
@@ -290,15 +296,16 @@ class TestQuarterlyGoalsAPI:
         assert response.status_code == 400
         assert 'end_date must be after start_date' in response.json()['detail']
 
-    def test_create_quarterly_goal_overlapping_returns_400(self, client: TestClient):
-        """Test POST /api/goals/quarterly with overlapping dates returns 400."""
+    def test_create_quarterly_goal_overlapping_allowed(self, client: TestClient):
+        """Test POST /api/goals/quarterly with overlapping dates is now allowed."""
         # Create first goal
-        client.post(
+        response1 = client.post(
             '/api/goals/quarterly', json={'text': 'Q4 2025', 'start_date': '2025-10-01', 'end_date': '2025-12-31'}
         )
+        assert response1.status_code == 201
 
-        # Try to create overlapping goal
-        response = client.post(
+        # Create overlapping goal - should now be allowed
+        response2 = client.post(
             '/api/goals/quarterly',
             json={
                 'text': 'Q1 2026 early',
@@ -307,8 +314,11 @@ class TestQuarterlyGoalsAPI:
             },
         )
 
-        assert response.status_code == 400
-        assert 'already exists that overlaps' in response.json()['detail']
+        assert response2.status_code == 201
+        data = response2.json()
+        assert data['text'] == 'Q1 2026 early'
+        assert data['start_date'] == '2025-12-01'
+        assert data['end_date'] == '2026-03-31'
 
     def test_get_all_quarterly_goals(self, client: TestClient):
         """Test GET /api/goals/quarterly returns all quarterly goals."""

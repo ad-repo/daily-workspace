@@ -9,6 +9,15 @@ import { formatTimestamp } from '../utils/timezone';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
+// Fix all absolute API URLs in HTML content to use the actual API_URL
+const fixImageUrls = (html: string): string => {
+  // Replace localhost:8000
+  let fixed = html.replace(/http:\/\/localhost:8000/g, API_URL);
+  // Replace any IP:8000 patterns (like 192.168.0.186:8000)
+  fixed = fixed.replace(/http:\/\/[\d.]+:8000/g, API_URL);
+  return fixed;
+};
+
 interface ReportEntry {
   date: string;
   entry_id: number;
@@ -500,26 +509,16 @@ const Reports = () => {
   return (
     <div className="max-w-5xl mx-auto page-fade-in" style={{ position: 'relative', zIndex: 1 }}>
       {/* Clear All Button - Outside any report section */}
-      <div className="flex justify-end mb-4">
+      <div className="flex justify-start mb-4">
         <button
           onClick={clearAllReportFlags}
           disabled={clearingFlags || clearedFlags}
-          className="flex items-center gap-2 px-6 py-3 rounded-lg shadow-lg disabled:cursor-not-allowed"
+          className="flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all hover:scale-105 disabled:cursor-not-allowed disabled:hover:scale-100"
           style={{
-            backgroundColor: 'var(--color-danger, #ef4444)',
-            color: 'white',
+            backgroundColor: 'var(--color-accent)',
+            color: 'var(--color-accent-text)',
             opacity: clearingFlags ? 0.6 : clearedFlags ? 1 : 1,
-            transition: 'opacity 0.2s ease'
-          }}
-          onMouseEnter={(e) => {
-            if (!clearingFlags && !clearedFlags) {
-              e.currentTarget.style.opacity = '0.9';
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (!clearingFlags && !clearedFlags) {
-              e.currentTarget.style.opacity = '1';
-            }
+            boxShadow: 'var(--color-card-shadow)'
           }}
         >
           {clearingFlags && <Loader2 className="h-5 w-5 animate-spin" />}
@@ -700,7 +699,7 @@ const Reports = () => {
                                     [&_ol]:list-decimal [&_ol]:ml-6
                                     [&_[data-link-preview]]:my-4 [&_[data-link-preview]]:block
                                     [&_.link-preview]:my-4"
-                                  dangerouslySetInnerHTML={{ __html: processLinkPreviews(entry.content) }}
+                                  dangerouslySetInnerHTML={{ __html: processLinkPreviews(fixImageUrls(entry.content)) }}
                                 />
                               )}
                             </div>
@@ -798,7 +797,7 @@ const Reports = () => {
                                     [&_ol]:list-decimal [&_ol]:ml-6
                                     [&_[data-link-preview]]:my-4 [&_[data-link-preview]]:block
                                     [&_.link-preview]:my-4"
-                                  dangerouslySetInnerHTML={{ __html: processLinkPreviews(entry.content) }}
+                                  dangerouslySetInnerHTML={{ __html: processLinkPreviews(fixImageUrls(entry.content)) }}
                                 />
                               )}
                             </div>

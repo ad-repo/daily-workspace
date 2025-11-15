@@ -10,11 +10,52 @@ from app.routers.entries import copy_pinned_entries_to_date
 router = APIRouter()
 
 
-@router.get('/', response_model=list[schemas.DailyNote])
+@router.get('/')
 def get_all_notes(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     """Get all daily notes"""
+    # Expire all objects to force fresh queries
+    db.expire_all()
+
     notes = db.query(models.DailyNote).order_by(models.DailyNote.date.desc()).offset(skip).limit(limit).all()
-    return notes
+
+    # Manually construct response to include daily_note_date
+    result = []
+    for note in notes:
+        # Query entries directly to ensure we get the correct associations
+        entries = db.query(models.NoteEntry).filter(models.NoteEntry.daily_note_id == note.id).all()
+
+        note_dict = {
+            'id': note.id,
+            'date': note.date,
+            'fire_rating': note.fire_rating,
+            'daily_goal': note.daily_goal,
+            'created_at': note.created_at,
+            'updated_at': note.updated_at,
+            'entries': [
+                {
+                    'id': entry.id,
+                    'daily_note_id': entry.daily_note_id,
+                    'daily_note_date': note.date,  # Add the parent note's date
+                    'title': entry.title,
+                    'content': entry.content,
+                    'content_type': entry.content_type,
+                    'order_index': entry.order_index,
+                    'include_in_report': bool(entry.include_in_report),
+                    'is_important': bool(entry.is_important),
+                    'is_completed': bool(entry.is_completed),
+                    'is_pinned': bool(entry.is_pinned),
+                    'created_at': entry.created_at,
+                    'updated_at': entry.updated_at,
+                    'labels': entry.labels,
+                    'lists': entry.lists,
+                }
+                for entry in entries
+            ],
+            'labels': note.labels,
+        }
+        result.append(note_dict)
+
+    return result
 
 
 @router.get('/{date}', response_model=schemas.DailyNote)
@@ -26,6 +67,11 @@ def get_note_by_date(date: str, db: Session = Depends(get_db)):
     note = db.query(models.DailyNote).filter(models.DailyNote.date == date).first()
     if not note:
         raise HTTPException(status_code=404, detail='Note not found for this date')
+
+    # Populate daily_note_date for each entry
+    for entry in note.entries:
+        entry.daily_note_date = note.date
+
     return note
 
 

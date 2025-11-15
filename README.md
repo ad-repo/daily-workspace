@@ -72,14 +72,15 @@ A modern, powerful daily workspace application for capturing and organizing your
   - **Drag-and-Drop**: Reorder columns to match your workflow
   - **Horizontal Scrolling**: Navigate between columns with smooth scrolling
   - **Mini-Map Navigation**: Quick jump to any column with visual indicators
-  - **Status Selector on Cards**: Click the Kanban status badge on any card to open a modal and change its status
+  - **Status Selector on Cards**: Click the Kanban status badge on any card to open a dropdown and change its status
   - **Quick Status Changes**: Move entries between Kanban columns without drag-and-drop
   - **Smooth Transitions**: Status changes include loading indicators and smooth page updates
   - **Reuses Existing Infrastructure**: Kanban columns are special lists (is_kanban flag)
   - **Separate from Lists**: Regular lists and Kanban boards are kept separate
   - **Full Entry Support**: All entry features work in Kanban (labels, completion, etc.)
   - **Create Entries**: Add new tasks directly from any Kanban column
-  - **Multi-Board Support**: Entries can be in both Kanban and regular lists
+  - **⚠️ Exclusive Kanban Status**: Entries can only be in ONE Kanban column at a time (moving to a new column automatically removes from the old one)
+  - **Multi-List Support**: Entries can be in ONE Kanban column AND multiple regular lists simultaneously (the two systems are independent)
 - **Pinned Entries**: Auto-copy important entries to future days
   - Pin any card to have it automatically appear on all future days
   - Perfect for recurring tasks, daily reminders, or ongoing work
@@ -87,6 +88,7 @@ A modern, powerful daily workspace application for capturing and organizing your
   - Labels and list associations are preserved
   - Multiple cards can be pinned simultaneously
   - Unpin at any time to stop copying forward
+  - **⚠️ Smart Deletion**: Deleting any copy of a pinned entry automatically unpins ALL copies to prevent the entry from reappearing
 - **Daily Goals**: Set goals for each day (visible as tooltips in calendar)
   - **Rich Text Editor**: Full formatting support (bold, italic, underline, strikethrough, headings, lists, task lists with checkboxes, links, code, blockquotes)
   - **Scrollable**: Goals scroll when content exceeds 300px height
@@ -94,6 +96,7 @@ A modern, powerful daily workspace application for capturing and organizing your
   - **HTML Display**: Goals render with proper formatting in display mode
   - Toggle visibility in Settings → General
   - Click-to-edit with automatic save
+  - **⚠️ Daily Countdown**: Shows time remaining until end-of-day (configurable in Settings, default 5 PM)
 - **Sprint Goals**: Date-aware goal tracking with historical support
   - **Rich Text Editor**: Full formatting support (bold, italic, underline, strikethrough, headings, lists, task lists with checkboxes, links, code, blockquotes)
   - **Scrollable**: Goals scroll when content exceeds 300px height
@@ -106,6 +109,8 @@ A modern, powerful daily workspace application for capturing and organizing your
   - Days remaining calculated from viewed date, not today
   - Full history - see different goals when browsing different dates
   - Toggle visibility in Settings → General
+  - **⚠️ Overlapping Goals Allowed**: Multiple sprint goals can have overlapping date ranges (overlap validation removed)
+  - **Customizable Name**: Change "Sprint" to any term you prefer (e.g., "Iteration", "Cycle") in Settings → General
 - **Quarterly Goals**: Date-aware quarterly objectives with historical tracking
   - **Rich Text Editor**: Full formatting support (bold, italic, underline, strikethrough, headings, lists, task lists with checkboxes, links, code, blockquotes)
   - **Scrollable**: Goals scroll when content exceeds 300px height
@@ -116,6 +121,7 @@ A modern, powerful daily workspace application for capturing and organizing your
   - Shows upcoming goals before they start
   - Separate goal history for quarterly planning
   - Toggle visibility in Settings → General
+  - **⚠️ Overlapping Goals Allowed**: Multiple quarterly goals can have overlapping date ranges (overlap validation removed)
 - **Day Labels**: Organize days with labels for quick filtering (displayed above goals)
   - Toggle visibility in Settings → General
 
@@ -521,7 +527,15 @@ DATABASE_URL=sqlite:///./data/daily_notes.db
 VITE_API_URL=http://localhost:8000
 ```
 
-### Timezone Settings
+### Application Settings
+**General Settings** (configurable in Settings → General):
+- **Sprint Goal Name**: Customize the label for "Sprint" goals (e.g., "Iteration", "Cycle", "Phase")
+- **Daily Goal End Time**: Set when your day ends for the daily countdown timer (default: 5:00 PM)
+- **Emoji Library**: Choose between `emoji-picker-react` or `emoji-mart` for emoji selection
+- **Goal Visibility**: Toggle visibility of Daily, Sprint, and Quarterly goals
+- **Label Display**: Toggle transparent label backgrounds and day labels visibility
+
+**Timezone Settings**:
 - Default timezone: Eastern US (America/New_York)
 - Configurable in Settings page
 - All timestamps display in selected timezone

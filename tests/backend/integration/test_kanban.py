@@ -225,7 +225,159 @@ def test_move_entry_between_kanban_columns(client: TestClient, db_session: Sessi
     assert len(data['entries']) == 1
     assert data['entries'][0]['id'] == entry_id
 
-    # Verify it's still in To Do (entries can be in multiple lists)
+    # Verify it's NO LONGER in To Do (Kanban exclusivity - entries can only be in one Kanban column)
     response = client.get(f'/api/lists/{todo_id}')
     data = response.json()
-    assert len(data['entries']) == 1
+    assert len(data['entries']) == 0  # Should be removed from old column
+
+
+def test_entry_only_in_one_kanban_column_at_a_time(client: TestClient, db_session: Session):
+    """Test that an entry can only be in one Kanban column at a time"""
+    # Initialize Kanban
+    client.post('/api/lists/kanban/initialize')
+
+    # Get Kanban boards
+    response = client.get('/api/lists/kanban')
+    boards = response.json()
+    todo_id = boards[0]['id']
+    in_progress_id = boards[1]['id']
+    done_id = boards[2]['id']
+
+    # Create a daily note and entry
+    date = f'2025-01-{random.randint(1, 28):02d}'
+    client.post(f'/api/notes/{date}')
+    entry_response = client.post(
+        f'/api/entries/note/{date}',
+        json={'content': 'Test task for exclusivity', 'content_type': 'rich_text'},
+    )
+    entry_id = entry_response.json()['id']
+
+    # Add entry to To Do
+    client.post(f'/api/lists/{todo_id}/entries/{entry_id}')
+    response = client.get(f'/api/lists/{todo_id}')
+    assert len(response.json()['entries']) == 1
+
+    # Add same entry to In Progress - should remove from To Do
+    client.post(f'/api/lists/{in_progress_id}/entries/{entry_id}')
+
+    # Verify it's in In Progress
+    response = client.get(f'/api/lists/{in_progress_id}')
+    assert len(response.json()['entries']) == 1
+
+    # Verify it's NOT in To Do anymore
+    response = client.get(f'/api/lists/{todo_id}')
+    assert len(response.json()['entries']) == 0
+
+    # Add same entry to Done - should remove from In Progress
+    client.post(f'/api/lists/{done_id}/entries/{entry_id}')
+
+    # Verify it's in Done
+    response = client.get(f'/api/lists/{done_id}')
+    assert len(response.json()['entries']) == 1
+
+    # Verify it's NOT in In Progress anymore
+    response = client.get(f'/api/lists/{in_progress_id}')
+    assert len(response.json()['entries']) == 0
+
+    # Verify it's NOT in To Do
+    response = client.get(f'/api/lists/{todo_id}')
+    assert len(response.json()['entries']) == 0
+
+
+def test_entry_can_be_in_multiple_regular_lists(client: TestClient, db_session: Session):
+    """Test that an entry can be in multiple regular (non-Kanban) lists simultaneously"""
+    # Create two regular lists
+    list1_response = client.post('/api/lists', json={'name': unique_name('List A'), 'description': 'First list'})
+    list1_id = list1_response.json()['id']
+
+    list2_response = client.post('/api/lists', json={'name': unique_name('List B'), 'description': 'Second list'})
+    list2_id = list2_response.json()['id']
+
+    # Create a daily note and entry
+    date = f'2025-01-{random.randint(1, 28):02d}'
+    client.post(f'/api/notes/{date}')
+    entry_response = client.post(
+        f'/api/entries/note/{date}',
+        json={'content': 'Test task for multiple lists', 'content_type': 'rich_text'},
+    )
+    entry_id = entry_response.json()['id']
+
+    # Add entry to List A
+    client.post(f'/api/lists/{list1_id}/entries/{entry_id}')
+    response = client.get(f'/api/lists/{list1_id}')
+    assert len(response.json()['entries']) == 1
+
+    # Add same entry to List B - should remain in both
+    client.post(f'/api/lists/{list2_id}/entries/{entry_id}')
+
+    # Verify it's in List B
+    response = client.get(f'/api/lists/{list2_id}')
+    assert len(response.json()['entries']) == 1
+
+    # Verify it's STILL in List A (regular lists allow multiple memberships)
+    response = client.get(f'/api/lists/{list1_id}')
+    assert len(response.json()['entries']) == 1
+
+
+def test_entry_in_kanban_and_regular_lists_simultaneously(client: TestClient, db_session: Session):
+    """Test that an entry can be in ONE Kanban column AND multiple regular lists at the same time"""
+    # Initialize Kanban
+    client.post('/api/lists/kanban/initialize')
+
+    # Get Kanban boards
+    response = client.get('/api/lists/kanban')
+    boards = response.json()
+    todo_id = boards[0]['id']
+    in_progress_id = boards[1]['id']
+
+    # Create two regular lists
+    list1_response = client.post('/api/lists', json={'name': unique_name('List A'), 'description': 'First list'})
+    list1_id = list1_response.json()['id']
+
+    list2_response = client.post('/api/lists', json={'name': unique_name('List B'), 'description': 'Second list'})
+    list2_id = list2_response.json()['id']
+
+    # Create a daily note and entry
+    date = f'2025-01-{random.randint(1, 28):02d}'
+    client.post(f'/api/notes/{date}')
+    entry_response = client.post(
+        f'/api/entries/note/{date}',
+        json={'content': 'Test task for mixed lists', 'content_type': 'rich_text'},
+    )
+    entry_id = entry_response.json()['id']
+
+    # Add entry to Kanban To Do
+    client.post(f'/api/lists/{todo_id}/entries/{entry_id}')
+
+    # Add entry to regular List A
+    client.post(f'/api/lists/{list1_id}/entries/{entry_id}')
+
+    # Add entry to regular List B
+    client.post(f'/api/lists/{list2_id}/entries/{entry_id}')
+
+    # Verify it's in Kanban To Do
+    response = client.get(f'/api/lists/{todo_id}')
+    assert len(response.json()['entries']) == 1
+
+    # Verify it's in both regular lists
+    response = client.get(f'/api/lists/{list1_id}')
+    assert len(response.json()['entries']) == 1
+    response = client.get(f'/api/lists/{list2_id}')
+    assert len(response.json()['entries']) == 1
+
+    # Now move to Kanban In Progress - should remove from To Do but stay in regular lists
+    client.post(f'/api/lists/{in_progress_id}/entries/{entry_id}')
+
+    # Verify it's in Kanban In Progress
+    response = client.get(f'/api/lists/{in_progress_id}')
+    assert len(response.json()['entries']) == 1
+
+    # Verify it's NOT in Kanban To Do anymore
+    response = client.get(f'/api/lists/{todo_id}')
+    assert len(response.json()['entries']) == 0
+
+    # Verify it's STILL in both regular lists
+    response = client.get(f'/api/lists/{list1_id}')
+    assert len(response.json()['entries']) == 1
+    response = client.get(f'/api/lists/{list2_id}')
+    assert len(response.json()['entries']) == 1

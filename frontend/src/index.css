@@ -627,9 +627,9 @@ ul[data-type="taskList"] li[data-checked="true"] > div {
 .inline-emoji,
 img[data-emoji="true"] {
   display: inline-block;
-  height: 1.2em;
-  width: 1.2em;
-  vertical-align: -0.2em;
+  height: 2em;
+  width: 2em;
+  vertical-align: -0.4em;
   margin: 0 0.1em;
   object-fit: contain;
 }

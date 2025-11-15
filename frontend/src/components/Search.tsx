@@ -165,6 +165,15 @@ const Search = () => {
     return name.startsWith('/api/uploads/') || name.startsWith('http');
   };
 
+  // Fix all absolute API URLs in HTML content to use the actual API_URL
+  const fixImageUrls = (html: string): string => {
+    // Replace localhost:8000
+    let fixed = html.replace(/http:\/\/localhost:8000/g, API_URL);
+    // Replace any IP:8000 patterns (like 192.168.0.186:8000)
+    fixed = fixed.replace(/http:\/\/[\d.]+:8000/g, API_URL);
+    return fixed;
+  };
+
   return (
     <div className="max-w-5xl mx-auto page-fade-in" style={{ position: 'relative', zIndex: 1 }}>
       <div className="rounded-lg shadow-lg p-6 mb-6" style={{ backgroundColor: 'var(--color-bg-primary)' }}>
@@ -525,7 +534,7 @@ const Search = () => {
                                   maxHeight: '200px',
                                   overflowY: 'auto'
                                 }}
-                                dangerouslySetInnerHTML={{ __html: list.description }}
+                                dangerouslySetInnerHTML={{ __html: fixImageUrls(list.description) }}
                               />
                             )}
                             <div className="flex items-center gap-3">
@@ -700,7 +709,7 @@ const Search = () => {
                     dangerouslySetInnerHTML={{ 
                       __html: entry.content_type === 'code' 
                         ? `<pre><code>${entry.content}</code></pre>` 
-                        : entry.content 
+                        : fixImageUrls(entry.content)
                     }}
                   />
                 </div>

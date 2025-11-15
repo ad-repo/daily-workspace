@@ -25,9 +25,9 @@ const EmojiPicker = ({ onEmojiSelect, variant = 'toolbar' }: EmojiPickerProps) =
   const getButtonStyles = () => {
     if (variant === 'accent') {
       return {
-        backgroundColor: '#3b82f6', // blue-600 always
-        color: 'white',
-        hoverClass: 'hover:bg-blue-700'
+        backgroundColor: 'var(--color-accent)',
+        color: 'var(--color-accent-text)',
+        hoverClass: ''
       };
     }
     // toolbar variant (default) - matches ToolbarButton behavior
@@ -105,6 +105,8 @@ const EmojiPicker = ({ onEmojiSelect, variant = 'toolbar' }: EmojiPickerProps) =
             backgroundColor: buttonStyles.backgroundColor, 
             color: buttonStyles.color 
           }}
+          onMouseEnter={(e) => variant === 'accent' && (e.currentTarget.style.backgroundColor = 'var(--color-accent-hover)')}
+          onMouseLeave={(e) => variant === 'accent' && (e.currentTarget.style.backgroundColor = 'var(--color-accent)')}
           title="Pick emoji"
         >
           <Smile className="h-4 w-4" />
@@ -195,7 +197,7 @@ const EmojiPicker = ({ onEmojiSelect, variant = 'toolbar' }: EmojiPickerProps) =
                     height="300px"
                     searchPlaceHolder="Search emoji..."
                     previewConfig={{ showPreview: false }}
-                    theme="auto"
+                    theme={"auto" as any}
                   />
                 ) : (
                   <EmojiMartPicker

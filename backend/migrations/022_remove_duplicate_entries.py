@@ -54,8 +54,9 @@ def migrate_up(db_path):
         
         if total_duplicates == 0:
             print("No duplicate entries found.")
+            print("Migration 022 completed successfully.")
             conn.close()
-            return
+            return True
         
         print(f"Found {total_duplicates} sets of duplicate entries.")
         total_removed = 0
@@ -90,6 +91,7 @@ def migrate_up(db_path):
         conn.commit()
         print(f"\nSuccessfully removed {total_removed} duplicate entries.")
         print("Migration 022 completed successfully.")
+        return True
         
     except Exception as e:
         conn.rollback()

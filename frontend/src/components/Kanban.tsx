@@ -256,6 +256,7 @@ export default function Kanban() {
                   onUpdate={() => loadBoards(true)}
                   onDelete={handleDeleteColumn}
                   onDragStart={() => handleListDragStart(board.id)}
+                  isKanbanView={true}
                   onDragEnd={handleListDragEnd}
                   isDragging={draggedListId === board.id}
                 />
