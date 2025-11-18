@@ -242,14 +242,16 @@ git clone <your-repo-url>
 cd track-the-thing
 
 # Build and start all services
-docker-compose up --build -d
+docker-compose --env-file .dockerenv up --build -d
 
 # View logs
-docker-compose logs -f
+docker-compose --env-file .dockerenv logs -f
 
 # Stop services
-docker-compose down
+docker-compose --env-file .dockerenv down
 ```
+
+> All container configuration lives in `.dockerenv`. Update the values there (database paths, API URLs, etc.) before running Compose commands.
 
 Access the application:
 - **Frontend**: `http://localhost:3000`
@@ -257,6 +259,10 @@ Access the application:
 - **API Documentation**: `http://localhost:8000/docs`
 
 Data is persisted in Docker volumes at `./backend/data`
+
+### Configuration via `.dockerenv`
+
+All Docker services read their environment values from the root `.dockerenv` file. The defaults target local development (SQLite databases, localhost ports). Update this file if you need to point at different databases, change API URLs, or tweak CI flags. Local tooling (e.g., the frontend `.env`) also derives its defaults from the same values to keep everything in sync.
 
 ### Local Development
 
@@ -344,6 +350,7 @@ track-the-thing/
 │   ├── package.json
 │   ├── Dockerfile
 │   └── vite.config.ts
+├── .dockerenv                 # Shared environment config for Docker
 ├── docker-compose.yml
 └── README.md
 ```
@@ -538,7 +545,7 @@ npx vitest --run --coverage
 
 **E2E Tests**:
 ```bash
-docker-compose run --rm e2e npx playwright test
+docker-compose --env-file .dockerenv --profile e2e run --rm e2e npx playwright test
 ```
 
 ### Test Coverage
@@ -589,12 +596,12 @@ All tests follow these principles:
 
 ### Environment Variables
 
-**Backend** (`.env` or Docker environment):
+**Backend** (`backend/.env` or `.dockerenv` for Docker):
 ```env
 DATABASE_URL=sqlite:///./data/daily_notes.db
 ```
 
-**Frontend** (`.env` or Docker environment):
+**Frontend** (`frontend/.env` or `.dockerenv` for Docker):
 ```env
 VITE_API_URL=http://localhost:8000
 ```

@@ -129,7 +129,7 @@ if [ $ERRORS -eq 0 ]; then
     echo "You're ready to start! Choose one option:"
     echo ""
     echo "Option 1 - Docker (easiest):"
-    echo "  docker-compose up"
+    echo "  docker-compose --env-file .dockerenv up --build"
     echo ""
     echo "Option 2 - Local development:"
     echo "  Terminal 1: cd backend && source venv/bin/activate && uvicorn app.main:app --reload"

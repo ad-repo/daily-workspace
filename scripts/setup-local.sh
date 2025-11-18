@@ -49,7 +49,14 @@ npm install
 # Create .env file if it doesn't exist
 if [ ! -f ".env" ]; then
     echo "Creating .env file..."
-    echo "VITE_API_URL=http://localhost:8000" > .env
+    LOCAL_VITE_API_URL_VALUE="http://localhost:8000"
+    if [ -f "../.dockerenv" ]; then
+        VALUE=$(grep '^LOCAL_VITE_API_URL=' ../.dockerenv | tail -1 | cut -d '=' -f2-)
+        if [ -n "$VALUE" ]; then
+            LOCAL_VITE_API_URL_VALUE=$VALUE
+        fi
+    fi
+    echo "VITE_API_URL=$LOCAL_VITE_API_URL_VALUE" > .env
 fi
 
 echo "✅ Frontend setup complete!"
@@ -69,6 +76,6 @@ echo "  cd frontend"
 echo "  npm run dev"
 echo ""
 echo "Or use Docker:"
-echo "  docker-compose up"
+echo "  docker-compose --env-file .dockerenv up --build"
 echo ""
 
