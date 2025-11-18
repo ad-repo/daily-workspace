@@ -1,4 +1,5 @@
 """Sample goals fixture data for testing."""
+
 from datetime import datetime, timedelta
 
 

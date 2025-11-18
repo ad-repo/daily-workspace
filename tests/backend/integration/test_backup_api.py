@@ -4,6 +4,7 @@ Integration tests for Backup & Restore API endpoints
 Per .cursorrules: These tests do not modify production code.
 Tests validate existing backup/restore functionality.
 """
+
 import json
 
 import pytest

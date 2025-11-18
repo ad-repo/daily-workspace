@@ -3,6 +3,7 @@ Integration tests for API Error Handling and Edge Cases
 
 Per .cursorrules: These tests validate existing error behavior without modifying production code.
 """
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
