@@ -3,6 +3,7 @@ Integration tests for pinned entries feature.
 
 Tests the ability to pin note entries so they automatically copy to future days.
 """
+
 import time
 from datetime import datetime, timedelta
 

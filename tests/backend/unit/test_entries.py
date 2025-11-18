@@ -1,6 +1,7 @@
 """
 Unit tests for Note Entry models and business logic.
 """
+
 from datetime import datetime
 
 import pytest

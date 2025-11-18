@@ -9,6 +9,8 @@
 
 set -e
 
+COMPOSE_CMD="docker-compose --env-file .dockerenv"
+
 # Parse arguments
 RUN_BACKEND=false
 RUN_FRONTEND=false
@@ -50,7 +52,7 @@ if [ "$RUN_BACKEND" = true ]; then
   echo "1️⃣  Backend Tests"
   echo "-------------------"
   echo "Running backend tests in Docker..."
-  docker-compose run --rm backend-test
+  $COMPOSE_CMD run --rm backend-test
   echo ""
 fi
 
@@ -59,7 +61,7 @@ if [ "$RUN_FRONTEND" = true ]; then
   echo "2️⃣  Frontend Tests"
   echo "-------------------"
   echo "Running frontend tests in Docker..."
-  docker-compose run --rm frontend-test
+  $COMPOSE_CMD run --rm frontend-test
   echo ""
 fi
 
@@ -68,7 +70,7 @@ if [ "$RUN_E2E" = true ]; then
   echo "3️⃣  E2E Tests"
   echo "-------------------"
   echo "Running E2E tests in Docker..."
-  docker-compose --profile e2e run --rm e2e npx playwright test --grep-invert "media-features"
+  $COMPOSE_CMD --profile e2e run --rm e2e npx playwright test --grep-invert "media-features"
   echo ""
 fi
 

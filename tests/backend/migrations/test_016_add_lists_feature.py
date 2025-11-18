@@ -1,6 +1,7 @@
 """
 Tests for migration 016 - Add Lists Feature
 """
+
 import importlib.util
 import os
 import sqlite3

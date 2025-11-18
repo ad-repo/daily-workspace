@@ -17,6 +17,7 @@ import type {
   CustomEmoji,
   CustomEmojiCreate,
   CustomEmojiUpdate,
+  AppSettings,
 } from './types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -249,6 +250,14 @@ export const customEmojisApi = {
     await api.delete(`/api/custom-emojis/${id}`, {
       params: { permanent },
     });
+  },
+};
+
+// Settings API
+export const settingsApi = {
+  get: async (): Promise<AppSettings> => {
+    const response = await api.get<AppSettings>('/api/settings');
+    return response.data;
   },
 };
 

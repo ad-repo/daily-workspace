@@ -1,4 +1,5 @@
 """Sample entries fixture data for testing."""
+
 from datetime import datetime, timedelta
 
 

@@ -275,10 +275,10 @@ export default function Lists() {
           </div>
         ) : (
           <div 
-            className="flex gap-6 py-6 items-start"
+            className="flex gap-6 py-6 items-start justify-start"
             style={{
-              paddingLeft: lists.length <= 3 ? 'max(2rem, calc((100vw - (384px * 3) - 48px) / 2))' : '2rem',
-              paddingRight: lists.length <= 3 ? 'max(2rem, calc((100vw - (384px * 3) - 48px) / 2))' : '2rem',
+              paddingLeft: '3rem',
+              paddingRight: '3rem',
             }}
           >
             {lists.map((list) => (

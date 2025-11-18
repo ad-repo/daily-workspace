@@ -1,6 +1,7 @@
 """
 Unit tests for Label models and business logic.
 """
+
 import pytest
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session

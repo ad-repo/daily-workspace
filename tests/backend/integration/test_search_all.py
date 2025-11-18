@@ -2,6 +2,7 @@
 Integration tests for the /api/search/all endpoint.
 Tests searching both entries and lists with label filtering.
 """
+
 from datetime import datetime
 
 from fastapi.testclient import TestClient
