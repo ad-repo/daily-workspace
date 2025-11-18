@@ -2,6 +2,7 @@
 Integration tests for list labels feature.
 Tests the ability to add and remove labels from lists.
 """
+
 from datetime import datetime
 
 from fastapi.testclient import TestClient

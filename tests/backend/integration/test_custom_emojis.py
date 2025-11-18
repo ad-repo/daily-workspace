@@ -1,6 +1,7 @@
 """
 Integration tests for custom emoji API endpoints.
 """
+
 import io
 
 from fastapi.testclient import TestClient

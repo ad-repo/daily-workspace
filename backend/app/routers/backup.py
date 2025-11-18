@@ -923,9 +923,9 @@ async def full_restore(
         }
 
         stats['success'] = True
-        stats[
-            'message'
-        ] = f"Full restore completed: {data_stats['entries_imported']} entries and {files_restored} files restored"
+        stats['message'] = (
+            f"Full restore completed: {data_stats['entries_imported']} entries and {files_restored} files restored"
+        )
 
         return stats
 

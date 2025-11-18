@@ -1,6 +1,7 @@
 """
 API routes for application settings (sprint goals, quarterly goals, etc.)
 """
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 

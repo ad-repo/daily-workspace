@@ -1,6 +1,7 @@
 """
 Integration tests for Kanban API endpoints
 """
+
 import random
 import time
 

@@ -69,6 +69,9 @@ def main():
 
     # Get database path from environment
     db_path = get_db_path_from_env()
+    if not db_path.is_absolute():
+        db_path = Path.cwd() / db_path
+    db_path.parent.mkdir(parents=True, exist_ok=True)
     print(f"Database: {db_path}")
     print()
     

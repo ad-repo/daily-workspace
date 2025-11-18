@@ -3,6 +3,10 @@
 
 set -e
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+COMPOSE_CMD="docker-compose --env-file $REPO_ROOT/.dockerenv"
+
 echo "======================================"
 echo "Running E2E Tests with Playwright"
 echo "======================================"
@@ -15,19 +19,16 @@ if [ -f "/.dockerenv" ]; then
 else
     # Running on host machine
     echo "Building E2E container..."
-    cd ..
-    docker-compose build e2e
+    (cd "$REPO_ROOT" && $COMPOSE_CMD build e2e)
     
     echo "Starting backend and frontend services..."
-    docker-compose up -d backend frontend
+    (cd "$REPO_ROOT" && $COMPOSE_CMD up -d backend frontend)
     
     echo "Waiting for services to be ready..."
     sleep 5
     
     echo "Running E2E tests in container..."
-    docker-compose run --rm e2e
-    
-    cd e2e
+    (cd "$REPO_ROOT" && $COMPOSE_CMD run --rm e2e)
 fi
 
 echo ""

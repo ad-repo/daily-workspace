@@ -1,6 +1,7 @@
 """
 API routes for custom emoji management
 """
+
 import os
 import uuid
 from datetime import datetime

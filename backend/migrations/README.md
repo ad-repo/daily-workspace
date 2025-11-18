@@ -62,10 +62,10 @@ If you're running the app in Docker:
 
 ```bash
 # Apply migrations
-docker-compose exec backend python migrations/001_add_title_field.py up
+docker-compose --env-file .dockerenv exec backend python migrations/001_add_title_field.py up
 
 # Or run all migrations
-docker-compose exec backend python migrations/run_migrations.py
+docker-compose --env-file .dockerenv exec backend python migrations/run_migrations.py
 ```
 
 ## Utility Scripts

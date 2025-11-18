@@ -1,6 +1,7 @@
 """
 Integration tests for emoji_library setting in app_settings.
 """
+
 import json
 
 from fastapi.testclient import TestClient

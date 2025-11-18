@@ -2,8 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { format, parse, addDays, subDays } from 'date-fns';
 import { ChevronLeft, ChevronRight, Plus, CheckSquare, Combine } from 'lucide-react';
-import axios from 'axios';
-import { notesApi, entriesApi, goalsApi } from '../api';
+import api, { notesApi, entriesApi, goalsApi, settingsApi } from '../api';
 import type { DailyNote, NoteEntry, Goal } from '../types';
 import NoteEntryCard from './NoteEntryCard';
 import LabelSelector from './LabelSelector';
@@ -15,8 +14,6 @@ import { useSprintGoals } from '../contexts/SprintGoalsContext';
 import { useSprintName } from '../contexts/SprintNameContext';
 import { useQuarterlyGoals } from '../contexts/QuarterlyGoalsContext';
 import { useDayLabels } from '../contexts/DayLabelsContext';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 const DailyView = () => {
   const { date } = useParams<{ date: string }>();
@@ -82,8 +79,8 @@ const DailyView = () => {
   useEffect(() => {
     const loadSettings = async () => {
       try {
-        const response = await axios.get(`${API_URL}/api/settings`);
-        setDailyGoalEndTime(response.data.daily_goal_end_time || '17:00');
+        const settings = await settingsApi.get();
+        setDailyGoalEndTime(settings.daily_goal_end_time || '17:00');
       } catch (error) {
         console.error('Failed to load settings:', error);
       }
@@ -479,7 +476,7 @@ const DailyView = () => {
 
     setIsMerging(true);
     try {
-      await axios.post(`${API_URL}/api/entries/merge`, {
+      await api.post('/api/entries/merge', {
         entry_ids: Array.from(selectedEntries),
         separator: '\n\n',
         delete_originals: true
