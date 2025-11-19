@@ -262,6 +262,8 @@ Data is persisted in Docker volumes at `./backend/data`
 
 If you delete `backend/data/track_the_thing.db`, the backend will automatically recreate the SQLite file (and default settings row) the next time it starts up.
 
+> **Note:** JSON backups created before version 7.0 (no `lists` section) do not include Trello-style lists/Kanban columns. Importing those backups restores daily notes/entries, but lists must be recreated manually or migrated from the source database. Always keep a copy of the original `track_the_thing.db` when upgrading older deployments.
+
 ### Configuration via `.dockerenv`
 
 All Docker services read their environment values from the root `.dockerenv` file. The defaults target local development (SQLite databases, localhost ports). Update this file if you need to point at different databases, change API URLs, or tweak CI flags. Local tooling (e.g., the frontend `.env`) also derives its defaults from the same values to keep everything in sync.
