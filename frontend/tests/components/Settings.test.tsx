@@ -6,7 +6,7 @@
  */
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { act } from 'react-dom/test-utils';
+import { act } from 'react';
 import React from 'react';
 import Settings from '@/components/Settings';
 import { TimezoneProvider } from '@/contexts/TimezoneContext';
@@ -77,7 +77,23 @@ describe('Settings Component', () => {
       }
       return Promise.resolve({ data: {} });
     });
-    mockAxios.post.mockResolvedValue({ data: {} });
+    mockAxios.post.mockImplementation((url: string) => {
+      if (url.includes('/api/backup/import')) {
+        return Promise.resolve({ data: { stats: { notes_imported: 5 } } });
+      }
+      if (url.includes('/api/backup/full-restore')) {
+        return Promise.resolve({
+          data: {
+            data_restore: { entries_imported: 81, notes_imported: 19, labels_imported: 79 },
+            files_restore: { restored: 5, skipped: 0 },
+          },
+        });
+      }
+      if (url.includes('/api/uploads/restore-files')) {
+        return Promise.resolve({ data: { stats: { restored: 10, skipped: 0 } } });
+      }
+      return Promise.resolve({ data: {} });
+    });
     mockAxios.delete.mockResolvedValue({ data: {} });
   });
 
@@ -85,8 +101,10 @@ describe('Settings Component', () => {
     vi.restoreAllMocks();
   });
 
-  const renderWithProviders = (component: React.ReactElement) => {
-    return render(
+  const renderWithProviders = async (component: React.ReactElement) => {
+    let utils: ReturnType<typeof render> | undefined;
+    await act(async () => {
+      utils = render(
       <TimezoneProvider>
         <ThemeProvider>
           <CustomBackgroundProvider>
@@ -105,33 +123,35 @@ describe('Settings Component', () => {
         </ThemeProvider>
       </TimezoneProvider>
     );
+    });
+    return utils!;
   };
 
-  it('renders without crashing', () => {
-    const { container } = renderWithProviders(<Settings />);
+  it('renders without crashing', async () => {
+    const { container } = await renderWithProviders(<Settings />);
     expect(container).toBeInTheDocument();
   });
 
   it('loads labels on mount', async () => {
-    renderWithProviders(<Settings />);
+    await renderWithProviders(<Settings />);
 
     await waitFor(() => {
       expect(mockAxios.get).toHaveBeenCalled();
     });
   });
 
-  it('displays theme selector', () => {
-    const { container } = renderWithProviders(<Settings />);
+  it('displays theme selector', async () => {
+    const { container } = await renderWithProviders(<Settings />);
     expect(container).toBeInTheDocument();
   });
 
-  it('displays timezone settings', () => {
-    const { container } = renderWithProviders(<Settings />);
+  it('displays timezone settings', async () => {
+    const { container } = await renderWithProviders(<Settings />);
     expect(container).toBeInTheDocument();
   });
 
   it('exports data as JSON', async () => {
-    renderWithProviders(<Settings />);
+    await renderWithProviders(<Settings />);
 
     await waitFor(() => {
       expect(mockAxios.get).toHaveBeenCalled();
@@ -139,7 +159,7 @@ describe('Settings Component', () => {
   });
 
   it('exports data as Markdown', async () => {
-    renderWithProviders(<Settings />);
+    await renderWithProviders(<Settings />);
 
     await waitFor(() => {
       expect(mockAxios.get).toHaveBeenCalled();
@@ -147,23 +167,88 @@ describe('Settings Component', () => {
   });
 
   it('imports data from JSON file', async () => {
-    renderWithProviders(<Settings />);
+    await renderWithProviders(<Settings />);
 
     await waitFor(() => {
       expect(mockAxios.get).toHaveBeenCalled();
+    });
+  });
+
+  it('shows confirmation before importing JSON backup', async () => {
+    await renderWithProviders(<Settings />);
+
+    const importInput = screen.getByTestId('json-import-input') as HTMLInputElement;
+    const file = new File(['{}'], 'backup.json', { type: 'application/json' });
+
+    await act(async () => {
+      fireEvent.change(importInput, { target: { files: [file] } });
+    });
+
+    expect(screen.getByText('Import JSON Backup?')).toBeInTheDocument();
+
+    await act(async () => {
+      fireEvent.click(screen.getByText('Yes, import backup'));
+    });
+
+    await waitFor(() => {
+      expect(mockAxios.post).toHaveBeenCalledWith(
+        expect.stringContaining('/api/backup/import'),
+        expect.any(FormData),
+        expect.objectContaining({
+          headers: expect.objectContaining({ 'Content-Type': 'multipart/form-data' }),
+        })
+      );
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText(/Remember to restore the uploads ZIP/i)).toBeInTheDocument();
     });
   });
 
   it('performs full restore with attachments', async () => {
-    renderWithProviders(<Settings />);
+    await renderWithProviders(<Settings />);
 
     await waitFor(() => {
       expect(mockAxios.get).toHaveBeenCalled();
     });
   });
 
+  it('requires confirmation before running a full restore', async () => {
+    await renderWithProviders(<Settings />);
+
+    const jsonInput = screen.getByTestId('full-restore-json-input') as HTMLInputElement;
+    const zipInput = screen.getByTestId('full-restore-zip-input') as HTMLInputElement;
+    const jsonFile = new File(['{}'], 'backup.json', { type: 'application/json' });
+    const zipFile = new File(['zip'], 'files.zip', { type: 'application/zip' });
+
+    await act(async () => {
+      fireEvent.change(jsonInput, { target: { files: [jsonFile] } });
+      fireEvent.change(zipInput, { target: { files: [zipFile] } });
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByText('Restore Everything'));
+    });
+
+    expect(screen.getByText('Run Full Restore?')).toBeInTheDocument();
+
+    await act(async () => {
+      fireEvent.click(screen.getByText('Restore everything'));
+    });
+
+    await waitFor(() => {
+      expect(mockAxios.post).toHaveBeenCalledWith(
+        expect.stringContaining('/api/backup/full-restore'),
+        expect.any(FormData),
+        expect.objectContaining({
+          headers: expect.objectContaining({ 'Content-Type': 'multipart/form-data' }),
+        })
+      );
+    });
+  });
+
   it('deletes label when delete button clicked', async () => {
-    renderWithProviders(<Settings />);
+    await renderWithProviders(<Settings />);
 
     await waitFor(() => {
       expect(mockAxios.get).toHaveBeenCalled();
@@ -171,49 +256,47 @@ describe('Settings Component', () => {
   });
 
   it('searches labels by name', async () => {
-    renderWithProviders(<Settings />);
+    await renderWithProviders(<Settings />);
 
     await waitFor(() => {
       expect(mockAxios.get).toHaveBeenCalled();
     });
   });
 
-  it('toggles transparent labels setting', () => {
-    const { container } = renderWithProviders(<Settings />);
+  it('toggles transparent labels setting', async () => {
+    const { container } = await renderWithProviders(<Settings />);
     expect(container).toBeInTheDocument();
   });
 
-  it('toggles daily goals visibility', () => {
-    const { container } = renderWithProviders(<Settings />);
+  it('toggles daily goals visibility', async () => {
+    const { container } = await renderWithProviders(<Settings />);
     expect(container).toBeInTheDocument();
   });
 
-  it('toggles sprint goals visibility', () => {
-    const { container } = renderWithProviders(<Settings />);
+  it('toggles sprint goals visibility', async () => {
+    const { container } = await renderWithProviders(<Settings />);
     expect(container).toBeInTheDocument();
   });
 
-  it('toggles quarterly goals visibility', () => {
-    const { container } = renderWithProviders(<Settings />);
+  it('toggles quarterly goals visibility', async () => {
+    const { container } = await renderWithProviders(<Settings />);
     expect(container).toBeInTheDocument();
   });
 
-  it('toggles day labels visibility', () => {
-    const { container } = renderWithProviders(<Settings />);
+  it('toggles day labels visibility', async () => {
+    const { container } = await renderWithProviders(<Settings />);
     expect(container).toBeInTheDocument();
   });
 
-  it('allows editing timezone', () => {
-    const { container } = renderWithProviders(<Settings />);
+  it('allows editing timezone', async () => {
+    const { container } = await renderWithProviders(<Settings />);
     expect(container).toBeInTheDocument();
   });
 
   it('displays success message after successful operation', async () => {
     mockAxios.delete.mockResolvedValue({ data: {} });
 
-    await act(async () => {
-      renderWithProviders(<Settings />);
-    });
+    await renderWithProviders(<Settings />);
 
     await waitFor(() => {
       expect(screen.getByText('work')).toBeInTheDocument();
@@ -231,20 +314,20 @@ describe('Settings Component', () => {
   });
 
   it('displays error message on API failure', async () => {
-    renderWithProviders(<Settings />);
+    await renderWithProviders(<Settings />);
 
     await waitFor(() => {
       expect(mockAxios.get).toHaveBeenCalled();
     });
   });
 
-  it('opens theme creator when create theme button clicked', () => {
-    const { container } = renderWithProviders(<Settings />);
+  it('opens theme creator when create theme button clicked', async () => {
+    const { container } = await renderWithProviders(<Settings />);
     expect(container).toBeInTheDocument();
   });
 
   it('shows loading state during export', async () => {
-    renderWithProviders(<Settings />);
+    await renderWithProviders(<Settings />);
 
     await waitFor(() => {
       expect(mockAxios.get).toHaveBeenCalled();
@@ -252,7 +335,7 @@ describe('Settings Component', () => {
   });
 
   it('shows loading state during import', async () => {
-    renderWithProviders(<Settings />);
+    await renderWithProviders(<Settings />);
 
     await waitFor(() => {
       expect(mockAxios.get).toHaveBeenCalled();
@@ -260,7 +343,7 @@ describe('Settings Component', () => {
   });
 
   it('clears file inputs after successful import', async () => {
-    renderWithProviders(<Settings />);
+    await renderWithProviders(<Settings />);
 
     await waitFor(() => {
       expect(mockAxios.get).toHaveBeenCalled();
@@ -268,15 +351,15 @@ describe('Settings Component', () => {
   });
 
   it('sorts labels by name', async () => {
-    renderWithProviders(<Settings />);
+    await renderWithProviders(<Settings />);
 
     await waitFor(() => {
       expect(mockAxios.get).toHaveBeenCalled();
     });
   });
 
-  it('displays helpful documentation notes', () => {
-    const { container } = renderWithProviders(<Settings />);
+  it('displays helpful documentation notes', async () => {
+    const { container } = await renderWithProviders(<Settings />);
     expect(container).toBeInTheDocument();
   });
 });

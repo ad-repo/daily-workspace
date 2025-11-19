@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { Download, Upload, Settings as SettingsIcon, Clock, Archive, Tag, Trash2, Edit2, Palette, Plus, RotateCcw } from 'lucide-react';
 import axios from 'axios';
 import { useTimezone } from '../contexts/TimezoneContext';
@@ -21,6 +21,73 @@ interface Label {
   color: string;
   created_at: string;
 }
+
+type ConfirmationDialogProps = {
+  isOpen: boolean;
+  title: string;
+  message: string;
+  confirmLabel?: string;
+  cancelLabel?: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+};
+
+const ConfirmationDialog = ({
+  isOpen,
+  title,
+  message,
+  confirmLabel = 'Confirm',
+  cancelLabel = 'Cancel',
+  onConfirm,
+  onCancel,
+}: ConfirmationDialogProps) => {
+  if (!isOpen) return null;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center px-4"
+      style={{ backgroundColor: 'rgba(0, 0, 0, 0.45)' }}
+    >
+      <div
+        className="w-full max-w-md rounded-2xl shadow-2xl p-6"
+        style={{
+          backgroundColor: 'var(--color-bg-primary)',
+          border: '1px solid var(--color-border-primary)',
+        }}
+      >
+        <h3 className="text-lg font-semibold mb-3" style={{ color: 'var(--color-text-primary)' }}>
+          {title}
+        </h3>
+        <p className="text-sm mb-6" style={{ color: 'var(--color-text-secondary)' }}>
+          {message}
+        </p>
+        <div className="flex justify-end gap-3">
+          <button
+            onClick={onCancel}
+            className="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+            style={{
+              backgroundColor: 'var(--color-bg-secondary)',
+              color: 'var(--color-text-primary)',
+              border: '1px solid var(--color-border-primary)',
+            }}
+          >
+            {cancelLabel}
+          </button>
+          <button
+            onClick={onConfirm}
+            className="px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
+            style={{
+              backgroundColor: 'var(--color-accent)',
+              color: 'var(--color-accent-text)',
+            }}
+          >
+            {confirmLabel}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -71,6 +138,10 @@ const Settings = () => {
   const [zipFile, setZipFile] = useState<File | null>(null);
   const [showThemeCreator, setShowThemeCreator] = useState(false);
   const [editingTheme, setEditingTheme] = useState<Theme | null>(null);
+  const [pendingImportFile, setPendingImportFile] = useState<File | null>(null);
+  const [showImportConfirm, setShowImportConfirm] = useState(false);
+  const [showFullRestoreConfirm, setShowFullRestoreConfirm] = useState(false);
+  const importInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     loadLabels();
@@ -167,13 +238,31 @@ const Settings = () => {
     }
   };
 
-  const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const resetImportSelection = () => {
+    setPendingImportFile(null);
+    if (importInputRef.current) {
+      importInputRef.current.value = '';
+    }
+  };
+
+  const handleImportFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
+    setPendingImportFile(file);
+    setShowImportConfirm(true);
+  };
 
+  const cancelImportConfirmation = () => {
+    setShowImportConfirm(false);
+    resetImportSelection();
+  };
+
+  const performJsonImport = async () => {
+    if (!pendingImportFile) return;
+    setShowImportConfirm(false);
     setIsImporting(true);
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('file', pendingImportFile);
 
     try {
       const response = await axios.post(`${API_URL}/api/backup/import`, formData, {
@@ -181,14 +270,19 @@ const Settings = () => {
           'Content-Type': 'multipart/form-data',
         },
       });
-      
-      showMessage('success', `Import successful! ${response.data.stats.notes_imported} notes imported.`);
+
+      const importedNotes = response.data?.stats?.notes_imported ?? 0;
+      const warningSuffix = response.data?.warning ? ` Warning: ${response.data.warning}` : '';
+      const reminder =
+        ' Remember to restore the uploads ZIP to bring back custom backgrounds, emojis, and attachments.';
+
+      showMessage('success', `Import successful! ${importedNotes} notes imported.${warningSuffix}${reminder}`);
     } catch (error: any) {
       console.error('Import failed:', error);
       showMessage('error', error.response?.data?.detail || 'Failed to import data');
     } finally {
       setIsImporting(false);
-      event.target.value = ''; // Reset file input
+      resetImportSelection();
     }
   };
 
@@ -391,12 +485,26 @@ const Settings = () => {
     }
   };
 
-  const handleFullRestore = async () => {
+  const startFullRestore = () => {
     if (!jsonFile || !zipFile) {
       showMessage('error', 'Please select both JSON backup and ZIP files');
       return;
     }
+    setShowFullRestoreConfirm(true);
+  };
 
+  const cancelFullRestore = () => {
+    setShowFullRestoreConfirm(false);
+  };
+
+  const performFullRestore = async () => {
+    if (!jsonFile || !zipFile) {
+      setShowFullRestoreConfirm(false);
+      showMessage('error', 'Please select both JSON backup and ZIP files');
+      return;
+    }
+
+    setShowFullRestoreConfirm(false);
     setIsFullRestoring(true);
     const formData = new FormData();
     formData.append('backup_file', jsonFile);
@@ -1058,6 +1166,7 @@ const Settings = () => {
                     type="file"
                     accept=".json"
                     onChange={(e) => setJsonFile(e.target.files?.[0] || null)}
+                    data-testid="full-restore-json-input"
                     className="hidden"
                   />
                 </label>
@@ -1087,6 +1196,7 @@ const Settings = () => {
                     type="file"
                     accept=".zip"
                     onChange={(e) => setZipFile(e.target.files?.[0] || null)}
+                    data-testid="full-restore-zip-input"
                     className="hidden"
                   />
                 </label>
@@ -1094,7 +1204,7 @@ const Settings = () => {
             </div>
             
             <button
-              onClick={handleFullRestore}
+              onClick={startFullRestore}
               disabled={isFullRestoring || !jsonFile || !zipFile}
               className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg transition-colors font-medium disabled:cursor-not-allowed"
               style={{
@@ -1281,8 +1391,10 @@ const Settings = () => {
                 <input
                   type="file"
                   accept=".json"
-                  onChange={handleImport}
+                  onChange={handleImportFileSelect}
                   disabled={isImporting}
+                  ref={importInputRef}
+                  data-testid="json-import-input"
                   className="hidden"
                 />
               </label>
@@ -1482,6 +1594,24 @@ const Settings = () => {
       <CustomEmojiManager
         isOpen={showEmojiManager}
         onClose={() => setShowEmojiManager(false)}
+      />
+      <ConfirmationDialog
+        isOpen={showImportConfirm && !!pendingImportFile}
+        title="Import JSON Backup?"
+        message="This will merge the selected backup into your current workspace. Existing days with the same date may be updated if you chose replace mode previously. Continue?"
+        confirmLabel="Yes, import backup"
+        cancelLabel="Cancel"
+        onConfirm={performJsonImport}
+        onCancel={cancelImportConfirmation}
+      />
+      <ConfirmationDialog
+        isOpen={showFullRestoreConfirm}
+        title="Run Full Restore?"
+        message="This uploads the JSON backup and files archive, replacing matching records and files in the current environment. Make sure you have a fresh export before continuing."
+        confirmLabel="Restore everything"
+        cancelLabel="Cancel"
+        onConfirm={performFullRestore}
+        onCancel={cancelFullRestore}
       />
     </div>
   );
