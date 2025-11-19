@@ -348,286 +348,279 @@ async def import_data(file: UploadFile = File(...), replace: bool = False, db: S
             'quarterly_goals_imported': 0,
         }
 
-        # Import search history
-        search_history_data = data.get('search_history', [])
-        for history_item in search_history_data:
-            # Check if this query already exists
-            existing = (
-                db.query(models.SearchHistory)
-                .filter(
-                    models.SearchHistory.query == history_item['query'],
-                    models.SearchHistory.created_at == datetime.fromisoformat(history_item['created_at']),
-                )
-                .first()
-            )
+        legacy_lists = 'lists' not in data
 
-            if not existing:
-                new_history = models.SearchHistory(
-                    query=history_item['query'], created_at=datetime.fromisoformat(history_item['created_at'])
-                )
-                db.add(new_history)
-                stats['search_history_imported'] += 1
-
-        db.commit()
-
-        # Import custom emojis if present
-        if 'custom_emojis' in data:
-            for emoji_data in data['custom_emojis']:
-                # Check if emoji with this name already exists
-                existing_emoji = (
-                    db.query(models.CustomEmoji).filter(models.CustomEmoji.name == emoji_data['name']).first()
-                )
-
-                if not existing_emoji:
-                    new_emoji = models.CustomEmoji(
-                        name=emoji_data['name'],
-                        image_url=emoji_data['image_url'],
-                        category=emoji_data.get('category', 'Custom'),
-                        keywords=emoji_data.get('keywords', ''),
-                        is_deleted=1 if emoji_data.get('is_deleted', False) else 0,
-                        created_at=datetime.fromisoformat(emoji_data['created_at'])
-                        if 'created_at' in emoji_data
-                        else datetime.utcnow(),
-                        updated_at=datetime.fromisoformat(emoji_data['updated_at'])
-                        if 'updated_at' in emoji_data
-                        else datetime.utcnow(),
-                    )
-                    db.add(new_emoji)
-                    stats['custom_emojis_imported'] += 1
-                else:
-                    stats['custom_emojis_skipped'] += 1
-            db.commit()
-
-        # Import app_settings if present
-        if 'app_settings' in data and data['app_settings']:
-            settings_data = data['app_settings']
-            existing_settings = db.query(models.AppSettings).filter(models.AppSettings.id == 1).first()
-            if existing_settings:
-                existing_settings.sprint_goals = settings_data.get('sprint_goals', '')
-                existing_settings.quarterly_goals = settings_data.get('quarterly_goals', '')
-                existing_settings.sprint_start_date = settings_data.get('sprint_start_date', '')
-                existing_settings.sprint_end_date = settings_data.get('sprint_end_date', '')
-                existing_settings.quarterly_start_date = settings_data.get('quarterly_start_date', '')
-                existing_settings.quarterly_end_date = settings_data.get('quarterly_end_date', '')
-                existing_settings.emoji_library = settings_data.get('emoji_library', 'emoji-picker-react')
-            else:
-                new_settings = models.AppSettings(
-                    id=1,
-                    sprint_goals=settings_data.get('sprint_goals', ''),
-                    quarterly_goals=settings_data.get('quarterly_goals', ''),
-                    sprint_start_date=settings_data.get('sprint_start_date', ''),
-                    sprint_end_date=settings_data.get('sprint_end_date', ''),
-                    quarterly_start_date=settings_data.get('quarterly_start_date', ''),
-                    quarterly_end_date=settings_data.get('quarterly_end_date', ''),
-                    emoji_library=settings_data.get('emoji_library', 'emoji-picker-react'),
-                    created_at=datetime.fromisoformat(settings_data['created_at'])
-                    if 'created_at' in settings_data
-                    else datetime.utcnow(),
-                    updated_at=datetime.fromisoformat(settings_data['updated_at'])
-                    if 'updated_at' in settings_data
-                    else datetime.utcnow(),
-                )
-                db.add(new_settings)
-            db.commit()
-
-        # Import sprint goals if present
-        if 'sprint_goals' in data:
-            for goal_data in data['sprint_goals']:
-                # Check if this goal already exists (by date range)
-                existing_goal = (
-                    db.query(models.SprintGoal)
+        with db.begin():
+            # Import search history
+            search_history_data = data.get('search_history', [])
+            for history_item in search_history_data:
+                existing = (
+                    db.query(models.SearchHistory)
                     .filter(
-                        models.SprintGoal.start_date == goal_data['start_date'],
-                        models.SprintGoal.end_date == goal_data['end_date'],
+                        models.SearchHistory.query == history_item['query'],
+                        models.SearchHistory.created_at == datetime.fromisoformat(history_item['created_at']),
                     )
                     .first()
                 )
 
-                if not existing_goal:
-                    new_goal = models.SprintGoal(
-                        text=goal_data['text'],
-                        start_date=goal_data['start_date'],
-                        end_date=goal_data['end_date'],
-                        created_at=datetime.fromisoformat(goal_data['created_at'])
-                        if 'created_at' in goal_data
-                        else datetime.utcnow(),
-                        updated_at=datetime.fromisoformat(goal_data['updated_at'])
-                        if 'updated_at' in goal_data
-                        else datetime.utcnow(),
+                if not existing:
+                    new_history = models.SearchHistory(
+                        query=history_item['query'], created_at=datetime.fromisoformat(history_item['created_at'])
                     )
-                    db.add(new_goal)
-                    stats['sprint_goals_imported'] += 1
-            db.commit()
+                    db.add(new_history)
+                    stats['search_history_imported'] += 1
 
-        # Import quarterly goals if present
-        if 'quarterly_goals' in data:
-            for goal_data in data['quarterly_goals']:
-                # Check if this goal already exists (by date range)
-                existing_goal = (
-                    db.query(models.QuarterlyGoal)
-                    .filter(
-                        models.QuarterlyGoal.start_date == goal_data['start_date'],
-                        models.QuarterlyGoal.end_date == goal_data['end_date'],
+            # Import custom emojis if present
+            if 'custom_emojis' in data:
+                for emoji_data in data['custom_emojis']:
+                    existing_emoji = (
+                        db.query(models.CustomEmoji).filter(models.CustomEmoji.name == emoji_data['name']).first()
                     )
-                    .first()
-                )
 
-                if not existing_goal:
-                    new_goal = models.QuarterlyGoal(
-                        text=goal_data['text'],
-                        start_date=goal_data['start_date'],
-                        end_date=goal_data['end_date'],
-                        created_at=datetime.fromisoformat(goal_data['created_at'])
-                        if 'created_at' in goal_data
-                        else datetime.utcnow(),
-                        updated_at=datetime.fromisoformat(goal_data['updated_at'])
-                        if 'updated_at' in goal_data
-                        else datetime.utcnow(),
-                    )
-                    db.add(new_goal)
-                    stats['quarterly_goals_imported'] += 1
-            db.commit()
+                    if not existing_emoji:
+                        new_emoji = models.CustomEmoji(
+                            name=emoji_data['name'],
+                            image_url=emoji_data['image_url'],
+                            category=emoji_data.get('category', 'Custom'),
+                            keywords=emoji_data.get('keywords', ''),
+                            is_deleted=1 if emoji_data.get('is_deleted', False) else 0,
+                            created_at=datetime.fromisoformat(emoji_data['created_at'])
+                            if 'created_at' in emoji_data
+                            else datetime.utcnow(),
+                            updated_at=datetime.fromisoformat(emoji_data['updated_at'])
+                            if 'updated_at' in emoji_data
+                            else datetime.utcnow(),
+                        )
+                        db.add(new_emoji)
+                        stats['custom_emojis_imported'] += 1
+                    else:
+                        stats['custom_emojis_skipped'] += 1
 
-        # Import labels (support both old "tags" and new "labels" format)
-        label_id_mapping = {}
-        labels_data = data.get('labels', data.get('tags', []))
-        for label_data in labels_data:
-            existing_label = db.query(models.Label).filter(models.Label.name == label_data['name']).first()
-            if existing_label:
-                label_id_mapping[label_data['id']] = existing_label.id
-                stats['labels_skipped'] += 1
-            else:
-                new_label = models.Label(
-                    name=label_data['name'],
-                    color=label_data.get('color', '#3b82f6'),
-                    created_at=datetime.fromisoformat(label_data['created_at'])
-                    if 'created_at' in label_data
-                    else datetime.utcnow(),
-                )
-                db.add(new_label)
-                db.flush()
-                label_id_mapping[label_data['id']] = new_label.id
-                stats['labels_imported'] += 1
-
-        db.commit()
-
-        # Import lists
-        list_id_mapping = {}
-        lists_data = data.get('lists', [])
-        for list_data in lists_data:
-            existing_list = db.query(models.List).filter(models.List.name == list_data['name']).first()
-            if existing_list:
-                list_id_mapping[list_data['id']] = existing_list.id
-                stats['lists_skipped'] += 1
-            else:
-                new_list = models.List(
-                    name=list_data['name'],
-                    description=list_data.get('description', ''),
-                    color=list_data.get('color', '#3b82f6'),
-                    order_index=list_data.get('order_index', 0),
-                    is_archived=1 if list_data.get('is_archived', False) else 0,
-                    is_kanban=1 if list_data.get('is_kanban', False) else 0,
-                    kanban_order=list_data.get('kanban_order', 0),
-                    created_at=datetime.fromisoformat(list_data['created_at'])
-                    if 'created_at' in list_data
-                    else datetime.utcnow(),
-                    updated_at=datetime.fromisoformat(list_data['updated_at'])
-                    if 'updated_at' in list_data
-                    else datetime.utcnow(),
-                )
-                db.add(new_list)
-                db.flush()
-                list_id_mapping[list_data['id']] = new_list.id
-                stats['lists_imported'] += 1
-
-        db.commit()
-
-        # Import notes
-        for note_data in data['notes']:
-            existing_note = db.query(models.DailyNote).filter(models.DailyNote.date == note_data['date']).first()
-
-            if existing_note:
-                if replace:
-                    # Delete existing entries
-                    db.query(models.NoteEntry).filter(models.NoteEntry.daily_note_id == existing_note.id).delete()
-                    existing_note.labels.clear()
-                    note = existing_note
-                    note.fire_rating = note_data.get('fire_rating', 0)
-                    note.daily_goal = note_data.get('daily_goal', '')
-                    # Preserve timestamps from backup
-                    if 'created_at' in note_data:
-                        note.created_at = datetime.fromisoformat(note_data['created_at'])
-                    if 'updated_at' in note_data:
-                        note.updated_at = datetime.fromisoformat(note_data['updated_at'])
+            # Import app_settings if present
+            if 'app_settings' in data and data['app_settings']:
+                settings_data = data['app_settings']
+                existing_settings = db.query(models.AppSettings).filter(models.AppSettings.id == 1).first()
+                if existing_settings:
+                    existing_settings.sprint_goals = settings_data.get('sprint_goals', '')
+                    existing_settings.quarterly_goals = settings_data.get('quarterly_goals', '')
+                    existing_settings.sprint_start_date = settings_data.get('sprint_start_date', '')
+                    existing_settings.sprint_end_date = settings_data.get('sprint_end_date', '')
+                    existing_settings.quarterly_start_date = settings_data.get('quarterly_start_date', '')
+                    existing_settings.quarterly_end_date = settings_data.get('quarterly_end_date', '')
+                    existing_settings.emoji_library = settings_data.get('emoji_library', 'emoji-picker-react')
                 else:
-                    stats['notes_skipped'] += 1
-                    continue
-            else:
-                note = models.DailyNote(
-                    date=note_data['date'],
-                    fire_rating=note_data.get('fire_rating', 0),
-                    daily_goal=note_data.get('daily_goal', ''),
-                    created_at=datetime.fromisoformat(note_data['created_at'])
-                    if 'created_at' in note_data
-                    else datetime.utcnow(),
-                    updated_at=datetime.fromisoformat(note_data['updated_at'])
-                    if 'updated_at' in note_data
-                    else datetime.utcnow(),
-                )
-                db.add(note)
-                stats['notes_imported'] += 1
+                    new_settings = models.AppSettings(
+                        id=1,
+                        sprint_goals=settings_data.get('sprint_goals', ''),
+                        quarterly_goals=settings_data.get('quarterly_goals', ''),
+                        sprint_start_date=settings_data.get('sprint_start_date', ''),
+                        sprint_end_date=settings_data.get('sprint_end_date', ''),
+                        quarterly_start_date=settings_data.get('quarterly_start_date', ''),
+                        quarterly_end_date=settings_data.get('quarterly_end_date', ''),
+                        emoji_library=settings_data.get('emoji_library', 'emoji-picker-react'),
+                        created_at=datetime.fromisoformat(settings_data['created_at'])
+                        if 'created_at' in settings_data
+                        else datetime.utcnow(),
+                        updated_at=datetime.fromisoformat(settings_data['updated_at'])
+                        if 'updated_at' in settings_data
+                        else datetime.utcnow(),
+                    )
+                    db.add(new_settings)
 
-            db.flush()
+            # Import sprint goals if present
+            if 'sprint_goals' in data:
+                for goal_data in data['sprint_goals']:
+                    existing_goal = (
+                        db.query(models.SprintGoal)
+                        .filter(
+                            models.SprintGoal.start_date == goal_data['start_date'],
+                            models.SprintGoal.end_date == goal_data['end_date'],
+                        )
+                        .first()
+                    )
 
-            # Add entries
-            for entry_data in note_data.get('entries', []):
-                entry = models.NoteEntry(
-                    daily_note_id=note.id,
-                    title=entry_data.get('title', ''),
-                    content=entry_data['content'],
-                    content_type=entry_data.get('content_type', 'rich_text'),
-                    order_index=entry_data.get('order_index', 0),
-                    include_in_report=1 if entry_data.get('include_in_report', False) else 0,
-                    is_important=1 if entry_data.get('is_important', False) else 0,
-                    is_completed=1 if entry_data.get('is_completed', False) else 0,
-                    is_pinned=1 if entry_data.get('is_pinned', False) else 0,
-                    created_at=datetime.fromisoformat(entry_data['created_at'])
-                    if 'created_at' in entry_data
-                    else datetime.utcnow(),
-                    updated_at=datetime.fromisoformat(entry_data['updated_at'])
-                    if 'updated_at' in entry_data
-                    else datetime.utcnow(),
-                )
-                db.add(entry)
+                    if not existing_goal:
+                        new_goal = models.SprintGoal(
+                            text=goal_data['text'],
+                            start_date=goal_data['start_date'],
+                            end_date=goal_data['end_date'],
+                            created_at=datetime.fromisoformat(goal_data['created_at'])
+                            if 'created_at' in goal_data
+                            else datetime.utcnow(),
+                            updated_at=datetime.fromisoformat(goal_data['updated_at'])
+                            if 'updated_at' in goal_data
+                            else datetime.utcnow(),
+                        )
+                        db.add(new_goal)
+                        stats['sprint_goals_imported'] += 1
+
+            # Import quarterly goals if present
+            if 'quarterly_goals' in data:
+                for goal_data in data['quarterly_goals']:
+                    existing_goal = (
+                        db.query(models.QuarterlyGoal)
+                        .filter(
+                            models.QuarterlyGoal.start_date == goal_data['start_date'],
+                            models.QuarterlyGoal.end_date == goal_data['end_date'],
+                        )
+                        .first()
+                    )
+
+                    if not existing_goal:
+                        new_goal = models.QuarterlyGoal(
+                            text=goal_data['text'],
+                            start_date=goal_data['start_date'],
+                            end_date=goal_data['end_date'],
+                            created_at=datetime.fromisoformat(goal_data['created_at'])
+                            if 'created_at' in goal_data
+                            else datetime.utcnow(),
+                            updated_at=datetime.fromisoformat(goal_data['updated_at'])
+                            if 'updated_at' in goal_data
+                            else datetime.utcnow(),
+                        )
+                        db.add(new_goal)
+                        stats['quarterly_goals_imported'] += 1
+
+            # Import labels (support both old "tags" and new "labels" format)
+            label_id_mapping = {}
+            labels_data = data.get('labels', data.get('tags', []))
+            for label_data in labels_data:
+                existing_label = db.query(models.Label).filter(models.Label.name == label_data['name']).first()
+                if existing_label:
+                    label_id_mapping[label_data['id']] = existing_label.id
+                    stats['labels_skipped'] += 1
+                else:
+                    new_label = models.Label(
+                        name=label_data['name'],
+                        color=label_data.get('color', '#3b82f6'),
+                        created_at=datetime.fromisoformat(label_data['created_at'])
+                        if 'created_at' in label_data
+                        else datetime.utcnow(),
+                    )
+                    db.add(new_label)
+                    db.flush()
+                    label_id_mapping[label_data['id']] = new_label.id
+                    stats['labels_imported'] += 1
+
+            # Import lists
+            list_id_mapping = {}
+            lists_data = data.get('lists', [])
+            for list_data in lists_data:
+                existing_list = db.query(models.List).filter(models.List.name == list_data['name']).first()
+                if existing_list:
+                    list_id_mapping[list_data['id']] = existing_list.id
+                    stats['lists_skipped'] += 1
+                else:
+                    new_list = models.List(
+                        name=list_data['name'],
+                        description=list_data.get('description', ''),
+                        color=list_data.get('color', '#3b82f6'),
+                        order_index=list_data.get('order_index', 0),
+                        is_archived=1 if list_data.get('is_archived', False) else 0,
+                        is_kanban=1 if list_data.get('is_kanban', False) else 0,
+                        kanban_order=list_data.get('kanban_order', 0),
+                        created_at=datetime.fromisoformat(list_data['created_at'])
+                        if 'created_at' in list_data
+                        else datetime.utcnow(),
+                        updated_at=datetime.fromisoformat(list_data['updated_at'])
+                        if 'updated_at' in list_data
+                        else datetime.utcnow(),
+                    )
+                    db.add(new_list)
+                    db.flush()
+                    list_id_mapping[list_data['id']] = new_list.id
+                    stats['lists_imported'] += 1
+
+            # Import notes
+            for note_data in data['notes']:
+                existing_note = db.query(models.DailyNote).filter(models.DailyNote.date == note_data['date']).first()
+
+                if existing_note:
+                    if replace:
+                        db.query(models.NoteEntry).filter(models.NoteEntry.daily_note_id == existing_note.id).delete()
+                        existing_note.labels.clear()
+                        note = existing_note
+                        note.fire_rating = note_data.get('fire_rating', 0)
+                        note.daily_goal = note_data.get('daily_goal', '')
+                        if 'created_at' in note_data:
+                            note.created_at = datetime.fromisoformat(note_data['created_at'])
+                        if 'updated_at' in note_data:
+                            note.updated_at = datetime.fromisoformat(note_data['updated_at'])
+                    else:
+                        stats['notes_skipped'] += 1
+                        continue
+                else:
+                    note = models.DailyNote(
+                        date=note_data['date'],
+                        fire_rating=note_data.get('fire_rating', 0),
+                        daily_goal=note_data.get('daily_goal', ''),
+                        created_at=datetime.fromisoformat(note_data['created_at'])
+                        if 'created_at' in note_data
+                        else datetime.utcnow(),
+                        updated_at=datetime.fromisoformat(note_data['updated_at'])
+                        if 'updated_at' in note_data
+                        else datetime.utcnow(),
+                    )
+                    db.add(note)
+                    stats['notes_imported'] += 1
+
                 db.flush()
 
-                # Add entry labels
-                for old_label_id in entry_data.get('labels', []):
+                # Add entries
+                for entry_data in note_data.get('entries', []):
+                    entry = models.NoteEntry(
+                        daily_note_id=note.id,
+                        title=entry_data.get('title', ''),
+                        content=entry_data['content'],
+                        content_type=entry_data.get('content_type', 'rich_text'),
+                        order_index=entry_data.get('order_index', 0),
+                        include_in_report=1 if entry_data.get('include_in_report', False) else 0,
+                        is_important=1 if entry_data.get('is_important', False) else 0,
+                        is_completed=1 if entry_data.get('is_completed', False) else 0,
+                        is_pinned=1 if entry_data.get('is_pinned', False) else 0,
+                        created_at=datetime.fromisoformat(entry_data['created_at'])
+                        if 'created_at' in entry_data
+                        else datetime.utcnow(),
+                        updated_at=datetime.fromisoformat(entry_data['updated_at'])
+                        if 'updated_at' in entry_data
+                        else datetime.utcnow(),
+                    )
+                    db.add(entry)
+                    db.flush()
+
+                    # Add entry labels
+                    for old_label_id in entry_data.get('labels', []):
+                        if old_label_id in label_id_mapping:
+                            label = (
+                                db.query(models.Label).filter(models.Label.id == label_id_mapping[old_label_id]).first()
+                            )
+                            if label and label not in entry.labels:
+                                entry.labels.append(label)
+
+                    # Add entry to lists
+                    for old_list_id in entry_data.get('lists', []):
+                        if old_list_id in list_id_mapping:
+                            lst = db.query(models.List).filter(models.List.id == list_id_mapping[old_list_id]).first()
+                            if lst and lst not in entry.lists:
+                                entry.lists.append(lst)
+
+                    stats['entries_imported'] += 1
+
+                # Add note labels (support both old "tags" and new "labels" format)
+                note_labels = note_data.get('labels', note_data.get('tags', []))
+                for old_label_id in note_labels:
                     if old_label_id in label_id_mapping:
                         label = db.query(models.Label).filter(models.Label.id == label_id_mapping[old_label_id]).first()
-                        if label and label not in entry.labels:
-                            entry.labels.append(label)
+                        if label and label not in note.labels:
+                            note.labels.append(label)
 
-                # Add entry to lists
-                for old_list_id in entry_data.get('lists', []):
-                    if old_list_id in list_id_mapping:
-                        lst = db.query(models.List).filter(models.List.id == list_id_mapping[old_list_id]).first()
-                        if lst and lst not in entry.lists:
-                            entry.lists.append(lst)
+        response = {'success': True, 'message': 'Data imported successfully', 'stats': stats}
+        if legacy_lists:
+            response['warning'] = (
+                'Backup file is missing list/kanban data (pre-v7 export). ' 'Lists will need to be recreated manually.'
+            )
 
-                stats['entries_imported'] += 1
-
-            # Add note labels (support both old "tags" and new "labels" format)
-            note_labels = note_data.get('labels', note_data.get('tags', []))
-            for old_label_id in note_labels:
-                if old_label_id in label_id_mapping:
-                    label = db.query(models.Label).filter(models.Label.id == label_id_mapping[old_label_id]).first()
-                    if label and label not in note.labels:
-                        note.labels.append(label)
-
-        db.commit()
-
-        return {'success': True, 'message': 'Data imported successfully', 'stats': stats}
+        return response
 
     except json.JSONDecodeError:
         raise HTTPException(status_code=400, detail='Invalid JSON file')

@@ -59,5 +59,3 @@ def ensure_database() -> Path:
 
 if __name__ == '__main__':
     ensure_database()
-
-
