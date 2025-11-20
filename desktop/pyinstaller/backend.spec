@@ -9,8 +9,20 @@ via importlib.
 """
 
 from pathlib import Path
+import sys
 
-project_root = Path(__file__).resolve().parents[2]
+
+def _spec_path() -> Path:
+    candidate = globals().get("__file__")
+    if candidate:
+        return Path(candidate).resolve()
+    if sys.argv and sys.argv[0]:
+        return Path(sys.argv[0]).resolve()
+    return (Path.cwd() / "desktop/pyinstaller/backend.spec").resolve()
+
+
+SPEC_FILE = _spec_path()
+project_root = SPEC_FILE.parents[2]
 backend_root = project_root / "backend"
 
 block_cipher = None
