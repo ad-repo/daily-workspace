@@ -22,7 +22,10 @@ import sqlite3
 import sys
 from datetime import datetime
 from pathlib import Path
-from zoneinfo import ZoneInfo
+try:
+    from zoneinfo import ZoneInfo
+except ModuleNotFoundError:
+    ZoneInfo = None
 
 
 def get_db_path():
@@ -55,9 +58,12 @@ def migrate_up(db_path):
     cursor = conn.cursor()
 
     try:
+        if ZoneInfo is None:
+            print("⚠️  ZoneInfo module is unavailable in this environment. Skipping timezone fix.")
+            return True
+
         # Default to America/New_York timezone
         timezone = ZoneInfo('America/New_York')
-        print("Using timezone: America/New_York")
 
         # Get all entries with their current associations
         cursor.execute('''
