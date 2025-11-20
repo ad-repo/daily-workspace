@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "identifier": "com.trackthething.desktop",
   "build": {
-    "frontendDist": "../../frontend/dist",
+    "frontendDist": "../../../frontend/dist",
     "devUrl": "http://127.0.0.1:5174",
     "beforeDevCommand": "./scripts/run_frontend_dev.sh",
     "beforeBuildCommand": "./scripts/run_frontend_build.sh"
