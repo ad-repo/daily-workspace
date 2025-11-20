@@ -22,20 +22,19 @@ def _resolve(path_value: str | None, default: str) -> Path:
 
 def get_upload_dir() -> Path:
     """Directory that holds uploaded files."""
-    env_value = os.getenv("UPLOADS_DIR")
+    env_value = os.getenv('UPLOADS_DIR')
     if env_value:
         path = Path(os.path.expandvars(os.path.expanduser(env_value)))
         path.mkdir(parents=True, exist_ok=True)
         return path
-    return _resolve(None, "data/uploads")
+    return _resolve(None, 'data/uploads')
 
 
 def get_static_dir() -> Path:
     """Directory used for background images / static exports."""
-    env_value = os.getenv("STATIC_FILES_DIR")
+    env_value = os.getenv('STATIC_FILES_DIR')
     if env_value:
         path = Path(os.path.expandvars(os.path.expanduser(env_value)))
         path.mkdir(parents=True, exist_ok=True)
         return path
-    return _resolve(None, "data/background-images")
-
+    return _resolve(None, 'data/background-images')

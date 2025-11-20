@@ -643,7 +643,6 @@ async def full_restore(
     This ensures a complete machine-to-machine migration.
     """
     import zipfile
-    from pathlib import Path
 
     # Validate file types
     if not backup_file.filename or not backup_file.filename.endswith('.json'):
