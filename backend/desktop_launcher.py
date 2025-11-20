@@ -23,9 +23,6 @@ from typing import Optional
 
 import uvicorn
 
-from app.db_init import ensure_database
-from migrations import run_migrations
-
 
 def _expand(path_value: str) -> Path:
     """Expand ~ and environment variables for a filesystem path."""
@@ -91,6 +88,11 @@ def main() -> None:
     _configure_logging(os.getenv("TAURI_BACKEND_LOG"))
 
     host, port = _prepare_environment()
+
+    # Import database-dependent modules only after DATABASE_URL is set
+    from app.db_init import ensure_database  # noqa: WPS433
+    from migrations import run_migrations  # noqa: WPS433
+
     logging.info("Starting Track the Thing desktop backend on %s:%s", host, port)
 
     logging.info("Ensuring SQLite database exists and has default settings")
