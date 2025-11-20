@@ -268,6 +268,46 @@ If you delete `backend/data/track_the_thing.db`, the backend will automatically 
 
 All Docker services read their environment values from the root `.dockerenv` file. The defaults target local development (SQLite databases, localhost ports). Update this file if you need to point at different databases, change API URLs, or tweak CI flags. Local tooling (e.g., the frontend `.env`) also derives its defaults from the same values to keep everything in sync.
 
+### 🖥️ Desktop (Tauri) Deployment
+
+We are in the process of shipping a first-class desktop build powered by
+[Tauri](https://tauri.app/start/) and a PyInstaller-frozen FastAPI backend.
+Desktop-specific documentation, data paths, and commands live under
+`desktop/README-desktop.md`.
+
+Quick overview:
+
+1. Copy `.tourienv.example` to `.tourienv` and customize the desktop-only
+   settings (ports, window sizing, and dedicated data directories).
+   Place the official square logo PNG under
+   `desktop/tauri/assets/track-the-thing-logo.png` so both the splashscreen and
+   app icons match the desktop branding.
+2. Build the backend sidecar (PyInstaller) and the frontend production bundle.
+3. Launch the Tauri shell, which shows a splash screen using the Track the
+   Thing logo while the backend warms up, then opens a nearly full-height
+   window pointed at the bundled frontend.
+
+The `.tourienv` defaults deliberately avoid the Docker ports (3000/8000) and
+use unique SQLite names (e.g., `ttt_desktop.db`) under a separate application
+data directory. That guarantees Docker (`.dockerenv`) and desktop (`.tourienv`)
+deployments can run simultaneously without touching each other’s data.
+
+Desktop workflow quickstart:
+
+```bash
+cp .tourienv.example .tourienv            # adjust ports + data paths
+./desktop/pyinstaller/build_backend.sh    # build the backend sidecar (PyInstaller)
+npm --prefix desktop/tauri run tauri:dev  # run splash + desktop shell
+```
+
+Key scripts live under `desktop/tauri/scripts/`:
+
+- `run_frontend_dev.sh` / `run_frontend_build.sh` – keep the frontend build
+  synced with the desktop assets and export `VITE_API_URL` from `.tourienv`.
+- `sync_assets.sh` – copies `desktop/tauri/assets/` (logo + splash HTML) into
+  `frontend/public/desktop/` right before each build or dev session so the
+  splash window and toolbar icon always use the latest branding.
+
 ### Local Development
 
 #### 1. Set up the Backend

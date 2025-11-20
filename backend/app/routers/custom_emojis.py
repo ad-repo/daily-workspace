@@ -6,7 +6,6 @@ import os
 import uuid
 from datetime import datetime
 from io import BytesIO
-from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from PIL import Image
@@ -14,12 +13,12 @@ from sqlalchemy.orm import Session
 
 from .. import models, schemas
 from ..database import get_db
+from ..storage_paths import get_upload_dir
 
 router = APIRouter(prefix='/api/custom-emojis', tags=['custom-emojis'])
 
 # Directory to store custom emoji images (use main uploads directory)
-UPLOAD_DIR = Path('data/uploads')
-UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+UPLOAD_DIR = get_upload_dir()
 
 # Maximum file size: 500KB
 MAX_FILE_SIZE = 500 * 1024

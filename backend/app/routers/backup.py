@@ -11,8 +11,10 @@ from sqlalchemy.orm import Session
 
 from app import models
 from app.database import get_db
+from app.storage_paths import get_upload_dir
 
 router = APIRouter()
+UPLOAD_DIR = get_upload_dir()
 
 
 @router.get('/export')
@@ -886,8 +888,7 @@ async def full_restore(
         files_restored = 0
         files_skipped = 0
 
-        upload_dir = Path('data/uploads')
-        upload_dir.mkdir(parents=True, exist_ok=True)
+        upload_dir = UPLOAD_DIR
 
         with zipfile.ZipFile(zip_buffer, 'r') as zip_file:
             if zip_file.testzip() is not None:
