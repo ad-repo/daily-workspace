@@ -40,6 +40,12 @@ body {
   background-color: var(--color-bg-secondary);
   color: var(--color-text-primary);
   transition: background-color 0.3s ease, color 0.3s ease;
+  min-width: 1200px;
+  overflow-x: auto;
+}
+
+#root {
+  min-width: 1200px;
 }
 
 code {
