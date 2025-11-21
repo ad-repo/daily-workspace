@@ -196,7 +196,7 @@ fn load_production_env() {
   env::set_var("TAURI_STATIC_DIR", format!("{}/static", data_dir_str));
   env::set_var("TAURI_BACKEND_LOG", format!("{}/logs/backend.log", data_dir_str));
   env::set_var("TAURI_WINDOW_HEIGHT_RATIO", "0.70");
-  env::set_var("TAURI_WINDOW_MAXIMIZED", "false");
+  env::set_var("TAURI_WINDOW_MAXIMIZED", "true");
   
   info!("Set TAURI_DESKTOP_DATA_DIR={}", data_dir_str);
 }

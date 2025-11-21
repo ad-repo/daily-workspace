@@ -26,7 +26,7 @@ TAURI_WINDOW_HEIGHT_RATIO=0.70
 # to 60% of screen width (defined in lib.rs).
 TAURI_WINDOW_WIDTH=
 # Set to "true" to start maximized immediately.
-TAURI_WINDOW_MAXIMIZED=false
+TAURI_WINDOW_MAXIMIZED=true
 
 # Splash screen ----------------------------------------------------------------
 # Minimum number of milliseconds to keep the splash visible, even if the
