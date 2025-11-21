@@ -4,16 +4,16 @@ import os
 import uuid
 import zipfile
 from datetime import datetime
-from pathlib import Path
 
 from fastapi import APIRouter, File, HTTPException, UploadFile
 from fastapi.responses import FileResponse, StreamingResponse
 
+from app.storage_paths import get_upload_dir
+
 router = APIRouter()
 
 # Directory to store uploaded files
-UPLOAD_DIR = Path('data/uploads')
-UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+UPLOAD_DIR = get_upload_dir()
 
 
 @router.post('/image')

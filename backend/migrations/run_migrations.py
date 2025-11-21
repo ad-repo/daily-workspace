@@ -6,9 +6,13 @@ This script executes all migration files in order.
 """
 
 import importlib.util
+import logging
 import os
 import sys
 from pathlib import Path
+
+# Configure logging for migrations
+logger = logging.getLogger(__name__)
 
 
 def get_db_path_from_env():
@@ -62,49 +66,44 @@ def get_migration_files():
 
 def main():
     """Run all migrations."""
-    print("=" * 60)
-    print("Running Database Migrations")
-    print("=" * 60)
-    print()
+    logger.info("=" * 60)
+    logger.info("Running Database Migrations")
+    logger.info("=" * 60)
 
     # Get database path from environment
     db_path = get_db_path_from_env()
     if not db_path.is_absolute():
         db_path = Path.cwd() / db_path
     db_path.parent.mkdir(parents=True, exist_ok=True)
-    print(f"Database: {db_path}")
-    print()
+    logger.info(f"Database: {db_path}")
     
     # Create initial database schema if it doesn't exist
-    print("Ensuring database schema exists...")
+    logger.info("Ensuring database schema exists...")
     try:
         # Import here to avoid circular imports
         sys.path.insert(0, str(Path(__file__).parent.parent))
         from app.database import Base, engine
         Base.metadata.create_all(bind=engine)
-        print("✓ Database schema initialized")
-        print()
+        logger.info("✓ Database schema initialized")
     except Exception as e:
-        print(f"✗ Error initializing schema: {e}")
-        print()
+        logger.error(f"✗ Error initializing schema: {e}")
 
     migration_files = get_migration_files()
 
     if not migration_files:
-        print("No migration files found.")
+        logger.info("No migration files found.")
         return 0
 
-    print(f"Found {len(migration_files)} migration(s):")
+    logger.info(f"Found {len(migration_files)} migration(s):")
     for mf in migration_files:
-        print(f"  - {mf.name}")
-    print()
+        logger.info(f"  - {mf.name}")
 
     failed_migrations = []
 
     for migration_file in migration_files:
-        print("-" * 60)
-        print(f"Running migration: {migration_file.name}")
-        print("-" * 60)
+        logger.info("-" * 60)
+        logger.info(f"Running migration: {migration_file.name}")
+        logger.info("-" * 60)
 
         try:
             migration = load_migration(migration_file)
@@ -113,26 +112,24 @@ def main():
 
             if not success:
                 failed_migrations.append(migration_file.name)
-                print(f"✗ Migration {migration_file.name} failed!")
+                logger.error(f"✗ Migration {migration_file.name} failed!")
             else:
-                print(f"✓ Migration {migration_file.name} completed successfully")
+                logger.info(f"✓ Migration {migration_file.name} completed successfully")
 
         except Exception as e:
             failed_migrations.append(migration_file.name)
-            print(f"✗ Error running migration {migration_file.name}: {e}")
+            logger.error(f"✗ Error running migration {migration_file.name}: {e}")
 
-        print()
-
-    print("=" * 60)
+    logger.info("=" * 60)
     if failed_migrations:
-        print(f"✗ {len(failed_migrations)} migration(s) failed:")
+        logger.error(f"✗ {len(failed_migrations)} migration(s) failed:")
         for name in failed_migrations:
-            print(f"  - {name}")
-        print("=" * 60)
+            logger.error(f"  - {name}")
+        logger.info("=" * 60)
         return 1
     else:
-        print("✓ All migrations completed successfully!")
-        print("=" * 60)
+        logger.info("✓ All migrations completed successfully!")
+        logger.info("=" * 60)
         return 0
 
 
