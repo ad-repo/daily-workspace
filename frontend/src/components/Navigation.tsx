@@ -16,32 +16,27 @@ const Navigation = () => {
         <div className="flex items-center justify-between h-14 sm:h-16">
           <Link 
             to="/" 
-            className="flex items-center px-2 py-2 rounded-lg transition-colors"
+            className="flex items-center px-2 py-2 rounded-lg transition-opacity"
             style={{
-              color: location.pathname === '/' ? 'var(--color-accent)' : 'var(--color-text-secondary)'
+              opacity: location.pathname === '/' ? 1 : 0.7
             }}
             onMouseEnter={(e) => {
               if (location.pathname !== '/') {
-                e.currentTarget.style.color = 'var(--color-text-primary)';
+                e.currentTarget.style.opacity = '0.9';
               }
             }}
             onMouseLeave={(e) => {
               if (location.pathname !== '/') {
-                e.currentTarget.style.color = 'var(--color-text-secondary)';
+                e.currentTarget.style.opacity = '0.7';
               }
             }}
             title="Track the Thing"
           >
-            <svg width="900" height="240" viewBox="0 0 900 240" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-12 sm:h-14 w-auto">
-              <g transform="translate(110, 30)">
-                <rect x="0" y="0" width="240" height="160" rx="20" stroke="currentColor" strokeWidth="12" fill="none"/>
-                <text x="120" y="100" fontFamily="Arial, sans-serif" fontSize="135" fontWeight="bold" fill="currentColor" textAnchor="middle" dominantBaseline="middle">TtT</text>
-                <rect x="90" y="160" width="60" height="20" rx="10" fill="currentColor"/>
-              </g>
-              <text x="400" y="90" fontFamily="Arial, sans-serif" fontSize="72" fontWeight="bold" fill="currentColor">Track</text>
-              <text x="400" y="150" fontFamily="Arial, sans-serif" fontSize="72" fontWeight="bold" fill="currentColor">the</text>
-              <text x="400" y="210" fontFamily="Arial, sans-serif" fontSize="72" fontWeight="bold" fill="currentColor">Thing</text>
-            </svg>
+            <img 
+              src="/logo.png" 
+              alt="Track the Thing" 
+              className="h-12 sm:h-14 w-auto"
+            />
           </Link>
 
           <div className="flex space-x-1 sm:space-x-2 lg:space-x-4">
