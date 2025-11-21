@@ -8,6 +8,7 @@ import Navigation from './components/Navigation';
 import Settings from './components/Settings';
 import Reports from './components/Reports';
 import Search from './components/Search';
+import { SplashScreen } from './components/SplashScreen';
 import { format } from 'date-fns';
 import { TimezoneProvider } from './contexts/TimezoneContext';
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -82,6 +83,12 @@ const AppContent = () => {
 };
 
 function App() {
+  const [showSplash, setShowSplash] = useState(true);
+
+  const handleSplashComplete = () => {
+    setShowSplash(false);
+  };
+
   return (
     <ThemeProvider>
       <TimezoneProvider>
@@ -94,6 +101,7 @@ function App() {
                     <QuarterlyGoalsProvider>
                       <DayLabelsProvider>
                         <FullScreenProvider>
+                          {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
                           <AppContent />
                         </FullScreenProvider>
                       </DayLabelsProvider>
