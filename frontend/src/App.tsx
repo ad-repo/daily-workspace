@@ -30,7 +30,7 @@ const AppContent = () => {
 
   return (
     <Router>
-      <div className="min-h-screen" style={{ backgroundColor: 'var(--color-bg-secondary)', position: 'relative' }}>
+      <div className="min-h-screen" style={{ backgroundColor: 'var(--color-bg-secondary)', position: 'relative', minWidth: '1200px' }}>
         <CustomBackground />
         <Navigation />
         <div 
