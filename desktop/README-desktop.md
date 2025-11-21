@@ -36,9 +36,9 @@ running any of the desktop scripts.
 | Variable | Purpose | Notes |
 | --- | --- | --- |
 | `TAURI_BACKEND_HOST` / `TAURI_BACKEND_PORT` | Loopback host & port for the packaged FastAPI server | Defaults avoid the Docker ports (`8000/8001`) so both stacks can run simultaneously. |
-| `TAURI_DESKTOP_DATA_DIR` | Base directory for desktop-only data | Choose an OS-specific app-data path. |
+| `TAURI_DESKTOP_DATA_DIR` | Base directory for desktop-only data | **Required** in production. Choose an OS-specific app-data path. App fails explicitly if home directory cannot be resolved (no fallback). |
 | `TAURI_DATABASE_PATH`, `TAURI_UPLOADS_DIR`, `TAURI_STATIC_DIR` | Concrete locations for SQLite DB, uploads, and extracted assets | Derived from `TAURI_DESKTOP_DATA_DIR` by default. |
-| `TAURI_WINDOW_HEIGHT_RATIO`, `TAURI_WINDOW_WIDTH`, `TAURI_WINDOW_MAXIMIZED` | Initial window sizing rules | The Rust bootstrapper enforces the requested height ratio (~95%). |
+| `TAURI_WINDOW_HEIGHT_RATIO`, `TAURI_WINDOW_WIDTH`, `TAURI_WINDOW_MAXIMIZED` | Initial window sizing rules | Default is maximized (`true`). The Rust bootstrapper uses physical pixels and enforces the requested height ratio (~85%) if not maximized. |
 | `TAURI_SPLASH_MIN_VISIBLE_MS` | Minimum splash duration | Ensures users see a branded splash while the backend warms up. |
 | `PYINSTALLER_ENTRYPOINT` | Command frozen by PyInstaller | Typically `python3 backend/desktop_launcher.py`. |
 | `TAURI_BACKEND_LOG` | Path where backend stdout/stderr are redirected | Useful for debugging without polluting system logs. |
@@ -74,9 +74,10 @@ machine without collisions.
    into `desktop/tauri/src-tauri/bin/<platform>/track-the-thing-backend/`
    where Tauri expects sidecars.
 4. **Run the Tauri dev server or bundle** (`npm run tauri:dev` /
-   `npm run tauri:build`). The Rust bootstrapper shows the branded splash,
-   spawns the backend (sidecar or directly via Python), polls `/health`, then
-   reveals the almost full-height main window.
+   `npm run tauri:build`). The Rust bootstrapper spawns the backend (sidecar 
+   or directly via Python), polls `/health`, then opens the main window. 
+   The React app displays a splash overlay component while the backend is 
+   initializing, which automatically fades out once ready.
 
 ### Commands
 
@@ -100,21 +101,30 @@ npm --prefix desktop/tauri run tauri:build
 
 ```
 desktop/tauri/assets/
- ├── track-the-thing-logo.png      # Source of truth for icons + splash
- └── splashscreen.html             # Simple static splash window
+ └── track-the-thing-logo.png      # Source for splash screen logo
 
 desktop/tauri/scripts/sync_assets.sh
    ↳ Copies assets into frontend/public/desktop/ before each build/dev run
 frontend/public/desktop/
- ├── track-the-thing-logo.png
- └── splashscreen.html
+ └── track-the-thing-logo.png
+ 
+frontend/src/components/SplashScreen.tsx  # React splash overlay component
 
 ### Brand assets & icons
 
-1. Drop the official square logo into `desktop/tauri/assets/track-the-thing-logo.png`.
-2. Run `cd desktop/tauri && npx tauri icon ./assets/track-the-thing-logo.png`.
-   This regenerates every icon inside `src-tauri/icons/` (`.icns`, `.ico`,
-   etc.) so the toolbar, dock, and installer all use the same artwork.
+The desktop app uses different logo assets for different purposes:
+
+- **Desktop Icons** (dock, file icons, `.icns`/`.ico`): Uses `frontend/public/logo.png` (full logo with text)
+- **Navigation Header**: Uses `frontend/public/logo.svg` (vector SVG, theme-aware)
+- **Splash Screen**: Uses `desktop/tauri/assets/track-the-thing-logo.png`
+
+To update desktop icons:
+
+1. Update `frontend/public/logo.png` with the new branding
+2. Run `cd desktop/tauri && npx tauri icon ../../frontend/public/logo.png`
+3. This regenerates all platform icons in `src-tauri/icons/` (`.icns`, `.ico`, etc.)
+
+The navigation logo and splash screen logo can be updated independently as needed.
 ```
 Detailed commands, scripts, and CI hooks will land alongside the actual
 PyInstaller and Tauri scaffolding in the next steps.
