@@ -502,8 +502,8 @@ const DailyView = () => {
   const isToday = format(new Date(), 'yyyy-MM-dd') === date;
 
   return (
-    <div className="max-w-5xl mx-auto page-fade-in" style={{ position: 'relative', zIndex: 1 }}>
-      <div className={`${isFullScreen ? 'max-w-full' : 'max-w-5xl'} mx-auto`} style={{ position: 'relative', zIndex: 20 }}>
+    <div className="w-full max-w-full sm:max-w-3xl md:max-w-4xl lg:max-w-5xl mx-auto page-fade-in" style={{ position: 'relative', zIndex: 1 }}>
+      <div className={`${isFullScreen ? 'max-w-full' : 'w-full max-w-full sm:max-w-3xl md:max-w-4xl lg:max-w-5xl'} mx-auto`} style={{ position: 'relative', zIndex: 20 }}>
       {/* Header */}
       <div 
         className="rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8 mb-4 sm:mb-6 lg:mb-8"

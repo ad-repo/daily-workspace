@@ -16,7 +16,7 @@ const Navigation = () => {
         <div className="flex items-center justify-between h-14 sm:h-16">
           <Link 
             to="/" 
-            className="flex items-center px-2 py-2 rounded-lg transition-colors"
+            className="flex items-center px-1 sm:px-2 py-2 rounded-lg transition-colors flex-shrink-0"
             style={{
               color: location.pathname === '/' ? 'var(--color-accent)' : 'var(--color-text-secondary)'
             }}
@@ -32,7 +32,14 @@ const Navigation = () => {
             }}
             title="Track the Thing"
           >
-            <svg width="900" height="240" viewBox="0 0 900 240" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-12 sm:h-14 w-auto">
+            {/* Compact logo for small screens */}
+            <svg width="240" height="240" viewBox="110 30 240 160" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-10 sm:h-12 w-auto md:hidden">
+              <rect x="110" y="30" width="240" height="160" rx="20" stroke="currentColor" strokeWidth="12" fill="none"/>
+              <text x="230" y="130" fontFamily="Arial, sans-serif" fontSize="135" fontWeight="bold" fill="currentColor" textAnchor="middle" dominantBaseline="middle">TtT</text>
+              <rect x="200" y="190" width="60" height="20" rx="10" fill="currentColor"/>
+            </svg>
+            {/* Full logo for medium screens and up */}
+            <svg width="900" height="240" viewBox="0 0 900 240" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-12 lg:h-14 w-auto hidden md:block">
               <g transform="translate(110, 30)">
                 <rect x="0" y="0" width="240" height="160" rx="20" stroke="currentColor" strokeWidth="12" fill="none"/>
                 <text x="120" y="100" fontFamily="Arial, sans-serif" fontSize="135" fontWeight="bold" fill="currentColor" textAnchor="middle" dominantBaseline="middle">TtT</text>
@@ -59,7 +66,7 @@ const Navigation = () => {
                 <Link
                   key={to}
                   to={to}
-                  className="flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors"
+                  className="flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 lg:px-4 py-2 rounded-lg transition-colors"
                   style={{
                     backgroundColor: isActive ? 'var(--color-accent)' : 'transparent',
                     color: isActive ? 'var(--color-accent-text)' : 'var(--color-text-secondary)'
@@ -76,8 +83,8 @@ const Navigation = () => {
                   }}
                   title={label}
                 >
-                  <Icon className="h-5 w-5" />
-                  <span className="font-medium hidden sm:inline">{label}</span>
+                  <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
+                  <span className="font-medium text-sm sm:text-base hidden sm:inline">{label}</span>
                 </Link>
               );
             })}

@@ -463,6 +463,12 @@ select {
     font-size: 14px;
   }
 
+  /* Container adjustments for mobile */
+  .container {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+
   /* Reduce padding on mobile */
   .react-calendar__tile {
     padding: 0.75rem 0.25rem;
@@ -528,15 +534,61 @@ select {
   }
 }
 
-/* Tablet devices */
-@media (min-width: 641px) and (max-width: 1024px) {
-  /* Tablet-specific adjustments */
+/* Tablet devices (portrait) */
+@media (min-width: 641px) and (max-width: 768px) {
+  /* Small tablet adjustments */
   .ProseMirror {
     padding: 0.875rem;
   }
 
   .editor-toolbar {
     padding: 0.75rem !important;
+  }
+
+  /* Slightly reduce card padding */
+  .space-y-6 > * + * {
+    margin-top: 1.25rem !important;
+  }
+}
+
+/* Tablet devices (landscape) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  /* Medium tablet adjustments */
+  .ProseMirror {
+    padding: 1rem;
+  }
+
+  .editor-toolbar {
+    padding: 0.875rem !important;
+  }
+}
+
+/* Small Desktop */
+@media (min-width: 1025px) and (max-width: 1280px) {
+  /* Small desktop optimizations */
+  .container {
+    max-width: 1024px;
+  }
+}
+
+/* Medium Desktop */
+@media (min-width: 1281px) and (max-width: 1536px) {
+  /* Medium desktop optimizations */
+  .container {
+    max-width: 1280px;
+  }
+}
+
+/* Large Desktop */
+@media (min-width: 1537px) {
+  /* Large desktop optimizations */
+  .container {
+    max-width: 1536px;
+  }
+
+  /* More generous spacing on large screens */
+  .space-y-6 > * + * {
+    margin-top: 2rem !important;
   }
 }
 

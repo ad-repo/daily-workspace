@@ -32,13 +32,12 @@ const AppContent = () => {
     <Router>
       <div className="min-h-screen" style={{ backgroundColor: 'var(--color-bg-secondary)', position: 'relative' }}>
         <CustomBackground />
-        <div style={{ minWidth: '1200px' }}>
-          <Navigation />
-          <div 
-            className={`mx-auto px-4 py-6 ${isFullScreen ? 'max-w-full' : 'container max-w-7xl'}`}
-            style={{ transition: 'max-width 0.3s ease' }}
-          >
-            <Routes>
+        <Navigation />
+        <div 
+          className={`mx-auto px-2 sm:px-4 lg:px-6 py-4 sm:py-6 ${isFullScreen ? 'max-w-full' : 'container max-w-7xl'}`}
+          style={{ transition: 'max-width 0.3s ease' }}
+        >
+          <Routes>
             <Route
               path="/"
               element={<Navigate to={`/day/${today}`} replace />}
@@ -76,8 +75,7 @@ const AppContent = () => {
               path="/settings"
               element={<Settings />}
             />
-            </Routes>
-          </div>
+          </Routes>
         </div>
       </div>
     </Router>
