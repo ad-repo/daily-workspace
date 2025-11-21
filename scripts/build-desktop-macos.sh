@@ -58,11 +58,8 @@ ASSETS_DIR="${PROJECT_ROOT}/desktop/tauri/assets"
 if [[ ! -f "${ASSETS_DIR}/track-the-thing-logo.png" ]]; then
   abort "Missing desktop/tauri/assets/track-the-thing-logo.png. Add the official logo before packaging."
 fi
-if [[ ! -f "${ASSETS_DIR}/splashscreen.html" ]]; then
-  abort "Missing desktop/tauri/assets/splashscreen.html."
-fi
 
-log "Syncing splash + logo assets into frontend/public/desktop"
+log "Syncing logo assets into frontend/public/desktop"
 "${PROJECT_ROOT}/desktop/tauri/scripts/sync_assets.sh"
 
 log "Ensuring backend sidecar is rebuilt via PyInstaller"

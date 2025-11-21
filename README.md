@@ -180,6 +180,7 @@ A modern, powerful daily workspace application for capturing and organizing your
 - **Vertical Scrolling**: List and Kanban columns grow naturally without truncation
 - **Page-Level Scrolling**: Smooth scrolling for entire page when lists have varying heights
 - **Fixed Scroll Indicators**: Horizontal scroll indicators stay at consistent viewport position
+- **Unified Horizontal Scrolling**: Navigation and content scroll together as a single unit on narrow viewports
 - **Custom Logo**: Branded "Track the Thing" logo with monitor icon in navigation bar
 - **Theme-Aware Logo**: Logo colors adapt to current theme using CSS variables
 - **Responsive Design**: Consistent layout across different screen sizes

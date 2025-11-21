@@ -147,7 +147,10 @@ fn resolve_repo_root() -> PathBuf {
     .and_then(Path::parent)
     .and_then(Path::parent)
     .map(Path::to_path_buf)
-    .expect("unable to resolve repository root");
+    .unwrap_or_else(|| {
+      warn!("Unable to resolve repository root from CARGO_MANIFEST_DIR, using manifest dir");
+      manifest_dir.clone()
+    });
   info!("Resolved repo root: {} (from CARGO_MANIFEST_DIR: {})", repo_root.display(), manifest_dir.display());
   repo_root
 }
@@ -158,17 +161,17 @@ fn load_production_env() {
   #[cfg(target_os = "macos")]
   let data_dir = dirs::home_dir()
     .map(|h| h.join("Library/Application Support/TrackTheThingDesktop"))
-    .expect("Failed to resolve home directory");
+    .expect("FATAL: Cannot resolve home directory. Unable to determine data directory location.");
   
   #[cfg(target_os = "linux")]
   let data_dir = dirs::home_dir()
     .map(|h| h.join(".local/share/track-the-thing-desktop"))
-    .expect("Failed to resolve home directory");
+    .expect("FATAL: Cannot resolve home directory. Unable to determine data directory location.");
   
   #[cfg(target_os = "windows")]
   let data_dir = dirs::data_local_dir()
     .map(|d| d.join("TrackTheThingDesktop"))
-    .expect("Failed to resolve local app data directory");
+    .expect("FATAL: Cannot resolve local app data directory. Unable to determine data directory location.");
 
   // Create the data directory if it doesn't exist
   if let Err(e) = std::fs::create_dir_all(&data_dir) {
@@ -184,7 +187,7 @@ fn load_production_env() {
   env::set_var("TAURI_STATIC_DIR", format!("{}/static", data_dir_str));
   env::set_var("TAURI_BACKEND_LOG", format!("{}/logs/backend.log", data_dir_str));
   env::set_var("TAURI_WINDOW_HEIGHT_RATIO", "0.70");
-  env::set_var("TAURI_WINDOW_MAXIMIZED", "false");
+  env::set_var("TAURI_WINDOW_MAXIMIZED", "true");
   
   info!("Set TAURI_DESKTOP_DATA_DIR={}", data_dir_str);
 }
