@@ -314,6 +314,21 @@ fn wait_for_backend_ready(app_handle: tauri::AppHandle, config: DesktopConfig) {
         let _ = window.maximize();
       } else {
         info!("Not maximizing window (window_maximized={})", config.window_maximized);
+        
+        // Force unmaximize before showing
+        let _ = window.unmaximize();
+        let _ = window.set_fullscreen(false);
+        
+        // Reapply size constraints after backend is ready
+        if let Ok(Some(monitor)) = window.current_monitor() {
+          let screen_size = monitor.size();
+          let width = (screen_size.width as f64 * 0.70).max(480.0);
+          let height = screen_size.height as f64 * 0.75;
+          let logical_size = tauri::LogicalSize { width, height };
+          info!("Re-applying window size before show: {}x{}", width, height);
+          let _ = window.set_size(logical_size);
+          let _ = window.center();
+        }
       }
       let _ = window.show();
       let _ = window.set_focus();
