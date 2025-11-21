@@ -13,7 +13,7 @@ const Navigation = () => {
   return (
     <nav className="shadow-sm" style={{ backgroundColor: 'var(--color-card-bg)', borderBottom: '1px solid var(--color-border-primary)' }}>
       <div className="container mx-auto px-2 sm:px-4 max-w-7xl">
-        <div className="flex items-center justify-between h-14 sm:h-16">
+        <div className="flex items-center gap-3 sm:gap-4 lg:gap-6 h-14 sm:h-16">
           <Link 
             to="/" 
             className="flex items-center px-1 sm:px-2 py-2 rounded-lg transition-colors flex-shrink-0"
@@ -51,7 +51,13 @@ const Navigation = () => {
             </svg>
           </Link>
 
-          <div className="flex space-x-1 sm:space-x-2 lg:space-x-4">
+          {/* Vertical separator */}
+          <div 
+            className="h-8 sm:h-10 w-px flex-shrink-0" 
+            style={{ backgroundColor: 'var(--color-border-primary)', opacity: 0.5 }}
+          />
+
+          <div className="flex space-x-1 sm:space-x-2 lg:space-x-4 flex-1 justify-end">
             {[
               { to: `/day/${today}`, icon: BookOpen, label: dayName, path: '/day/' },
               { to: '/calendar', icon: Calendar, label: 'Calendar', path: '/calendar' },
