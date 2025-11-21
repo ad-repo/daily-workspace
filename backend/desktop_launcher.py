@@ -116,25 +116,35 @@ def main() -> None:
     migration_rc = run_migrations.main()
     if migration_rc != 0:
         logging.warning("One or more migrations reported issues (code=%s)", migration_rc)
+    
+    logging.info("Migrations complete, creating uvicorn server config")
 
-    server_config = uvicorn.Config(
-        "app.main:app",
-        host=host,
-        port=int(port),
-        reload=False,
-        log_level="info",
-    )
-    server = uvicorn.Server(server_config)
+    try:
+        server_config = uvicorn.Config(
+            "app.main:app",
+            host=host,
+            port=int(port),
+            reload=False,
+            log_level="info",
+        )
+        logging.info("Created uvicorn config successfully")
+        
+        server = uvicorn.Server(server_config)
+        logging.info("Created uvicorn server successfully")
 
-    # Allow Ctrl+C / SIGTERM to stop uvicorn cleanly when spawned as a sidecar.
-    def _handle_signal(signum, frame):  # type: ignore[override]
-        logging.info("Received signal %s, shutting down backend", signum)
-        server.should_exit = True
+        # Allow Ctrl+C / SIGTERM to stop uvicorn cleanly when spawned as a sidecar.
+        def _handle_signal(signum, frame):  # type: ignore[override]
+            logging.info("Received signal %s, shutting down backend", signum)
+            server.should_exit = True
 
-    signal.signal(signal.SIGTERM, _handle_signal)
-    signal.signal(signal.SIGINT, _handle_signal)
+        signal.signal(signal.SIGTERM, _handle_signal)
+        signal.signal(signal.SIGINT, _handle_signal)
+        logging.info("Signal handlers registered, starting uvicorn server")
 
-    server.run()
+        server.run()
+    except Exception as e:
+        logging.error("Fatal error starting uvicorn: %s", e, exc_info=True)
+        sys.exit(1)
 
 
 if __name__ == "__main__":
