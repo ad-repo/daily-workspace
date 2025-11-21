@@ -147,7 +147,10 @@ fn resolve_repo_root() -> PathBuf {
     .and_then(Path::parent)
     .and_then(Path::parent)
     .map(Path::to_path_buf)
-    .expect("unable to resolve repository root");
+    .unwrap_or_else(|| {
+      warn!("Unable to resolve repository root from CARGO_MANIFEST_DIR, using manifest dir");
+      manifest_dir.clone()
+    });
   info!("Resolved repo root: {} (from CARGO_MANIFEST_DIR: {})", repo_root.display(), manifest_dir.display());
   repo_root
 }
@@ -157,18 +160,27 @@ fn load_production_env() {
   
   #[cfg(target_os = "macos")]
   let data_dir = dirs::home_dir()
-    .map(|h| h.join("Library/Application Support/TrackTheThingDesktop"))
-    .expect("Failed to resolve home directory");
+    .and_then(|h| Some(h.join("Library/Application Support/TrackTheThingDesktop")))
+    .unwrap_or_else(|| {
+      warn!("Failed to resolve home directory, using fallback path");
+      PathBuf::from("/tmp/TrackTheThingDesktop")
+    });
   
   #[cfg(target_os = "linux")]
   let data_dir = dirs::home_dir()
-    .map(|h| h.join(".local/share/track-the-thing-desktop"))
-    .expect("Failed to resolve home directory");
+    .and_then(|h| Some(h.join(".local/share/track-the-thing-desktop")))
+    .unwrap_or_else(|| {
+      warn!("Failed to resolve home directory, using fallback path");
+      PathBuf::from("/tmp/track-the-thing-desktop")
+    });
   
   #[cfg(target_os = "windows")]
   let data_dir = dirs::data_local_dir()
-    .map(|d| d.join("TrackTheThingDesktop"))
-    .expect("Failed to resolve local app data directory");
+    .and_then(|d| Some(d.join("TrackTheThingDesktop")))
+    .unwrap_or_else(|| {
+      warn!("Failed to resolve local app data directory, using fallback path");
+      PathBuf::from("C:\\Temp\\TrackTheThingDesktop")
+    });
 
   // Create the data directory if it doesn't exist
   if let Err(e) = std::fs::create_dir_all(&data_dir) {
