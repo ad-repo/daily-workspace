@@ -183,7 +183,7 @@ fn load_production_env() {
   env::set_var("TAURI_UPLOADS_DIR", format!("{}/uploads", data_dir_str));
   env::set_var("TAURI_STATIC_DIR", format!("{}/static", data_dir_str));
   env::set_var("TAURI_BACKEND_LOG", format!("{}/logs/backend.log", data_dir_str));
-  env::set_var("TAURI_WINDOW_HEIGHT_RATIO", "0.75");
+  env::set_var("TAURI_WINDOW_HEIGHT_RATIO", "0.70");
   env::set_var("TAURI_WINDOW_MAXIMIZED", "false");
   
   info!("Set TAURI_DESKTOP_DATA_DIR={}", data_dir_str);
@@ -230,7 +230,7 @@ fn initialize_windows(app: &tauri::App, config: &DesktopConfig) {
       
       let mut width = config
         .window_width
-        .unwrap_or_else(|| screen_size.width as f64 * 0.70)
+        .unwrap_or_else(|| screen_size.width as f64 * 0.60)
         .min(screen_size.width as f64);
       if width < 480.0 {
         width = 480.0;
@@ -320,13 +320,16 @@ fn wait_for_backend_ready(app_handle: tauri::AppHandle, config: DesktopConfig) {
         let _ = window.set_fullscreen(false);
         
         // Reapply size constraints after backend is ready
-        // Use fixed size to test if window sizing works at all
-        let width = 1600.0;
-        let height = 1200.0;
-        let logical_size = tauri::LogicalSize { width, height };
-        info!("Re-applying window size before show: {}x{}", width, height);
-        let _ = window.set_size(logical_size);
-        let _ = window.center();
+        if let Ok(Some(monitor)) = window.current_monitor() {
+          let screen_size = monitor.size();
+          // Use 60% width and 70% height to avoid fullscreen appearance
+          let width = (screen_size.width as f64 * 0.60).max(480.0);
+          let height = screen_size.height as f64 * 0.70;
+          let logical_size = tauri::LogicalSize { width, height };
+          info!("Re-applying window size before show: {}x{}", width, height);
+          let _ = window.set_size(logical_size);
+          let _ = window.center();
+        }
       }
       let _ = window.show();
       let _ = window.set_focus();
