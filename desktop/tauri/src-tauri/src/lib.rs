@@ -207,6 +207,21 @@ fn load_touri_env(repo_root: &Path) {
 fn initialize_windows(app: &tauri::App, config: &DesktopConfig) {
   if let Some(main_window) = app.get_webview_window("main") {
     let _ = main_window.hide();
+    
+    // Ensure window is not maximized/fullscreen from previous state
+    if let Ok(is_maximized) = main_window.is_maximized() {
+      if is_maximized {
+        info!("Window was maximized, unmaximizing...");
+        let _ = main_window.unmaximize();
+      }
+    }
+    if let Ok(is_fullscreen) = main_window.is_fullscreen() {
+      if is_fullscreen {
+        info!("Window was fullscreen, exiting fullscreen...");
+        let _ = main_window.set_fullscreen(false);
+      }
+    }
+    
     if let Ok(Some(monitor)) = main_window.current_monitor() {
       let screen_size = monitor.size();
       info!("Screen size: {}x{}", screen_size.width, screen_size.height);
