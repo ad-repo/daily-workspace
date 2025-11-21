@@ -111,7 +111,17 @@ pub fn run() {
       )?;
 
       let repo_root = resolve_repo_root();
-      load_touri_env(&repo_root);
+      
+      // In production (release build), skip loading .tourienv from compile-time source directory
+      // and use platform-appropriate production defaults instead
+      if cfg!(debug_assertions) {
+        info!("Running in debug mode - loading .tourienv from source directory");
+        load_touri_env(&repo_root);
+      } else {
+        info!("Running in production mode - using platform defaults (ignoring .tourienv from source)");
+        load_production_env();
+      }
+      
       let config = DesktopConfig::from_env(repo_root.clone());
       initialize_windows(app, &config);
 
@@ -132,27 +142,18 @@ pub fn run() {
 
 fn resolve_repo_root() -> PathBuf {
   let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-  manifest_dir
+  let repo_root = manifest_dir
     .parent()
     .and_then(Path::parent)
     .and_then(Path::parent)
     .map(Path::to_path_buf)
-    .expect("unable to resolve repository root")
+    .expect("unable to resolve repository root");
+  info!("Resolved repo root: {} (from CARGO_MANIFEST_DIR: {})", repo_root.display(), manifest_dir.display());
+  repo_root
 }
 
-fn load_touri_env(repo_root: &Path) {
-  let env_path = repo_root.join(".tourienv");
-  if env_path.exists() {
-    if let Err(err) = from_path(&env_path) {
-      warn!("Failed to load .tourienv: {err}");
-    } else {
-      info!("Loaded desktop environment overrides from {}", env_path.display());
-      return;
-    }
-  }
-
-  // In production (no .tourienv), set platform-appropriate defaults
-  info!("Running in production mode - setting default environment variables");
+fn load_production_env() {
+  info!("Setting platform-appropriate production environment variables");
   
   #[cfg(target_os = "macos")]
   let data_dir = dirs::home_dir()
@@ -169,6 +170,11 @@ fn load_touri_env(repo_root: &Path) {
     .map(|d| d.join("TrackTheThingDesktop"))
     .expect("Failed to resolve local app data directory");
 
+  // Create the data directory if it doesn't exist
+  if let Err(e) = std::fs::create_dir_all(&data_dir) {
+    warn!("Failed to create data directory: {}", e);
+  }
+  
   let data_dir_str = data_dir.to_string_lossy().to_string();
   env::set_var("TAURI_BACKEND_HOST", "127.0.0.1");
   env::set_var("TAURI_BACKEND_PORT", "18765");
@@ -181,6 +187,21 @@ fn load_touri_env(repo_root: &Path) {
   env::set_var("TAURI_WINDOW_MAXIMIZED", "false");
   
   info!("Set TAURI_DESKTOP_DATA_DIR={}", data_dir_str);
+}
+
+fn load_touri_env(repo_root: &Path) {
+  let env_path = repo_root.join(".tourienv");
+  if env_path.exists() {
+    if let Err(err) = from_path(&env_path) {
+      warn!("Failed to load .tourienv: {err}");
+      load_production_env();
+    } else {
+      info!("Loaded desktop environment overrides from {}", env_path.display());
+    }
+  } else {
+    warn!(".tourienv not found at {}", env_path.display());
+    load_production_env();
+  }
 }
 
 fn initialize_windows(app: &tauri::App, config: &DesktopConfig) {
