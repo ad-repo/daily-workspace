@@ -1,5 +1,6 @@
 use std::{
   env,
+  fs,
   path::{Path, PathBuf},
   process::{Child, Command},
   sync::Mutex,
@@ -8,6 +9,7 @@ use std::{
 
 use dotenvy::from_path;
 use log::{info, warn};
+use serde::{Deserialize, Serialize};
 use shell_words;
 use tauri::{async_runtime, path::BaseDirectory, Manager, WindowEvent};
 use tokio::time::sleep;
@@ -26,6 +28,70 @@ impl BackendProcess {
     if let Some(mut child) = self.child.lock().expect("backend lock poisoned").take() {
       if let Err(err) = child.kill() {
         warn!("Failed to stop backend sidecar: {err}");
+      }
+    }
+  }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct WindowPreferences {
+  width: u32,
+  height: u32,
+  maximized: bool,
+}
+
+impl WindowPreferences {
+  fn load(app: &tauri::AppHandle) -> Option<Self> {
+    let config_path = app
+      .path()
+      .app_config_dir()
+      .ok()?
+      .join("window_prefs.json");
+    
+    if !config_path.exists() {
+      info!("No window preferences file found at {:?}", config_path);
+      return None;
+    }
+    
+    match fs::read_to_string(&config_path) {
+      Ok(content) => match serde_json::from_str::<WindowPreferences>(&content) {
+        Ok(prefs) => {
+          info!("Loaded window preferences: {}x{}, maximized: {}", prefs.width, prefs.height, prefs.maximized);
+          Some(prefs)
+        }
+        Err(e) => {
+          warn!("Failed to parse window preferences: {}", e);
+          None
+        }
+      },
+      Err(e) => {
+        warn!("Failed to read window preferences: {}", e);
+        None
+      }
+    }
+  }
+  
+  fn save(&self, app: &tauri::AppHandle) {
+    if let Ok(config_dir) = app.path().app_config_dir() {
+      // Create config directory if it doesn't exist
+      if let Err(e) = fs::create_dir_all(&config_dir) {
+        warn!("Failed to create config directory: {}", e);
+        return;
+      }
+      
+      let config_path = config_dir.join("window_prefs.json");
+      
+      match serde_json::to_string_pretty(self) {
+        Ok(json) => {
+          if let Err(e) = fs::write(&config_path, json) {
+            warn!("Failed to write window preferences: {}", e);
+          } else {
+            info!("Saved window preferences: {}x{}, maximized: {}", self.width, self.height, self.maximized);
+          }
+        }
+        Err(e) => {
+          warn!("Failed to serialize window preferences: {}", e);
+        }
       }
     }
   }
@@ -132,8 +198,37 @@ pub fn run() {
       Ok(())
     })
     .on_window_event(|window, event| {
-      if matches!(event, WindowEvent::CloseRequested { .. }) && window.label() == "main" {
-        window.app_handle().state::<BackendProcess>().terminate();
+      if window.label() == "main" {
+        match event {
+          WindowEvent::CloseRequested { .. } => {
+            // Save window size before closing
+            if let Ok(size) = window.outer_size() {
+              if let Ok(is_maximized) = window.is_maximized() {
+                let prefs = WindowPreferences {
+                  width: size.width,
+                  height: size.height,
+                  maximized: is_maximized,
+                };
+                prefs.save(&window.app_handle());
+              }
+            }
+            window.app_handle().state::<BackendProcess>().terminate();
+          }
+          WindowEvent::Resized(size) => {
+            // Save window size when resized (debounced by only saving on meaningful changes)
+            if size.width >= 480 && size.height >= 600 {
+              if let Ok(is_maximized) = window.is_maximized() {
+                let prefs = WindowPreferences {
+                  width: size.width,
+                  height: size.height,
+                  maximized: is_maximized,
+                };
+                prefs.save(&window.app_handle());
+              }
+            }
+          }
+          _ => {}
+        }
       }
     })
     .run(tauri::generate_context!())
@@ -211,6 +306,9 @@ fn initialize_windows(app: &tauri::App, config: &DesktopConfig) {
   if let Some(main_window) = app.get_webview_window("main") {
     let _ = main_window.hide();
     
+    // Try to load saved window preferences
+    let saved_prefs = WindowPreferences::load(&app.handle());
+    
     // Ensure window is not maximized/fullscreen from previous state
     if let Ok(is_maximized) = main_window.is_maximized() {
       if is_maximized {
@@ -228,17 +326,28 @@ fn initialize_windows(app: &tauri::App, config: &DesktopConfig) {
     if let Ok(Some(monitor)) = main_window.current_monitor() {
       let screen_size = monitor.size();
       info!("Screen size: {}x{}", screen_size.width, screen_size.height);
-      info!("Window config - height_ratio: {}, width: {:?}, maximized: {}", 
-            config.window_height_ratio, config.window_width, config.window_maximized);
       
-      let mut width = config
-        .window_width
-        .unwrap_or_else(|| screen_size.width as f64 * 0.60)
-        .min(screen_size.width as f64);
-      if width < 480.0 {
-        width = 480.0;
-      }
-      let height = (screen_size.height as f64 * config.window_height_ratio).min(screen_size.height as f64);
+      // Use saved preferences if available, otherwise calculate from config
+      let (width, height) = if let Some(prefs) = saved_prefs {
+        info!("Using saved window size: {}x{}", prefs.width, prefs.height);
+        (
+          (prefs.width as f64).clamp(480.0, screen_size.width as f64),
+          (prefs.height as f64).clamp(600.0, screen_size.height as f64),
+        )
+      } else {
+        info!("No saved preferences, using config - height_ratio: {}, width: {:?}, maximized: {}", 
+              config.window_height_ratio, config.window_width, config.window_maximized);
+        let mut width = config
+          .window_width
+          .unwrap_or_else(|| screen_size.width as f64 * 0.60)
+          .min(screen_size.width as f64);
+        if width < 480.0 {
+          width = 480.0;
+        }
+        let height = (screen_size.height as f64 * config.window_height_ratio).min(screen_size.height as f64);
+        (width, height)
+      };
+      
       let logical_size = tauri::LogicalSize { width, height };
       
       info!("Setting window size to {}x{}", width, height);

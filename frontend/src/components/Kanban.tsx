@@ -212,7 +212,7 @@ export default function Kanban() {
         )}
         {boards.length === 0 ? (
           <div className="flex items-center justify-center h-full">
-            <div className="text-center max-w-md p-8">
+            <div className="text-center max-w-full sm:max-w-md p-4 sm:p-8">
               <div className="mb-6">
                 <div
                   className="w-24 h-24 mx-auto rounded-full flex items-center justify-center mb-4"
@@ -296,7 +296,7 @@ export default function Kanban() {
             onClick={() => setShowCreateModal(false)}
           >
             <div
-              className="rounded-xl shadow-2xl p-6 w-full max-w-md"
+              className="rounded-xl shadow-2xl p-4 sm:p-6 w-full max-w-full sm:max-w-md mx-4"
               style={{
                 backgroundColor: 'var(--color-card-bg)',
                 border: '1px solid var(--color-border)',
@@ -429,7 +429,7 @@ export default function Kanban() {
             onClick={cancelDelete}
           >
             <div
-              className="rounded-xl shadow-2xl p-6 w-full max-w-md"
+              className="rounded-xl shadow-2xl p-4 sm:p-6 w-full max-w-full sm:max-w-md mx-4"
               style={{
                 backgroundColor: 'var(--color-card-bg)',
                 border: '1px solid var(--color-border)',
