@@ -6,10 +6,13 @@ from pathlib import Path
 from fastapi import APIRouter, File, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 
+from app.storage_paths import get_static_dir
+
 router = APIRouter()
 
 # Directory to store background images
-BACKGROUNDS_DIR = Path('data/background-images')
+# Use configured static directory instead of hardcoded relative path
+BACKGROUNDS_DIR = Path(get_static_dir()) / 'background-images'
 BACKGROUNDS_DIR.mkdir(parents=True, exist_ok=True)
 
 # Metadata file to track uploaded images
