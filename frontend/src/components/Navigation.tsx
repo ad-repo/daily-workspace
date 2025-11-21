@@ -12,7 +12,7 @@ const Navigation = () => {
 
   return (
     <nav className="shadow-sm" style={{ backgroundColor: 'var(--color-card-bg)', borderBottom: '1px solid var(--color-border-primary)' }}>
-      <div className="px-2 sm:px-4">
+      <div className="container mx-auto px-2 sm:px-4 max-w-7xl">
         <div className="flex items-center justify-between h-14 sm:h-16">
           <Link 
             to="/" 
