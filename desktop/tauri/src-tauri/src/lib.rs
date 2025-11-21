@@ -324,9 +324,9 @@ fn wait_for_backend_ready(app_handle: tauri::AppHandle, config: DesktopConfig) {
           let screen_size = monitor.size();
           info!("Monitor screen size: {}x{}", screen_size.width, screen_size.height);
           
-          // 60% width + 300px wider, 85% height + 100px taller
-          let width = ((screen_size.width as f64 * 0.60) + 300.0).max(480.0);
-          let height = (screen_size.height as f64 * 0.85) + 100.0;
+          // 60% width + 600px wider, 85% height + 150px taller
+          let width = ((screen_size.width as f64 * 0.60) + 600.0).max(480.0);
+          let height = (screen_size.height as f64 * 0.85) + 150.0;
           
           let physical_size = tauri::PhysicalSize { width: width as u32, height: height as u32 };
           info!("Re-applying physical window size before show: {}x{}", width, height);
