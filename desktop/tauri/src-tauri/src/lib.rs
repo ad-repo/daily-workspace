@@ -160,7 +160,7 @@ fn load_production_env() {
   
   #[cfg(target_os = "macos")]
   let data_dir = dirs::home_dir()
-    .and_then(|h| Some(h.join("Library/Application Support/TrackTheThingDesktop")))
+    .map(|h| h.join("Library/Application Support/TrackTheThingDesktop"))
     .unwrap_or_else(|| {
       warn!("Failed to resolve home directory, using fallback path");
       PathBuf::from("/tmp/TrackTheThingDesktop")
@@ -168,7 +168,7 @@ fn load_production_env() {
   
   #[cfg(target_os = "linux")]
   let data_dir = dirs::home_dir()
-    .and_then(|h| Some(h.join(".local/share/track-the-thing-desktop")))
+    .map(|h| h.join(".local/share/track-the-thing-desktop"))
     .unwrap_or_else(|| {
       warn!("Failed to resolve home directory, using fallback path");
       PathBuf::from("/tmp/track-the-thing-desktop")
@@ -176,7 +176,7 @@ fn load_production_env() {
   
   #[cfg(target_os = "windows")]
   let data_dir = dirs::data_local_dir()
-    .and_then(|d| Some(d.join("TrackTheThingDesktop")))
+    .map(|d| d.join("TrackTheThingDesktop"))
     .unwrap_or_else(|| {
       warn!("Failed to resolve local app data directory, using fallback path");
       PathBuf::from("C:\\Temp\\TrackTheThingDesktop")
