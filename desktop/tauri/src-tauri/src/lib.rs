@@ -11,7 +11,7 @@ use dotenvy::from_path;
 use log::{info, warn};
 use serde::{Deserialize, Serialize};
 use shell_words;
-use tauri::{async_runtime, path::BaseDirectory, Manager, PhysicalSize, WindowEvent};
+use tauri::{async_runtime, path::BaseDirectory, Manager, WindowEvent};
 use tokio::time::sleep;
 
 #[derive(Default)]
