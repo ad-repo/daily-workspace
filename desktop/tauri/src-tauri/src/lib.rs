@@ -324,10 +324,9 @@ fn wait_for_backend_ready(app_handle: tauri::AppHandle, config: DesktopConfig) {
           let screen_size = monitor.size();
           info!("Monitor screen size: {}x{}", screen_size.width, screen_size.height);
           
-          // Use physical size with much smaller percentages for Retina displays
-          // 40% width and 60% height should be comfortable
-          let width = (screen_size.width as f64 * 0.40).max(480.0);
-          let height = screen_size.height as f64 * 0.60;
+          // 60% width (1.5x the previous 40%) and 85% height (close to 2x the effective 60%)
+          let width = (screen_size.width as f64 * 0.60).max(480.0);
+          let height = screen_size.height as f64 * 0.85;
           
           let physical_size = tauri::PhysicalSize { width: width as u32, height: height as u32 };
           info!("Re-applying physical window size before show: {}x{}", width, height);
