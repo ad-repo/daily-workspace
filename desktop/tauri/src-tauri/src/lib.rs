@@ -103,13 +103,12 @@ pub fn run() {
   tauri::Builder::default()
     .manage(BackendProcess::default())
     .setup(|app| {
-      if cfg!(debug_assertions) {
-        app.handle().plugin(
-          tauri_plugin_log::Builder::default()
-            .level(log::LevelFilter::Info)
-            .build(),
-        )?;
-      }
+      // Enable logging in both debug and release modes
+      app.handle().plugin(
+        tauri_plugin_log::Builder::default()
+          .level(log::LevelFilter::Info)
+          .build(),
+      )?;
 
       let repo_root = resolve_repo_root();
       load_touri_env(&repo_root);
@@ -206,12 +205,33 @@ fn initialize_windows(app: &tauri::App, config: &DesktopConfig) {
 
 fn spawn_backend(app: &tauri::AppHandle, config: &DesktopConfig) -> Result<Child, std::io::Error> {
   if let Some(binary_path) = packaged_backend_path(app, config) {
+    info!("Checking for packaged backend at: {}", binary_path.display());
     if binary_path.exists() {
       info!("Starting packaged backend at {}", binary_path.display());
-      return Command::new(binary_path)
-        .envs(env::vars())  // Pass environment variables to spawned process
-        .spawn();
+      info!("Environment variables being passed:");
+      for (key, value) in env::vars() {
+        if key.starts_with("TAURI_") {
+          info!("  {}={}", key, value);
+        }
+      }
+      
+      match Command::new(&binary_path)
+        .envs(env::vars())
+        .spawn() {
+        Ok(child) => {
+          info!("Backend process spawned successfully with PID: {}", child.id());
+          return Ok(child);
+        }
+        Err(e) => {
+          warn!("Failed to spawn packaged backend: {}", e);
+          return Err(e);
+        }
+      }
+    } else {
+      warn!("Packaged backend not found at: {}", binary_path.display());
     }
+  } else {
+    warn!("Could not resolve packaged backend path");
   }
 
   let fallback = shell_words::split(&config.launcher_command)
@@ -225,7 +245,7 @@ fn spawn_backend(app: &tauri::AppHandle, config: &DesktopConfig) -> Result<Child
   Command::new(&program)
     .args(args)
     .current_dir(&config.repo_root)
-    .envs(env::vars())  // Pass environment variables to spawned process
+    .envs(env::vars())
     .spawn()
 }
 
