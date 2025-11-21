@@ -26,6 +26,7 @@ fi
 
 log "Stopping any running desktop app instances..."
 pkill -9 -f "track-the-thing-backend" 2>/dev/null || true
+pkill -9 -f "track_the_thing_desktop" 2>/dev/null || true
 pkill -9 -f "tauri dev" 2>/dev/null || true
 pkill -9 -f "tauri:dev" 2>/dev/null || true
 pkill -9 -f "Track the Thing" 2>/dev/null || true
