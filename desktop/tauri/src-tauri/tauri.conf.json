@@ -32,8 +32,6 @@
         "resizable": false,
         "fullscreen": false,
         "decorations": false,
-        "transparent": false,
-        "alwaysOnTop": true,
         "center": true,
         "url": "desktop/splashscreen.html"
       }
