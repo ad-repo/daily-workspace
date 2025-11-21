@@ -25,10 +25,13 @@ if [[ "$(uname -s)" != "Darwin" ]]; then
 fi
 
 log "Stopping any running desktop app instances..."
-pkill -f "track-the-thing-backend" 2>/dev/null || true
-pkill -f "tauri dev" 2>/dev/null || true
-pkill -f "Track the Thing" 2>/dev/null || true
-sleep 1
+pkill -9 -f "track-the-thing-backend" 2>/dev/null || true
+pkill -9 -f "tauri dev" 2>/dev/null || true
+pkill -9 -f "tauri:dev" 2>/dev/null || true
+pkill -9 -f "Track the Thing" 2>/dev/null || true
+pkill -9 -f "vite.*5174" 2>/dev/null || true
+pkill -9 -f "npm.*tauri" 2>/dev/null || true
+sleep 2
 log "✓ Cleanup complete"
 
 if [[ ! -f "${PROJECT_ROOT}/.tourienv" ]]; then
