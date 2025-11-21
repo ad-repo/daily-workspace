@@ -77,3 +77,4 @@ tests/e2e/test-results/
 .pytest_cache/
 test_output.log
 test_results.txt
+track-the-thing-*.json
