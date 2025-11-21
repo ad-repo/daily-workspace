@@ -183,7 +183,7 @@ fn load_production_env() {
   env::set_var("TAURI_UPLOADS_DIR", format!("{}/uploads", data_dir_str));
   env::set_var("TAURI_STATIC_DIR", format!("{}/static", data_dir_str));
   env::set_var("TAURI_BACKEND_LOG", format!("{}/logs/backend.log", data_dir_str));
-  env::set_var("TAURI_WINDOW_HEIGHT_RATIO", "0.88");
+  env::set_var("TAURI_WINDOW_HEIGHT_RATIO", "0.75");
   env::set_var("TAURI_WINDOW_MAXIMIZED", "false");
   
   info!("Set TAURI_DESKTOP_DATA_DIR={}", data_dir_str);
@@ -215,7 +215,7 @@ fn initialize_windows(app: &tauri::App, config: &DesktopConfig) {
       
       let mut width = config
         .window_width
-        .unwrap_or_else(|| screen_size.width as f64 * 0.85)
+        .unwrap_or_else(|| screen_size.width as f64 * 0.70)
         .min(screen_size.width as f64);
       if width < 480.0 {
         width = 480.0;
