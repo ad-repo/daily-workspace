@@ -178,7 +178,9 @@ fn spawn_backend(app: &tauri::AppHandle, config: &DesktopConfig) -> Result<Child
   if let Some(binary_path) = packaged_backend_path(app, config) {
     if binary_path.exists() {
       info!("Starting packaged backend at {}", binary_path.display());
-      return Command::new(binary_path).spawn();
+      return Command::new(binary_path)
+        .envs(env::vars())  // Pass environment variables to spawned process
+        .spawn();
     }
   }
 
@@ -193,6 +195,7 @@ fn spawn_backend(app: &tauri::AppHandle, config: &DesktopConfig) -> Result<Child
   Command::new(&program)
     .args(args)
     .current_dir(&config.repo_root)
+    .envs(env::vars())  // Pass environment variables to spawned process
     .spawn()
 }
 

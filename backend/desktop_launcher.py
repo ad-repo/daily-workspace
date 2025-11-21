@@ -53,8 +53,20 @@ def _prepare_environment() -> tuple[str, str]:
     static_dir = os.getenv("TAURI_STATIC_DIR")
     db_path = os.getenv("TAURI_DATABASE_PATH")
 
+    # CRITICAL: Fail immediately if required configuration is missing
+    # This backend should only run when launched by Tauri with .tourienv loaded
     if not data_dir:
-        data_dir = "~/.local/share/track-the-thing-desktop"
+        logging.error("FATAL: TAURI_DESKTOP_DATA_DIR environment variable is not set.")
+        logging.error("This backend must be launched by the Tauri desktop app, not directly.")
+        logging.error("The Tauri app loads configuration from .tourienv before spawning the backend.")
+        logging.error("")
+        logging.error("If you need to run the backend standalone for testing:")
+        logging.error("  1. Copy .tourienv.example to .tourienv")
+        logging.error("  2. Customize the settings in .tourienv")
+        logging.error("  3. Load .tourienv: source .tourienv (bash/zsh) or set the vars manually")
+        logging.error("  4. Then run: python3 backend/desktop_launcher.py")
+        sys.exit(1)
+
     data_path = _expand(data_dir)
     data_path.mkdir(parents=True, exist_ok=True)
 
@@ -66,6 +78,8 @@ def _prepare_environment() -> tuple[str, str]:
 
     resolved_db_path.parent.mkdir(parents=True, exist_ok=True)
     os.environ["DATABASE_URL"] = f"sqlite:///{resolved_db_path}"
+    logging.info("Desktop data directory: %s", data_path)
+    logging.info("SQLite database path: %s", resolved_db_path)
 
     if uploads_dir:
         resolved_uploads = _expand(uploads_dir)
