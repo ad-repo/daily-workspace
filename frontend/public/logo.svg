@@ -1,18 +1,18 @@
 <svg width="900" height="240" viewBox="0 0 900 240" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Monitor with TtT on the left - narrower and taller -->
+  <!-- Monitor with TtT on the left -->
   <g transform="translate(110, 30)">
-    <!-- Monitor outer border - narrower rounded rectangle -->
-    <rect x="0" y="0" width="240" height="160" rx="20" stroke="currentColor" stroke-width="12" fill="none"/>
+    <!-- Monitor outer border -->
+    <rect x="0" y="0" width="240" height="160" rx="20" stroke="#3b82f6" stroke-width="12" fill="none"/>
     
-    <!-- TtT text inside monitor - slightly smaller for padding -->
-    <text x="120" y="100" font-family="Arial, sans-serif" font-size="135" font-weight="bold" fill="currentColor" text-anchor="middle" dominant-baseline="middle">TtT</text>
+    <!-- TtT text inside monitor -->
+    <text x="120" y="100" font-family="Arial, sans-serif" font-size="135" font-weight="bold" fill="#3b82f6" text-anchor="middle" dominant-baseline="middle">TtT</text>
     
     <!-- Monitor stand base -->
-    <rect x="90" y="160" width="60" height="20" rx="10" fill="currentColor"/>
+    <rect x="90" y="160" width="60" height="20" rx="10" fill="#3b82f6"/>
   </g>
   
   <!-- "Track the Thing" text - stacked vertically to the right of monitor -->
-  <text x="400" y="90" font-family="Arial, sans-serif" font-size="72" font-weight="bold" fill="currentColor">Track</text>
-  <text x="400" y="150" font-family="Arial, sans-serif" font-size="72" font-weight="bold" fill="currentColor">the</text>
-  <text x="400" y="210" font-family="Arial, sans-serif" font-size="72" font-weight="bold" fill="currentColor">Thing</text>
+  <text x="400" y="90" font-family="Arial, sans-serif" font-size="72" font-weight="bold" fill="#111827">Track</text>
+  <text x="400" y="150" font-family="Arial, sans-serif" font-size="72" font-weight="bold" fill="#111827">the</text>
+  <text x="400" y="210" font-family="Arial, sans-serif" font-size="72" font-weight="bold" fill="#111827">Thing</text>
 </svg>
