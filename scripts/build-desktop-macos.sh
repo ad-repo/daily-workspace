@@ -24,6 +24,13 @@ if [[ "$(uname -s)" != "Darwin" ]]; then
   abort "This packaging script currently supports macOS only."
 fi
 
+log "Stopping any running desktop app instances..."
+pkill -f "track-the-thing-backend" 2>/dev/null || true
+pkill -f "tauri dev" 2>/dev/null || true
+pkill -f "Track the Thing" 2>/dev/null || true
+sleep 1
+log "✓ Cleanup complete"
+
 if [[ ! -f "${PROJECT_ROOT}/.tourienv" ]]; then
   abort "Missing .tourienv. Copy .tourienv.example and customize desktop settings before building."
 fi
