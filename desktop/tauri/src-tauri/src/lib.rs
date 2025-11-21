@@ -148,10 +148,40 @@ fn load_touri_env(repo_root: &Path) {
       warn!("Failed to load .tourienv: {err}");
     } else {
       info!("Loaded desktop environment overrides from {}", env_path.display());
+      return;
     }
-  } else {
-    warn!(".tourienv not found at {}. Using defaults.", env_path.display());
   }
+
+  // In production (no .tourienv), set platform-appropriate defaults
+  info!("Running in production mode - setting default environment variables");
+  
+  #[cfg(target_os = "macos")]
+  let data_dir = dirs::home_dir()
+    .map(|h| h.join("Library/Application Support/TrackTheThingDesktop"))
+    .expect("Failed to resolve home directory");
+  
+  #[cfg(target_os = "linux")]
+  let data_dir = dirs::home_dir()
+    .map(|h| h.join(".local/share/track-the-thing-desktop"))
+    .expect("Failed to resolve home directory");
+  
+  #[cfg(target_os = "windows")]
+  let data_dir = dirs::data_local_dir()
+    .map(|d| d.join("TrackTheThingDesktop"))
+    .expect("Failed to resolve local app data directory");
+
+  let data_dir_str = data_dir.to_string_lossy().to_string();
+  env::set_var("TAURI_BACKEND_HOST", "127.0.0.1");
+  env::set_var("TAURI_BACKEND_PORT", "18765");
+  env::set_var("TAURI_DESKTOP_DATA_DIR", &data_dir_str);
+  env::set_var("TAURI_DATABASE_PATH", format!("{}/ttt_desktop.db", data_dir_str));
+  env::set_var("TAURI_UPLOADS_DIR", format!("{}/uploads", data_dir_str));
+  env::set_var("TAURI_STATIC_DIR", format!("{}/static", data_dir_str));
+  env::set_var("TAURI_BACKEND_LOG", format!("{}/logs/backend.log", data_dir_str));
+  env::set_var("TAURI_WINDOW_HEIGHT_RATIO", "0.88");
+  env::set_var("TAURI_WINDOW_MAXIMIZED", "false");
+  
+  info!("Set TAURI_DESKTOP_DATA_DIR={}", data_dir_str);
 }
 
 fn initialize_windows(app: &tauri::App, config: &DesktopConfig) {
