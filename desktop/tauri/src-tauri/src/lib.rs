@@ -209,6 +209,10 @@ fn initialize_windows(app: &tauri::App, config: &DesktopConfig) {
     let _ = main_window.hide();
     if let Ok(Some(monitor)) = main_window.current_monitor() {
       let screen_size = monitor.size();
+      info!("Screen size: {}x{}", screen_size.width, screen_size.height);
+      info!("Window config - height_ratio: {}, width: {:?}, maximized: {}", 
+            config.window_height_ratio, config.window_width, config.window_maximized);
+      
       let mut width = config
         .window_width
         .unwrap_or_else(|| screen_size.width as f64 * 0.85)
@@ -218,6 +222,8 @@ fn initialize_windows(app: &tauri::App, config: &DesktopConfig) {
       }
       let height = (screen_size.height as f64 * config.window_height_ratio).min(screen_size.height as f64);
       let logical_size = tauri::LogicalSize { width, height };
+      
+      info!("Setting window size to {}x{}", width, height);
       let _ = main_window.set_size(logical_size);
       let _ = main_window.center();
     }
@@ -289,7 +295,10 @@ fn wait_for_backend_ready(app_handle: tauri::AppHandle, config: DesktopConfig) {
 
     if let Some(window) = main {
       if config.window_maximized {
+        info!("Maximizing window (window_maximized={})", config.window_maximized);
         let _ = window.maximize();
+      } else {
+        info!("Not maximizing window (window_maximized={})", config.window_maximized);
       }
       let _ = window.show();
       let _ = window.set_focus();
