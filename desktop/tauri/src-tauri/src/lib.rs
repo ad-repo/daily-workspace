@@ -161,26 +161,17 @@ fn load_production_env() {
   #[cfg(target_os = "macos")]
   let data_dir = dirs::home_dir()
     .map(|h| h.join("Library/Application Support/TrackTheThingDesktop"))
-    .unwrap_or_else(|| {
-      warn!("Failed to resolve home directory, using fallback path");
-      PathBuf::from("/tmp/TrackTheThingDesktop")
-    });
+    .expect("FATAL: Cannot resolve home directory. Unable to determine data directory location.");
   
   #[cfg(target_os = "linux")]
   let data_dir = dirs::home_dir()
     .map(|h| h.join(".local/share/track-the-thing-desktop"))
-    .unwrap_or_else(|| {
-      warn!("Failed to resolve home directory, using fallback path");
-      PathBuf::from("/tmp/track-the-thing-desktop")
-    });
+    .expect("FATAL: Cannot resolve home directory. Unable to determine data directory location.");
   
   #[cfg(target_os = "windows")]
   let data_dir = dirs::data_local_dir()
     .map(|d| d.join("TrackTheThingDesktop"))
-    .unwrap_or_else(|| {
-      warn!("Failed to resolve local app data directory, using fallback path");
-      PathBuf::from("C:\\Temp\\TrackTheThingDesktop")
-    });
+    .expect("FATAL: Cannot resolve local app data directory. Unable to determine data directory location.");
 
   // Create the data directory if it doesn't exist
   if let Err(e) = std::fs::create_dir_all(&data_dir) {
