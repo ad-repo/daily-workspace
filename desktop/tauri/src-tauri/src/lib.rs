@@ -322,12 +322,16 @@ fn wait_for_backend_ready(app_handle: tauri::AppHandle, config: DesktopConfig) {
         // Reapply size constraints after backend is ready
         if let Ok(Some(monitor)) = window.current_monitor() {
           let screen_size = monitor.size();
-          // Use 60% width and 70% height to avoid fullscreen appearance
-          let width = (screen_size.width as f64 * 0.60).max(480.0);
-          let height = screen_size.height as f64 * 0.70;
-          let logical_size = tauri::LogicalSize { width, height };
-          info!("Re-applying window size before show: {}x{}", width, height);
-          let _ = window.set_size(logical_size);
+          info!("Monitor screen size: {}x{}", screen_size.width, screen_size.height);
+          
+          // Use physical size with much smaller percentages for Retina displays
+          // 40% width and 60% height should be comfortable
+          let width = (screen_size.width as f64 * 0.40).max(480.0);
+          let height = screen_size.height as f64 * 0.60;
+          
+          let physical_size = tauri::PhysicalSize { width: width as u32, height: height as u32 };
+          info!("Re-applying physical window size before show: {}x{}", width, height);
+          let _ = window.set_size(physical_size);
           let _ = window.center();
         }
       }
