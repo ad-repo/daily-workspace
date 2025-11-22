@@ -90,6 +90,13 @@ docker-compose --env-file .dockerenv exec backend python migrations/run_migratio
 | 016 | **Lists feature** - creates lists and entry_lists tables for Trello-style organization | 2025-11-11 |
 | 017 | **Pinned entries** - adds is_pinned column for auto-copying entries to future days | 2025-11-12 |
 | 018 | **List labels** - creates list_labels association table for many-to-many relationship between lists and labels | 2025-11-12 |
+| 019 | **Kanban support** - adds is_kanban and kanban_order columns for Kanban board functionality | 2025-11-13 |
+| 020 | **Custom emojis** - creates custom_emojis table for user-uploaded emoji images | 2025-11-13 |
+| 021 | **Emoji library setting** - adds emoji_library preference to app_settings | 2025-11-13 |
+| 022 | **Remove duplicate entries** - cleans up duplicate note entries from pinned copy logic | 2025-11-13 |
+| 023 | **Sprint name setting** - adds sprint_name customization to app_settings | 2025-11-14 |
+| 024 | **Daily goal end time** - adds daily_goal_end_time to app_settings for countdown timer | 2025-11-14 |
+| 025 | **Reminders** - creates reminders table for date-time based reminders on entry cards | 2025-11-22 |
 
 ## Creating New Migrations
 

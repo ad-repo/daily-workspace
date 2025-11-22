@@ -1,18 +1,19 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Trash2, Clock, FileText, Star, Check, Copy, CheckCheck, ArrowRight, ArrowUp, FileDown, Pin, Trello } from 'lucide-react';
+import { Trash2, Clock, FileText, Star, Check, Copy, CheckCheck, ArrowRight, ArrowUp, FileDown, Pin, Trello, Bell } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import axios from 'axios';
 import TurndownService from 'turndown';
-import type { NoteEntry, List } from '../types';
+import type { NoteEntry, List, Reminder } from '../types';
 import RichTextEditor from './RichTextEditor';
 import CodeEditor from './CodeEditor';
 import LabelSelector from './LabelSelector';
 import EntryListSelector from './EntryListSelector';
+import ReminderModal from './ReminderModal';
 import { useTimezone } from '../contexts/TimezoneContext';
 import { formatTimestamp } from '../utils/timezone';
-import { kanbanApi, listsApi } from '../api';
+import { kanbanApi, listsApi, remindersApi } from '../api';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -61,6 +62,8 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onListsUpdat
   const [kanbanColumns, setKanbanColumns] = useState<List[]>([]);
   const [isChangingKanban, setIsChangingKanban] = useState(false);
   const [kanbanButtonRef, setKanbanButtonRef] = useState<HTMLButtonElement | null>(null);
+  const [showReminderModal, setShowReminderModal] = useState(false);
+  const [entryReminder, setEntryReminder] = useState<Reminder | null>(entry.reminder || null);
   const isCodeEntry = entry.content_type === 'code';
   const today = format(new Date(), 'yyyy-MM-dd');
   const isFromPastDay = currentDate && currentDate !== today;
@@ -73,6 +76,7 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onListsUpdat
     setIsImportant(entry.is_important || false);
     setIsCompleted(entry.is_completed || false);
     setIsPinned(entry.is_pinned || false);
+    setEntryReminder(entry.reminder || null);
   }, [entry]);
 
   // Load Kanban columns when modal opens
@@ -248,6 +252,26 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onListsUpdat
     } catch (error) {
       console.error('Failed to toggle pin status:', error);
       setIsPinned(!newValue); // Revert on error
+    }
+  };
+
+  const handleReminderClick = () => {
+    setShowReminderModal(true);
+  };
+
+  const handleReminderSuccess = async () => {
+    // Reload reminder after save/delete
+    try {
+      const reminder = await remindersApi.getForEntry(entry.id);
+      setEntryReminder(reminder);
+    } catch (error: any) {
+      // If 404, reminder was deleted/dismissed - clear it
+      if (error.response?.status === 404 || error.response?.status === 400) {
+        setEntryReminder(null);
+      } else {
+        console.error('Failed to reload reminder:', error);
+        setEntryReminder(null); // Clear on any error to be safe
+      }
     }
   };
 
@@ -635,6 +659,30 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onListsUpdat
             </button>
             
             <button
+              onClick={handleReminderClick}
+              className="p-2 rounded transition-colors"
+              style={{ 
+                color: entryReminder ? 'var(--color-accent)' : 'var(--color-text-tertiary)',
+                backgroundColor: entryReminder ? 'rgba(59, 130, 246, 0.1)' : 'transparent'
+              }}
+              onMouseEnter={(e) => {
+                if (!entryReminder) {
+                  e.currentTarget.style.backgroundColor = 'rgba(59, 130, 246, 0.1)';
+                  e.currentTarget.style.color = 'var(--color-accent)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!entryReminder) {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = 'var(--color-text-tertiary)';
+                }
+              }}
+              title={entryReminder ? "Edit reminder" : "Set reminder"}
+            >
+              <Bell className={`h-5 w-5 ${entryReminder ? 'fill-current' : ''}`} />
+            </button>
+            
+            <button
               onClick={handleCopy}
               className="p-2 rounded transition-colors"
               style={{ color: copied ? 'var(--color-success)' : 'var(--color-text-tertiary)' }}
@@ -879,6 +927,16 @@ const NoteEntryCard = ({ entry, onUpdate, onDelete, onLabelsUpdate, onListsUpdat
           </div>
         </div>,
         document.body
+      )}
+
+      {/* Reminder Modal */}
+      {showReminderModal && (
+        <ReminderModal
+          entry={entry}
+          existingReminder={entryReminder}
+          onClose={() => setShowReminderModal(false)}
+          onSuccess={handleReminderSuccess}
+        />
       )}
     </div>
   );

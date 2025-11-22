@@ -26,13 +26,14 @@ async def export_data(db: Session = Depends(get_db)):
     labels = db.query(models.Label).all()
     lists = db.query(models.List).all()
     custom_emojis = db.query(models.CustomEmoji).all()
+    reminders = db.query(models.Reminder).all()
     search_history = db.query(models.SearchHistory).order_by(models.SearchHistory.created_at.desc()).all()
     app_settings = db.query(models.AppSettings).filter(models.AppSettings.id == 1).first()
     sprint_goals = db.query(models.SprintGoal).all()
     quarterly_goals = db.query(models.QuarterlyGoal).all()
 
     export_data = {
-        'version': '7.0',
+        'version': '8.0',
         'exported_at': datetime.utcnow().isoformat(),
         'search_history': [{'query': item.query, 'created_at': item.created_at.isoformat()} for item in search_history],
         'labels': [
@@ -66,6 +67,17 @@ async def export_data(db: Session = Depends(get_db)):
                 'updated_at': emoji.updated_at.isoformat(),
             }
             for emoji in custom_emojis
+        ],
+        'reminders': [
+            {
+                'id': reminder.id,
+                'entry_id': reminder.entry_id,
+                'reminder_datetime': reminder.reminder_datetime,
+                'is_dismissed': bool(reminder.is_dismissed),
+                'created_at': reminder.created_at.isoformat(),
+                'updated_at': reminder.updated_at.isoformat(),
+            }
+            for reminder in reminders
         ],
         'app_settings': {
             'sprint_goals': app_settings.sprint_goals if app_settings else '',
@@ -340,6 +352,8 @@ async def import_data(file: UploadFile = File(...), replace: bool = False, db: S
             'lists_imported': 0,
             'custom_emojis_imported': 0,
             'custom_emojis_skipped': 0,
+            'reminders_imported': 0,
+            'reminders_skipped': 0,
             'notes_imported': 0,
             'entries_imported': 0,
             'labels_skipped': 0,
@@ -397,6 +411,44 @@ async def import_data(file: UploadFile = File(...), replace: bool = False, db: S
                         stats['custom_emojis_imported'] += 1
                     else:
                         stats['custom_emojis_skipped'] += 1
+
+            # Import reminders if present
+            # Note: Reminders are imported after all entries are created, 
+            # so entry_id references will be valid
+            if 'reminders' in data:
+                # First, we need to create a mapping from old entry IDs to new entry IDs
+                # This is important because entry IDs might change during import
+                # For now, we'll skip reminders that reference non-existent entries
+                for reminder_data in data['reminders']:
+                    # Check if the entry exists
+                    entry_exists = db.query(models.NoteEntry).filter(
+                        models.NoteEntry.id == reminder_data['entry_id']
+                    ).first()
+
+                    if entry_exists:
+                        # Check if reminder already exists for this entry
+                        existing_reminder = db.query(models.Reminder).filter(
+                            models.Reminder.entry_id == reminder_data['entry_id']
+                        ).first()
+
+                        if not existing_reminder:
+                            new_reminder = models.Reminder(
+                                entry_id=reminder_data['entry_id'],
+                                reminder_datetime=reminder_data['reminder_datetime'],
+                                is_dismissed=1 if reminder_data.get('is_dismissed', False) else 0,
+                                created_at=datetime.fromisoformat(reminder_data['created_at'])
+                                if 'created_at' in reminder_data
+                                else datetime.utcnow(),
+                                updated_at=datetime.fromisoformat(reminder_data['updated_at'])
+                                if 'updated_at' in reminder_data
+                                else datetime.utcnow(),
+                            )
+                            db.add(new_reminder)
+                            stats['reminders_imported'] += 1
+                        else:
+                            stats['reminders_skipped'] += 1
+                    else:
+                        stats['reminders_skipped'] += 1
 
             # Import app_settings if present
             if 'app_settings' in data and data['app_settings']:

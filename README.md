@@ -130,12 +130,14 @@ A modern, powerful daily workspace application for capturing and organizing your
   - ⭐ Yellow glowing star: Has important entries
   - ✓ Green bouncing checkmark: Has completed entries
   - • Blue dot: Has regular notes (only if no other states)
+  - 🔔 Bell: Has reminders set for this date
   - 🚀 Rocket: Sprint Goal active on this date
   - 🌟 Star: Quarterly Goal active on this date
-- **Smart Tooltips**: Hover over any date to see daily goals, sprint goals, quarterly goals, and entry count
+- **Smart Tooltips**: Hover over any date to see daily goals, sprint goals, quarterly goals, reminder count, and entry count
 - **Month Navigation**: Browse notes by month
 - **Today Button**: Quick jump to current day (shows day name)
 - **Timezone Support**: Display times in your preferred timezone (Eastern US by default)
+- **Upcoming Reminders**: View all pending reminders on the Calendar page with dates, times, and quick actions
 
 ### 📊 Reports
 - **Weekly Reports**: Generate Wednesday-to-Wednesday reports
@@ -165,6 +167,14 @@ A modern, powerful daily workspace application for capturing and organizing your
 - **Copy as Jira/Confluence**: Export entries in Jira wiki markup format with full formatting preservation
 - **Continue from Previous Day**: Copy entries from past days to today
 - **Entry Management**: Edit, delete, and reorder entries
+- **Reminders**: Set date-time based reminders on entry cards
+  - Click "Remind Me" button on any entry card to set a reminder
+  - Choose specific date and time for the reminder
+  - In-app alerts appear when reminders are due
+  - Snooze reminders for 1 day or dismiss them
+  - View all upcoming reminders on the Calendar page
+  - Calendar shows bell indicators on days with reminders
+  - Cancel reminders from the Calendar view or entry card
 
 ### 🖥️ View Customization
 - **Full-Screen Mode**: Expand daily view to full width for focused work

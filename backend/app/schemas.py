@@ -82,6 +82,50 @@ class ReorderListsRequest(BaseModel):
     lists: list[ListOrderUpdate]
 
 
+# Reminder Schemas (defined before NoteEntry to avoid forward reference issues)
+class ReminderBase(BaseModel):
+    entry_id: int
+    reminder_datetime: str  # ISO format datetime string
+    is_dismissed: bool = False
+
+
+class ReminderCreate(BaseModel):
+    entry_id: int
+    reminder_datetime: str  # ISO format datetime string
+
+
+class ReminderUpdate(BaseModel):
+    reminder_datetime: str | None = None
+    is_dismissed: bool | None = None
+
+
+class ReminderResponse(ReminderBase):
+    id: int
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# Simplified entry info for reminders (to avoid circular reference)
+class ReminderEntryInfo(BaseModel):
+    id: int
+    daily_note_id: int
+    daily_note_date: str | None = None
+    title: str
+    content: str
+    content_type: str
+
+    class Config:
+        from_attributes = True
+
+
+# Reminder with entry details (used when fetching reminders directly)
+class ReminderWithEntry(ReminderResponse):
+    entry: ReminderEntryInfo | None = None
+
+
 # Entry Schemas
 class NoteEntryBase(BaseModel):
     title: str = ''
@@ -117,6 +161,7 @@ class NoteEntry(NoteEntryBase):
     is_important: bool = False
     is_completed: bool = False
     is_pinned: bool = False
+    reminder: 'ReminderResponse | None' = None
 
     class Config:
         from_attributes = True
@@ -299,3 +344,5 @@ class CustomEmojiResponse(CustomEmojiBase):
 
     class Config:
         from_attributes = True
+
+

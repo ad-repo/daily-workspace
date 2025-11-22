@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import Calendar from 'react-calendar';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { format } from 'date-fns';
-import { Star, Check } from 'lucide-react';
-import { notesApi, goalsApi } from '../api';
-import type { DailyNote, Goal } from '../types';
+import { Star, Check, Bell, X, Clock } from 'lucide-react';
+import { notesApi, goalsApi, remindersApi } from '../api';
+import type { DailyNote, Goal, Reminder } from '../types';
 import { useSprintName } from '../contexts/SprintNameContext';
 import 'react-calendar/dist/Calendar.css';
 
@@ -15,20 +15,52 @@ interface CalendarViewProps {
 
 const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { sprintName } = useSprintName();
   const [notes, setNotes] = useState<DailyNote[]>([]);
   const [sprintGoals, setSprintGoals] = useState<Goal[]>([]);
   const [quarterlyGoals, setQuarterlyGoals] = useState<Goal[]>([]);
+  const [reminders, setReminders] = useState<Reminder[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [calendarKey, setCalendarKey] = useState(0);
 
   useEffect(() => {
     loadMonthData();
   }, [currentMonth]);
 
+  // Force Calendar remount when navigating back to this page
+  useEffect(() => {
+    setCalendarKey(prev => prev + 1);
+    
+    // Clean up any stale active classes
+    setTimeout(() => {
+      const activeTiles = document.querySelectorAll('.react-calendar__tile--active');
+      activeTiles.forEach(tile => {
+        tile.classList.remove('react-calendar__tile--active');
+      });
+    }, 100);
+  }, [location.key]);
+
+  // Single cleanup on navigation - no continuous interval
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const allTiles = document.querySelectorAll('.react-calendar__tile--active, .react-calendar__tile--hasActive');
+      allTiles.forEach(tile => {
+        tile.classList.remove('react-calendar__tile--active');
+        tile.classList.remove('react-calendar__tile--hasActive');
+        tile.classList.remove('react-calendar__tile--range');
+        tile.classList.remove('react-calendar__tile--rangeStart');
+        tile.classList.remove('react-calendar__tile--rangeEnd');
+      });
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [location.key, selectedDate]);
+
   // Add tooltips to calendar tiles after notes and goals are loaded
   useEffect(() => {
-    if (loading || (notes.length === 0 && sprintGoals.length === 0 && quarterlyGoals.length === 0)) return;
+    if (loading || (notes.length === 0 && sprintGoals.length === 0 && quarterlyGoals.length === 0 && reminders.length === 0)) return;
 
     // Use requestAnimationFrame for smoother DOM updates
     requestAnimationFrame(() => {
@@ -40,6 +72,17 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
           const note = notes.find(n => n.date === dateStr);
           const sprintGoal = getGoalForDate(dateStr, sprintGoals);
           const quarterlyGoal = getGoalForDate(dateStr, quarterlyGoals);
+          
+          // Count reminders on this date
+          const reminderCount = reminders.filter(reminder => {
+            try {
+              if (!reminder.reminder_datetime) return false;
+              const reminderDate = format(new Date(reminder.reminder_datetime), 'yyyy-MM-dd');
+              return reminderDate === dateStr;
+            } catch {
+              return false;
+            }
+          }).length;
           
           const tooltipParts: string[] = [];
           
@@ -63,13 +106,18 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
             tooltipParts.push(`${note.entries.length} ${note.entries.length === 1 ? 'entry' : 'entries'}`);
           }
           
+          // Add reminder count if exists
+          if (reminderCount > 0) {
+            tooltipParts.push(`🔔 ${reminderCount} ${reminderCount === 1 ? 'reminder' : 'reminders'}`);
+          }
+          
           if (tooltipParts.length > 0) {
             (tile as HTMLElement).title = tooltipParts.join(' | ');
           }
         }
       });
     });
-  }, [notes, sprintGoals, quarterlyGoals, loading]);
+  }, [notes, sprintGoals, quarterlyGoals, reminders, loading]);
 
   const loadMonthData = async () => {
     setLoading(true);
@@ -88,12 +136,16 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
       const nextMonth = nextDate.getMonth() + 1;
 
       // Load all data in parallel
-      const [prevData, curData, nextData, sprints, quarterlies] = await Promise.all([
+      const [prevData, curData, nextData, sprints, quarterlies, allReminders] = await Promise.all([
         notesApi.getByMonth(prevYear, prevMonth),
         notesApi.getByMonth(curYear, curMonth),
         notesApi.getByMonth(nextYear, nextMonth),
         goalsApi.getAllSprints(),
         goalsApi.getAllQuarterly(),
+        remindersApi.getAll().catch(err => {
+          console.error('Failed to load reminders:', err);
+          return [];
+        }),
       ]);
 
       // Merge notes by unique date
@@ -106,6 +158,7 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
       setNotes(Array.from(byDate.values()));
       setSprintGoals(sprints);
       setQuarterlyGoals(quarterlies);
+      setReminders(Array.isArray(allReminders) ? allReminders : []);
       
       // Wait for next frame before removing loading state
       await new Promise(resolve => requestAnimationFrame(() => resolve(null)));
@@ -120,6 +173,20 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
     onDateSelect(date);
     const dateStr = format(date, 'yyyy-MM-dd');
     navigate(`/day/${dateStr}`);
+  };
+
+  const getTileClassName = ({ date, view }: { date: Date; view: string }) => {
+    if (view !== 'month') return null;
+    
+    // Only add active class to the currently selected date
+    const dateStr = format(date, 'yyyy-MM-dd');
+    const selectedStr = format(selectedDate, 'yyyy-MM-dd');
+    
+    if (dateStr === selectedStr) {
+      return 'calendar-tile-selected';
+    }
+    
+    return null;
   };
 
   const handleActiveStartDateChange = ({ activeStartDate, action }: { activeStartDate: Date | null; action: string }) => {
@@ -143,12 +210,24 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
     const note = notes.find(n => n.date === dateStr);
     const sprintGoal = getGoalForDate(dateStr, sprintGoals);
     const quarterlyGoal = getGoalForDate(dateStr, quarterlyGoals);
+    
+    // Check if there are reminders on this date
+    const hasReminders = reminders.some(reminder => {
+      try {
+        if (!reminder.reminder_datetime) return false;
+        const reminderDate = format(new Date(reminder.reminder_datetime), 'yyyy-MM-dd');
+        return reminderDate === dateStr;
+      } catch (error) {
+        console.error('Error parsing reminder datetime:', error, reminder);
+        return false;
+      }
+    });
 
     // Check if there are entries or goals to display
     const hasEntries = note && (note.entries.length > 0 || (note.daily_goal && note.daily_goal.trim() !== ''));
     const hasGoals = sprintGoal || quarterlyGoal;
 
-    if (!hasEntries && !hasGoals) {
+    if (!hasEntries && !hasGoals && !hasReminders) {
       return null;
     }
 
@@ -169,6 +248,13 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
             {!hasImportantEntries && !hasCompletedEntries && (
               <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: 'var(--color-accent)' }} />
             )}
+          </div>
+        )}
+        
+        {/* Reminder indicator */}
+        {hasReminders && (
+          <div className="flex items-center">
+            <Bell className="h-4 w-4" style={{ color: 'var(--color-accent)' }} />
           </div>
         )}
         
@@ -215,11 +301,12 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
               }}
             >
               <Calendar
-                value={selectedDate}
+                key={`calendar-${calendarKey}`}
                 activeStartDate={currentMonth}
                 onClickDay={handleDateClick}
                 onActiveStartDateChange={handleActiveStartDateChange}
                 tileContent={getTileContent}
+                tileClassName={getTileClassName}
                 className="w-full"
               />
             </div>
@@ -245,6 +332,10 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
                 <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: 'var(--color-accent)' }} />
                 <span className="text-xs font-medium">Has notes</span>
               </div>
+              <div className="flex items-center gap-2 p-2 rounded-lg" style={{ backgroundColor: 'var(--color-card-bg)' }}>
+                <Bell className="h-4 w-4 flex-shrink-0" style={{ color: 'var(--color-accent)' }} />
+                <span className="text-xs font-medium">Has reminder</span>
+              </div>
             </div>
           </div>
           
@@ -262,6 +353,130 @@ const CalendarView = ({ selectedDate, onDateSelect }: CalendarViewProps) => {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Reminders Section */}
+        <div className="mt-6 p-4 rounded-lg" style={{ backgroundColor: 'var(--color-bg-secondary)', border: '1px solid var(--color-border-primary)' }}>
+          <h3 className="text-base font-bold mb-3" style={{ color: 'var(--color-text-primary)' }}>🔔 Upcoming Reminders</h3>
+          
+          {loading ? (
+            <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+              Loading reminders...
+            </p>
+          ) : reminders.length === 0 ? (
+            <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+              No reminders set
+            </p>
+          ) : (
+            <div className="space-y-2 max-h-96 overflow-y-auto custom-scrollbar">
+              {reminders
+                .filter(reminder => reminder.reminder_datetime) // Filter out invalid reminders
+                .sort((a, b) => {
+                  try {
+                    return new Date(a.reminder_datetime).getTime() - new Date(b.reminder_datetime).getTime();
+                  } catch {
+                    return 0;
+                  }
+                })
+                .map((reminder) => {
+                  let reminderDate: Date;
+                  let dateLabel: string;
+                  let timeLabel: string;
+                  
+                  try {
+                    reminderDate = new Date(reminder.reminder_datetime);
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    const tomorrow = new Date(today);
+                    tomorrow.setDate(tomorrow.getDate() + 1);
+                    
+                    dateLabel = format(reminderDate, 'MMM d, yyyy');
+                    const reminderDateStr = format(reminderDate, 'yyyy-MM-dd');
+                    const todayStr = format(today, 'yyyy-MM-dd');
+                    const tomorrowStr = format(tomorrow, 'yyyy-MM-dd');
+                    
+                    if (reminderDateStr === todayStr) {
+                      dateLabel = 'Today';
+                    } else if (reminderDateStr === tomorrowStr) {
+                      dateLabel = 'Tomorrow';
+                    }
+                    
+                    timeLabel = format(reminderDate, 'h:mm a');
+                  } catch (error) {
+                    console.error('Error parsing reminder date:', error, reminder);
+                    dateLabel = 'Unknown date';
+                    timeLabel = '';
+                  }
+                  
+                  const contentPreview = reminder.entry?.content
+                    ? reminder.entry.content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().substring(0, 100)
+                    : '';
+                  
+                  const handleReminderClick = () => {
+                    if (reminder.entry?.daily_note_date) {
+                      navigate(`/day/${reminder.entry.daily_note_date}`);
+                    }
+                  };
+                  
+                  const handleDeleteReminder = async (e: React.MouseEvent) => {
+                    e.stopPropagation();
+                    if (!confirm('Are you sure you want to cancel this reminder?')) {
+                      return;
+                    }
+                    
+                    try {
+                      await remindersApi.delete(reminder.id);
+                      // Reload reminders
+                      const updatedReminders = await remindersApi.getAll();
+                      setReminders(updatedReminders);
+                    } catch (error) {
+                      console.error('Failed to delete reminder:', error);
+                      alert('Failed to cancel reminder. Please try again.');
+                    }
+                  };
+                  
+                  return (
+                    <div
+                      key={reminder.id}
+                      onClick={handleReminderClick}
+                      className="p-3 rounded-lg cursor-pointer transition-all hover:scale-[1.02]"
+                      style={{
+                        backgroundColor: 'var(--color-card-bg)',
+                        border: '1px solid var(--color-border)',
+                      }}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Bell className="h-4 w-4 flex-shrink-0" style={{ color: 'var(--color-accent)' }} />
+                            <span className="text-sm font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+                              {reminder.entry?.title || 'Untitled Entry'}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 mb-1 text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+                            <Clock className="h-3 w-3" />
+                            <span>{dateLabel} at {timeLabel}</span>
+                          </div>
+                          {contentPreview && (
+                            <p className="text-xs line-clamp-2" style={{ color: 'var(--color-text-tertiary)' }}>
+                              {contentPreview}...
+                            </p>
+                          )}
+                        </div>
+                        <button
+                          onClick={handleDeleteReminder}
+                          className="p-1.5 rounded transition-colors hover:bg-red-500 hover:bg-opacity-10"
+                          style={{ color: 'var(--color-text-tertiary)' }}
+                          title="Cancel reminder"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          )}
         </div>
       </div>
     </div>

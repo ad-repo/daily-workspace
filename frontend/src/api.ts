@@ -17,6 +17,9 @@ import type {
   CustomEmoji,
   CustomEmojiCreate,
   CustomEmojiUpdate,
+  Reminder,
+  ReminderCreate,
+  ReminderUpdate,
   AppSettings,
 } from './types';
 
@@ -102,7 +105,12 @@ export const goalsApi = {
   },
 
   getSprintForDate: async (date: string): Promise<Goal> => {
-    const response = await api.get<Goal>(`/api/goals/sprint/${date}`);
+    const response = await api.get<Goal>(`/api/goals/sprint/${date}`, {
+      validateStatus: (status) => status === 200 || status === 404, // Don't throw on 404
+    });
+    if (response.status === 404) {
+      throw { response: { status: 404 } }; // Throw a simple error for the caller to handle
+    }
     return response.data;
   },
 
@@ -127,7 +135,12 @@ export const goalsApi = {
   },
 
   getQuarterlyForDate: async (date: string): Promise<Goal> => {
-    const response = await api.get<Goal>(`/api/goals/quarterly/${date}`);
+    const response = await api.get<Goal>(`/api/goals/quarterly/${date}`, {
+      validateStatus: (status) => status === 200 || status === 404, // Don't throw on 404
+    });
+    if (response.status === 404) {
+      throw { response: { status: 404 } }; // Throw a simple error for the caller to handle
+    }
     return response.data;
   },
 
@@ -250,6 +263,40 @@ export const customEmojisApi = {
     await api.delete(`/api/custom-emojis/${id}`, {
       params: { permanent },
     });
+  },
+};
+
+// Reminders API
+export const remindersApi = {
+  getAll: async (includeDismissed = false): Promise<Reminder[]> => {
+    const response = await api.get<Reminder[]>('/api/reminders', {
+      params: { include_dismissed: includeDismissed },
+    });
+    return response.data;
+  },
+
+  getForEntry: async (entryId: number): Promise<Reminder | null> => {
+    const response = await api.get<Reminder | null>(`/api/reminders/entry/${entryId}`);
+    return response.data;
+  },
+
+  getDue: async (): Promise<Reminder[]> => {
+    const response = await api.get<Reminder[]>('/api/reminders/due');
+    return response.data;
+  },
+
+  create: async (reminder: ReminderCreate): Promise<Reminder> => {
+    const response = await api.post<Reminder>('/api/reminders', reminder);
+    return response.data;
+  },
+
+  update: async (reminderId: number, update: ReminderUpdate): Promise<Reminder> => {
+    const response = await api.patch<Reminder>(`/api/reminders/${reminderId}`, update);
+    return response.data;
+  },
+
+  delete: async (reminderId: number): Promise<void> => {
+    await api.delete(`/api/reminders/${reminderId}`);
   },
 };
 
