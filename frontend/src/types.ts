@@ -21,6 +21,7 @@ export interface NoteEntry {
   is_important: boolean;
   is_completed: boolean;
   is_pinned: boolean;
+  reminder?: Reminder;
 }
 
 export interface DailyNote {
@@ -174,5 +175,25 @@ export interface CustomEmojiUpdate {
   name?: string;
   category?: string;
   keywords?: string;
+}
+
+export interface Reminder {
+  id: number;
+  entry_id: number;
+  reminder_datetime: string; // ISO format
+  is_dismissed: boolean;
+  created_at: string;
+  updated_at: string;
+  entry?: NoteEntry; // Optional full entry details
+}
+
+export interface ReminderCreate {
+  entry_id: number;
+  reminder_datetime: string;
+}
+
+export interface ReminderUpdate {
+  reminder_datetime?: string;
+  is_dismissed?: boolean;
 }
 

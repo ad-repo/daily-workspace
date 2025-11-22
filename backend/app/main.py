@@ -15,6 +15,7 @@ from app.routers import (
     link_preview,
     lists,
     notes,
+    reminders,
     reports,
     search,
     search_history,
@@ -52,6 +53,7 @@ app.include_router(background_images.router, prefix='/api/background-images', ta
 app.include_router(custom_emojis.router)
 app.include_router(app_settings.router)
 app.include_router(goals.router)
+app.include_router(reminders.router)
 
 
 @app.get('/')

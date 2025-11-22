@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Table, Text
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Table, Text, and_
 from sqlalchemy.orm import relationship
 
 from app.database import Base
@@ -167,6 +167,29 @@ class NoteEntry(Base):
     daily_note = relationship('DailyNote', back_populates='entries')
     labels = relationship('Label', secondary=entry_labels, back_populates='entries')
     lists = relationship('List', secondary=entry_lists, back_populates='entries')
+    reminder = relationship(
+        'Reminder', 
+        back_populates='entry', 
+        uselist=False, 
+        cascade='all, delete-orphan',
+        primaryjoin='and_(NoteEntry.id==Reminder.entry_id, Reminder.is_dismissed==0)'
+    )
+
+
+class Reminder(Base):
+    """Model for reminders - date-time based alerts for note entries"""
+
+    __tablename__ = 'reminders'
+
+    id = Column(Integer, primary_key=True, index=True)
+    entry_id = Column(Integer, ForeignKey('note_entries.id', ondelete='CASCADE'), nullable=False)
+    reminder_datetime = Column(String, nullable=False)  # ISO format datetime string
+    is_dismissed = Column(Integer, default=0)  # 0 = false, 1 = true (for SQLite compatibility)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relationships
+    entry = relationship('NoteEntry', back_populates='reminder')
 
 
 class SearchHistory(Base):

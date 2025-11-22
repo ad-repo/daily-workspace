@@ -300,12 +300,32 @@ code {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.react-calendar__tile--active {
-  background: var(--color-accent) !important;
-  color: var(--color-accent-text) !important;
+/* Disable ALL calendar selection styling to prevent multiple selections bug */
+/* Since clicking a date immediately navigates to it, we don't need selection indicators */
+.react-calendar__tile--active,
+.react-calendar__tile--active:enabled,
+.react-calendar__tile--active:enabled:hover,
+.react-calendar__tile--active:enabled:focus,
+.react-calendar__tile--hasActive,
+.react-calendar__tile--hasActive:enabled,
+.react-calendar__tile--hasActive:enabled:hover,
+.react-calendar__tile--hasActive:enabled:focus,
+.react-calendar__tile--range,
+.react-calendar__tile--rangeStart,
+.react-calendar__tile--rangeEnd,
+.react-calendar__tile--rangeBothEnds,
+.calendar-tile-selected {
+  background: transparent !important;
+  color: var(--color-text-primary) !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Hover effect still provides visual feedback */
+.react-calendar__tile:enabled:hover {
+  background-color: var(--color-bg-hover) !important;
   border-radius: 0.5rem;
   transform: scale(1.03);
-  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.2);
 }
 
 .react-calendar__tile--now {

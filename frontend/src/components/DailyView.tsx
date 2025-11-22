@@ -131,8 +131,9 @@ const DailyView = () => {
         const sprintGoalData = await goalsApi.getSprintForDate(viewedDate);
         setSprintGoal(sprintGoalData);
       } catch (error: any) {
+        // 404 is expected when no goal exists for this date - don't log
         if (error.response?.status === 404) {
-          setSprintGoal(null); // No goal for this date
+          setSprintGoal(null);
         } else {
           console.error('Failed to load sprint goal:', error);
         }
@@ -143,8 +144,9 @@ const DailyView = () => {
         const quarterlyGoalData = await goalsApi.getQuarterlyForDate(viewedDate);
         setQuarterlyGoal(quarterlyGoalData);
       } catch (error: any) {
+        // 404 is expected when no goal exists for this date - don't log
         if (error.response?.status === 404) {
-          setQuarterlyGoal(null); // No goal for this date
+          setQuarterlyGoal(null);
         } else {
           console.error('Failed to load quarterly goal:', error);
         }
