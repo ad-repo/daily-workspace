@@ -24,70 +24,84 @@ const CustomBackgroundSettings = ({ onUpload, onDelete, isUploading }: CustomBac
   } = useCustomBackground();
 
   return (
-    <section className="mb-8">
-      <h2 className="text-xl font-semibold mb-4 flex items-center gap-2" style={{ color: 'var(--color-text-primary)' }}>
+    <section className="mb-6">
+      <h2 className="text-xl font-semibold mb-3 flex items-center gap-2" style={{ color: 'var(--color-text-primary)' }}>
         <Image className="h-5 w-5" />
         Background Images
       </h2>
-      <div className="p-6 rounded-lg" style={{ backgroundColor: 'var(--color-bg-primary)' }}>
-        <p className="mb-4" style={{ color: 'var(--color-text-secondary)' }}>
-          Upload your own images to display as rotating backgrounds at low opacity (20%).
+      <div className="p-5 rounded-lg" style={{ backgroundColor: 'var(--color-bg-primary)' }}>
+        <p className="mb-3 text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+          Upload images to display as rotating backgrounds at low opacity (20%).
         </p>
 
-        {/* Enable/Disable Toggle */}
-        <div className="mb-6 flex items-center justify-between p-4 rounded-lg" style={{ backgroundColor: 'var(--color-bg-secondary)' }}>
-          <div className="flex items-center gap-3">
-            <Image className="h-5 w-5" style={{ color: 'var(--color-text-secondary)' }} />
-            <div>
-              <div className="font-semibold" style={{ color: 'var(--color-text-primary)' }}>
-                Enable Background Images
-              </div>
-              <div className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-                Display your uploaded images as backgrounds
-              </div>
+        {/* Consolidated Controls Grid */}
+        <div className="mb-4 p-3 rounded-lg grid md:grid-cols-2 gap-2" style={{ backgroundColor: 'var(--color-bg-secondary)' }}>
+          {/* Enable Background Images */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Image className="h-4 w-4" style={{ color: 'var(--color-text-secondary)' }} />
+              <span className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>Enable Backgrounds</span>
             </div>
-          </div>
-          <button
-            onClick={toggleEnabled}
-            disabled={uploadedImages.length === 0}
-            className="ml-4 relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2"
-            style={{
-              backgroundColor: enabled ? 'var(--color-accent)' : 'var(--color-bg-secondary)',
-              borderColor: 'var(--color-border-primary)',
-              borderWidth: '1px',
-              opacity: uploadedImages.length === 0 ? 0.5 : 1,
-              cursor: uploadedImages.length === 0 ? 'not-allowed' : 'pointer',
-            }}
-          >
-            <span
-              className="inline-block h-4 w-4 transform rounded-full transition-transform"
+            <button
+              onClick={toggleEnabled}
+              disabled={uploadedImages.length === 0}
+              className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors"
               style={{
-                backgroundColor: 'var(--color-bg-primary)',
-                transform: enabled ? 'translateX(1.5rem)' : 'translateX(0.25rem)',
+                backgroundColor: enabled ? 'var(--color-accent)' : 'var(--color-bg-secondary)',
+                borderColor: 'var(--color-border-primary)',
+                borderWidth: '1px',
+                opacity: uploadedImages.length === 0 ? 0.5 : 1,
+                cursor: uploadedImages.length === 0 ? 'not-allowed' : 'pointer',
               }}
-            />
-          </button>
-        </div>
+            >
+              <span
+                className="inline-block h-4 w-4 transform rounded-full transition-transform"
+                style={{
+                  backgroundColor: 'var(--color-bg-primary)',
+                  transform: enabled ? 'translateX(1.5rem)' : 'translateX(0.25rem)',
+                }}
+              />
+            </button>
+          </div>
 
-        {/* Auto-Rotate Settings */}
-        <div className="mb-6 p-4 rounded-lg" style={{ backgroundColor: 'var(--color-bg-secondary)' }}>
-          {/* Auto-Rotate Toggle */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <RefreshCw className="h-5 w-5" style={{ color: 'var(--color-text-secondary)' }} />
-              <div>
-                <div className="font-semibold" style={{ color: 'var(--color-text-primary)' }}>
-                  Auto-Rotate Images
-                </div>
-                <div className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-                  Automatically cycle through images
-                </div>
-              </div>
+          {/* Tile Mode */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Image className="h-4 w-4" style={{ color: 'var(--color-text-secondary)' }} />
+              <span className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>Tile Mode</span>
+            </div>
+            <button
+              onClick={toggleTileMode}
+              disabled={!enabled}
+              className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors"
+              style={{
+                backgroundColor: tileMode ? 'var(--color-accent)' : 'var(--color-bg-secondary)',
+                borderColor: 'var(--color-border-primary)',
+                borderWidth: '1px',
+                opacity: !enabled ? 0.5 : 1,
+                cursor: !enabled ? 'not-allowed' : 'pointer',
+              }}
+            >
+              <span
+                className="inline-block h-4 w-4 transform rounded-full transition-transform"
+                style={{
+                  backgroundColor: 'var(--color-bg-primary)',
+                  transform: tileMode ? 'translateX(1.5rem)' : 'translateX(0.25rem)',
+                }}
+              />
+            </button>
+          </div>
+
+          {/* Auto-Rotate */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <RefreshCw className="h-4 w-4" style={{ color: 'var(--color-text-secondary)' }} />
+              <span className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>Auto-Rotate</span>
             </div>
             <button
               onClick={toggleAutoRotate}
               disabled={!enabled}
-              className="ml-4 relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2"
+              className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors"
               style={{
                 backgroundColor: autoRotate ? 'var(--color-accent)' : 'var(--color-bg-secondary)',
                 borderColor: 'var(--color-border-primary)',
@@ -106,94 +120,41 @@ const CustomBackgroundSettings = ({ onUpload, onDelete, isUploading }: CustomBac
             </button>
           </div>
 
-          {/* Rotation Interval */}
-          {autoRotate && (
-            <div>
-              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text-primary)' }}>
-                Rotation interval (minutes):
-              </label>
-              <div className="flex items-center gap-3">
-                <Clock className="h-4 w-4" style={{ color: 'var(--color-text-secondary)' }} />
-                <input
-                  type="number"
-                  min="1"
-                  max="1440"
-                  value={rotationInterval}
-                  onChange={(e) => setRotationInterval(parseInt(e.target.value, 10) || 60)}
-                  disabled={!enabled || !autoRotate}
-                  className="px-4 py-2 rounded-lg focus:outline-none disabled:opacity-50"
-                  style={{
-                    backgroundColor: 'var(--color-bg-secondary)',
-                    color: 'var(--color-text-primary)',
-                    border: '1px solid var(--color-border-primary)',
-                    width: '120px',
-                  }}
-                  onFocus={(e) => {
-                    e.currentTarget.style.borderColor = 'var(--color-accent)';
-                    e.currentTarget.style.boxShadow = '0 0 0 2px var(--color-accent)';
-                  }}
-                  onBlur={(e) => {
-                    e.currentTarget.style.borderColor = 'var(--color-border-primary)';
-                    e.currentTarget.style.boxShadow = 'none';
-                  }}
-                />
-                <span className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-                  minutes
-                </span>
-              </div>
-              <p className="text-xs mt-2" style={{ color: 'var(--color-text-tertiary)' }}>
-                1-1440 minutes (1 minute to 24 hours)
-              </p>
+          {/* Rotation Interval - inline */}
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4" style={{ color: 'var(--color-text-secondary)' }} />
+              <span className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>Interval (min)</span>
             </div>
-          )}
-        </div>
-
-        {/* Tile Mode Toggle */}
-        <div className="mb-6 flex items-center justify-between p-4 rounded-lg" style={{ backgroundColor: 'var(--color-bg-secondary)' }}>
-          <div className="flex items-center gap-3">
-            <Image className="h-5 w-5" style={{ color: 'var(--color-text-secondary)' }} />
-            <div>
-              <div className="font-semibold" style={{ color: 'var(--color-text-primary)' }}>
-                Tile Background
-              </div>
-              <div className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-                Tile the image across the background instead of covering/centering
-              </div>
-            </div>
-          </div>
-          <button
-            onClick={toggleTileMode}
-            disabled={!enabled}
-            className="ml-4 relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2"
-            style={{
-              backgroundColor: tileMode ? 'var(--color-accent)' : 'var(--color-bg-secondary)',
-              borderColor: 'var(--color-border-primary)',
-              borderWidth: '1px',
-              opacity: !enabled ? 0.5 : 1,
-              cursor: !enabled ? 'not-allowed' : 'pointer',
-            }}
-          >
-            <span
-              className="inline-block h-4 w-4 transform rounded-full transition-transform"
+            <input
+              type="number"
+              min="1"
+              max="1440"
+              value={rotationInterval}
+              onChange={(e) => setRotationInterval(parseInt(e.target.value, 10) || 60)}
+              disabled={!enabled || !autoRotate}
+              className="px-2 py-1 rounded text-sm focus:outline-none disabled:opacity-50"
               style={{
                 backgroundColor: 'var(--color-bg-primary)',
-                transform: tileMode ? 'translateX(1.5rem)' : 'translateX(0.25rem)',
+                color: 'var(--color-text-primary)',
+                border: '1px solid var(--color-border-primary)',
+                width: '70px',
               }}
             />
-          </button>
+          </div>
         </div>
 
         {/* Upload Images Section */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-3">
-            <label className="block text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
-              Your Images: ({uploadedImages.length})
-            </label>
+        <div className="mb-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>
+              Your Images ({uploadedImages.length})
+            </span>
             <div className="flex gap-2">
               {enabled && uploadedImages.length > 0 && (
                 <button
                   onClick={nextImage}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors"
+                  className="flex items-center gap-1 px-3 py-1.5 text-sm rounded-lg transition-colors"
                   style={{
                     backgroundColor: 'var(--color-bg-secondary)',
                     color: 'var(--color-text-primary)',
@@ -207,7 +168,7 @@ const CustomBackgroundSettings = ({ onUpload, onDelete, isUploading }: CustomBac
                   }}
                   title="Next image"
                 >
-                  <RefreshCw className="h-4 w-4" />
+                  <RefreshCw className="h-3.5 w-3.5" />
                   Next
                 </button>
               )}
@@ -221,15 +182,15 @@ const CustomBackgroundSettings = ({ onUpload, onDelete, isUploading }: CustomBac
                   className="hidden"
                 />
                 <div
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors"
+                  className="flex items-center gap-1 px-3 py-1.5 text-sm rounded-lg transition-colors"
                   style={{
                     backgroundColor: 'var(--color-accent)',
                     color: 'var(--color-accent-text)',
                     opacity: isUploading ? 0.5 : 1,
                   }}
                 >
-                  <Upload className="h-4 w-4" />
-                  {isUploading ? 'Uploading...' : 'Upload Images'}
+                  <Upload className="h-3.5 w-3.5" />
+                  {isUploading ? 'Uploading...' : 'Upload'}
                 </div>
               </label>
             </div>
@@ -237,7 +198,7 @@ const CustomBackgroundSettings = ({ onUpload, onDelete, isUploading }: CustomBac
 
           {/* Image Grid */}
           {uploadedImages.length > 0 && (
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 lg:grid-cols-4 gap-2">
               {uploadedImages.map((image) => (
                 <div
                   key={image.id}
@@ -250,21 +211,21 @@ const CustomBackgroundSettings = ({ onUpload, onDelete, isUploading }: CustomBac
                   <img
                     src={`${API_URL}${image.url}`}
                     alt={image.original_filename}
-                    className="w-full h-32 object-cover"
+                    className="w-full h-24 object-cover"
                   />
                   <button
                     onClick={() => onDelete(image.id)}
-                    className="absolute top-2 right-2 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="absolute top-1 right-1 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                     style={{
                       backgroundColor: 'rgba(0, 0, 0, 0.7)',
                       color: 'white',
                     }}
                     title="Delete image"
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Trash2 className="h-3.5 w-3.5" />
                   </button>
                   <div
-                    className="absolute bottom-0 left-0 right-0 p-2 text-xs truncate"
+                    className="absolute bottom-0 left-0 right-0 px-1.5 py-1 text-xs truncate"
                     style={{
                       backgroundColor: 'rgba(0, 0, 0, 0.7)',
                       color: 'white',
@@ -279,14 +240,14 @@ const CustomBackgroundSettings = ({ onUpload, onDelete, isUploading }: CustomBac
 
           {uploadedImages.length === 0 && (
             <div
-              className="p-6 text-center rounded-lg"
+              className="p-4 text-center rounded-lg"
               style={{
                 backgroundColor: 'var(--color-bg-secondary)',
                 border: '1px dashed var(--color-border-primary)',
               }}
             >
               <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-                No images uploaded yet. Upload your own images to use as custom backgrounds!
+                No images uploaded yet. Upload images to use as custom backgrounds!
               </p>
             </div>
           )}
@@ -294,15 +255,14 @@ const CustomBackgroundSettings = ({ onUpload, onDelete, isUploading }: CustomBac
 
         {/* Info Box */}
         <div
-          className="p-4 rounded-lg"
+          className="p-3 rounded-lg"
           style={{
             backgroundColor: `${getComputedStyle(document.documentElement).getPropertyValue('--color-info')}15`,
             border: '1px solid var(--color-info)',
           }}
         >
-          <p className="text-sm" style={{ color: 'var(--color-info)' }}>
-            <strong>Tips:</strong> Upload images up to 10MB each. Backgrounds appear at 20% opacity so they don't interfere with readability.
-            Multiple images will automatically rotate at your chosen interval, or you can manually cycle through them.
+          <p className="text-xs" style={{ color: 'var(--color-info)' }}>
+            <strong>Tip:</strong> Upload images up to 10MB. Backgrounds appear at 20% opacity and rotate automatically.
           </p>
         </div>
       </div>

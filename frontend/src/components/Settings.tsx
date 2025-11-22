@@ -537,15 +537,15 @@ const Settings = () => {
 
   return (
     <div className="max-w-5xl mx-auto page-fade-in" style={{ position: 'relative', zIndex: 1 }}>
-      <div className="rounded-lg shadow-lg p-6" style={{ backgroundColor: 'var(--color-bg-primary)' }}>
-        <div className="flex items-center gap-3 mb-6">
+      <div className="rounded-lg shadow-lg p-5" style={{ backgroundColor: 'var(--color-bg-primary)' }}>
+        <div className="flex items-center gap-3 mb-5">
           <SettingsIcon className="h-8 w-8" style={{ color: 'var(--color-text-secondary)' }} />
           <h1 className="text-3xl font-bold" style={{ color: 'var(--color-text-primary)' }}>Settings</h1>
         </div>
 
         {message && (
           <div 
-            className="mb-6 p-4 rounded-lg"
+            className="mb-5 p-3 rounded-lg"
             style={{
               backgroundColor: message.type === 'success' 
                 ? `${getComputedStyle(document.documentElement).getPropertyValue('--color-success')}20`
@@ -558,16 +558,16 @@ const Settings = () => {
         )}
 
         {/* General Settings Section */}
-        <section className="mb-8">
-          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2" style={{ color: 'var(--color-text-primary)' }}>
+        <section className="mb-6">
+          <h2 className="text-xl font-semibold mb-3 flex items-center gap-2" style={{ color: 'var(--color-text-primary)' }}>
             <SettingsIcon className="h-5 w-5" />
             General
           </h2>
-          <div className="rounded-lg p-6" style={{ backgroundColor: 'var(--color-bg-primary)' }}>
+          <div className="rounded-lg p-5" style={{ backgroundColor: 'var(--color-bg-primary)' }}>
             {/* Display Toggles - Compact Grid */}
-            <div className="mb-4 p-4 rounded-lg" style={{ backgroundColor: 'var(--color-bg-secondary)', border: '1px solid var(--color-border-primary)' }}>
-              <h3 className="font-medium mb-3" style={{ color: 'var(--color-text-primary)' }}>Display Options</h3>
-              <div className="grid grid-cols-2 gap-3">
+            <div className="mb-3 p-3 rounded-lg" style={{ backgroundColor: 'var(--color-bg-secondary)', border: '1px solid var(--color-border-primary)' }}>
+              <h3 className="font-medium mb-2 text-sm" style={{ color: 'var(--color-text-primary)' }}>Display Options</h3>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                 {/* Show Daily Goals */}
                 <div className="flex items-center justify-between">
                   <span className="text-sm" style={{ color: 'var(--color-text-primary)' }}>Daily Goals</span>
@@ -659,18 +659,18 @@ const Settings = () => {
             </div>
 
             {/* Customization - Compact */}
-            <div className="mb-4 p-4 rounded-lg" style={{ backgroundColor: 'var(--color-bg-secondary)', border: '1px solid var(--color-border-primary)' }}>
-              <h3 className="font-medium mb-3" style={{ color: 'var(--color-text-primary)' }}>Customization</h3>
-              <div className="space-y-3">
+            <div className="mb-3 p-3 rounded-lg" style={{ backgroundColor: 'var(--color-bg-secondary)', border: '1px solid var(--color-border-primary)' }}>
+              <h3 className="font-medium mb-2 text-sm" style={{ color: 'var(--color-text-primary)' }}>Customization</h3>
+              <div className="space-y-2">
                 {/* Sprint Name */}
-                <div className="flex items-center gap-3">
-                  <label className="text-sm w-32 flex-shrink-0" style={{ color: 'var(--color-text-primary)' }}>Sprint Name</label>
+                <div className="flex items-center gap-2">
+                  <label className="text-sm w-24 flex-shrink-0" style={{ color: 'var(--color-text-primary)' }}>Sprint Name</label>
                   <input
                     type="text"
                     value={sprintName}
                     onChange={(e) => handleSprintNameChange(e.target.value)}
                     placeholder="Sprint"
-                    className="flex-1 px-3 py-1.5 rounded-md border text-sm"
+                    className="flex-1 px-2 py-1 rounded-md border text-sm"
                     style={{
                       backgroundColor: 'var(--color-bg-primary)',
                       borderColor: 'var(--color-border-primary)',
@@ -681,13 +681,13 @@ const Settings = () => {
                 </div>
 
                 {/* Daily Goal End Time */}
-                <div className="flex items-center gap-3">
-                  <label className="text-sm w-32 flex-shrink-0" style={{ color: 'var(--color-text-primary)' }}>Daily Goal End</label>
+                <div className="flex items-center gap-2">
+                  <label className="text-sm w-24 flex-shrink-0" style={{ color: 'var(--color-text-primary)' }}>Goal End</label>
                   <input
                     type="time"
                     value={dailyGoalEndTime}
                     onChange={(e) => handleDailyGoalEndTimeChange(e.target.value)}
-                    className="px-3 py-1.5 rounded-md border text-sm"
+                    className="px-2 py-1 rounded-md border text-sm"
                     style={{
                       backgroundColor: 'var(--color-bg-primary)',
                       borderColor: 'var(--color-border-primary)',
@@ -700,73 +700,64 @@ const Settings = () => {
             </div>
 
             {/* Emoji Library Selection */}
-            <div className="mb-4 p-4 rounded-lg" style={{ backgroundColor: 'var(--color-bg-secondary)', border: '1px solid var(--color-border-primary)' }}>
-              <div className="flex flex-col gap-4">
-                <div>
-                  <h3 className="font-medium mb-1" style={{ color: 'var(--color-text-primary)' }}>
-                    Emoji Picker Library
-                  </h3>
-                  <p className="text-sm mb-3" style={{ color: 'var(--color-text-secondary)' }}>
-                    Choose which emoji picker library to use throughout the app.
-                  </p>
-                  <div className="flex gap-3">
-                    <button
-                      onClick={() => setEmojiLibrary('emoji-picker-react')}
-                      className={`px-4 py-2 rounded-lg transition-colors ${
-                        emojiLibrary === 'emoji-picker-react' ? 'font-medium' : ''
-                      }`}
-                      style={{
-                        backgroundColor: emojiLibrary === 'emoji-picker-react' ? 'var(--color-accent)' : 'var(--color-bg-primary)',
-                        color: emojiLibrary === 'emoji-picker-react' ? 'var(--color-accent-text)' : 'var(--color-text-primary)',
-                        border: '1px solid var(--color-border-primary)',
-                      }}
-                    >
-                      Emoji Picker React
-                    </button>
-                    <button
-                      onClick={() => setEmojiLibrary('emoji-mart')}
-                      className={`px-4 py-2 rounded-lg transition-colors ${
-                        emojiLibrary === 'emoji-mart' ? 'font-medium' : ''
-                      }`}
-                      style={{
-                        backgroundColor: emojiLibrary === 'emoji-mart' ? 'var(--color-accent)' : 'var(--color-bg-primary)',
-                        color: emojiLibrary === 'emoji-mart' ? 'var(--color-accent-text)' : 'var(--color-text-primary)',
-                        border: '1px solid var(--color-border-primary)',
-                      }}
-                    >
-                      Emoji Mart
-                    </button>
-                  </div>
-                </div>
-                <div>
-                  <button
-                    onClick={() => setShowEmojiManager(true)}
-                    className="px-4 py-2 rounded-lg font-medium transition-colors"
-                    style={{
-                      backgroundColor: 'var(--color-accent)',
-                      color: 'var(--color-accent-text)',
-                    }}
-                  >
-                    Manage Custom Emojis
-                  </button>
-                </div>
+            <div className="mb-3 p-3 rounded-lg" style={{ backgroundColor: 'var(--color-bg-secondary)', border: '1px solid var(--color-border-primary)' }}>
+              <h3 className="font-medium mb-2 text-sm" style={{ color: 'var(--color-text-primary)' }}>
+                Emoji Picker
+              </h3>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  onClick={() => setEmojiLibrary('emoji-picker-react')}
+                  className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                    emojiLibrary === 'emoji-picker-react' ? 'font-medium' : ''
+                  }`}
+                  style={{
+                    backgroundColor: emojiLibrary === 'emoji-picker-react' ? 'var(--color-accent)' : 'var(--color-bg-primary)',
+                    color: emojiLibrary === 'emoji-picker-react' ? 'var(--color-accent-text)' : 'var(--color-text-primary)',
+                    border: '1px solid var(--color-border-primary)',
+                  }}
+                >
+                  Emoji Picker React
+                </button>
+                <button
+                  onClick={() => setEmojiLibrary('emoji-mart')}
+                  className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                    emojiLibrary === 'emoji-mart' ? 'font-medium' : ''
+                  }`}
+                  style={{
+                    backgroundColor: emojiLibrary === 'emoji-mart' ? 'var(--color-accent)' : 'var(--color-bg-primary)',
+                    color: emojiLibrary === 'emoji-mart' ? 'var(--color-accent-text)' : 'var(--color-text-primary)',
+                    border: '1px solid var(--color-border-primary)',
+                  }}
+                >
+                  Emoji Mart
+                </button>
+                <button
+                  onClick={() => setShowEmojiManager(true)}
+                  className="px-3 py-1.5 text-sm rounded-lg font-medium transition-colors"
+                  style={{
+                    backgroundColor: 'var(--color-accent)',
+                    color: 'var(--color-accent-text)',
+                  }}
+                >
+                  Manage Custom
+                </button>
               </div>
             </div>
           </div>
         </section>
 
         {/* Theme Selection Section */}
-        <section className="mb-8">
-          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2" style={{ color: 'var(--color-text-primary)' }}>
+        <section className="mb-6">
+          <h2 className="text-xl font-semibold mb-3 flex items-center gap-2" style={{ color: 'var(--color-text-primary)' }}>
             <Palette className="h-5 w-5" />
             Theme
           </h2>
-          <div className="p-6 rounded-lg" style={{ backgroundColor: 'var(--color-bg-primary)' }}>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 max-h-[600px] overflow-y-auto pr-2">
+          <div className="p-5 rounded-lg" style={{ backgroundColor: 'var(--color-bg-primary)' }}>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 max-h-[500px] overflow-y-auto pr-2 pt-2 pb-2">
               {/* Create Custom Theme Button */}
               <button
                 onClick={handleOpenThemeCreator}
-                className="group relative p-4 rounded-xl border-2 border-dashed transition-all duration-300 hover:scale-110 hover:-translate-y-1 hover:shadow-xl flex flex-col items-center justify-center min-h-[140px]"
+                className="group relative p-3 rounded-xl border-2 border-dashed transition-all duration-300 hover:scale-110 hover:-translate-y-1 hover:shadow-xl flex flex-col items-center justify-center min-h-[120px]"
                 style={{
                   backgroundColor: 'var(--color-bg-primary)',
                   borderColor: 'var(--color-border-secondary)',
@@ -793,7 +784,7 @@ const Settings = () => {
                   <div key={theme.id} className="relative">
                     <button
                       onClick={() => setTheme(theme.id)}
-                      className={`w-full group relative p-4 rounded-xl border-2 transition-all duration-300 hover:scale-110 hover:-translate-y-1 ${
+                      className={`w-full group relative p-3 rounded-xl border-2 transition-all duration-300 hover:scale-110 hover:-translate-y-1 ${
                         currentTheme === theme.id
                           ? 'shadow-2xl ring-4'
                           : 'hover:shadow-xl'
@@ -808,32 +799,32 @@ const Settings = () => {
                       title={theme.description}
                     >
                       {/* Theme preview colors */}
-                      <div className="flex flex-col gap-2 mb-3">
+                      <div className="flex flex-col gap-1.5 mb-2">
                         <div className="flex gap-1">
                           <div 
-                            className="h-5 w-5 rounded-full shadow-md transform group-hover:scale-110 transition-transform"
+                            className="h-4 w-4 rounded-full shadow-md transform group-hover:scale-110 transition-transform"
                             style={{ 
                               backgroundColor: theme.colors.accent,
-                              boxShadow: `0 0 8px ${theme.colors.accent}80`
+                              boxShadow: `0 0 6px ${theme.colors.accent}80`
                             }}
                           />
                           <div 
-                            className="h-5 w-5 rounded-full shadow-md transform group-hover:scale-110 transition-transform"
+                            className="h-4 w-4 rounded-full shadow-md transform group-hover:scale-110 transition-transform"
                             style={{ 
                               backgroundColor: theme.colors.success,
-                              boxShadow: `0 0 8px ${theme.colors.success}80`
+                              boxShadow: `0 0 6px ${theme.colors.success}80`
                             }}
                           />
                           <div 
-                            className="h-5 w-5 rounded-full shadow-md transform group-hover:scale-110 transition-transform"
+                            className="h-4 w-4 rounded-full shadow-md transform group-hover:scale-110 transition-transform"
                             style={{ 
                               backgroundColor: theme.colors.warning,
-                              boxShadow: `0 0 8px ${theme.colors.warning}80`
+                              boxShadow: `0 0 6px ${theme.colors.warning}80`
                             }}
                           />
                         </div>
                         <div 
-                          className="h-10 rounded-lg shadow-inner"
+                          className="h-8 rounded-lg shadow-inner"
                           style={{ 
                             backgroundColor: theme.colors.bgSecondary,
                             border: `2px solid ${theme.colors.borderPrimary}`,
@@ -931,26 +922,26 @@ const Settings = () => {
         />
 
         {/* Label Management Section */}
-        <section className="mb-8">
-          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2" style={{ color: 'var(--color-text-primary)' }}>
+        <section className="mb-6">
+          <h2 className="text-xl font-semibold mb-3 flex items-center gap-2" style={{ color: 'var(--color-text-primary)' }}>
             <Tag className="h-5 w-5" />
-            Label Management
+            Labels
             {labels.length > 0 && (
               <span className="text-sm font-normal" style={{ color: 'var(--color-text-secondary)' }}>
-                ({labels.length} total)
+                ({labels.length})
               </span>
             )}
           </h2>
-          <div className="rounded-lg p-6" style={{ backgroundColor: 'var(--color-bg-primary)' }}>
+          <div className="rounded-lg p-5" style={{ backgroundColor: 'var(--color-bg-primary)' }}>
             {/* Transparent Labels Toggle */}
-            <div className="mb-6 p-4 rounded-lg" style={{ backgroundColor: 'var(--color-bg-secondary)', border: '1px solid var(--color-border-primary)' }}>
+            <div className="mb-3 p-3 rounded-lg" style={{ backgroundColor: 'var(--color-bg-secondary)', border: '1px solid var(--color-border-primary)' }}>
               <div className="flex items-center justify-between">
                 <div className="flex-1">
-                  <h3 className="font-medium mb-1" style={{ color: 'var(--color-text-primary)' }}>
-                    Transparent Label Backgrounds
+                  <h3 className="font-medium text-sm" style={{ color: 'var(--color-text-primary)' }}>
+                    Transparent Backgrounds
                   </h3>
-                  <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-                    Show labels with transparent backgrounds instead of colored backgrounds. Text will remain colored.
+                  <p className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>
+                    Show labels with transparent backgrounds (text remains colored)
                   </p>
                 </div>
                 <button
@@ -973,23 +964,23 @@ const Settings = () => {
               </div>
             </div>
 
-            <p className="mb-4" style={{ color: 'var(--color-text-secondary)' }}>
-              Manage your labels. Deleting a label will remove it from all notes and entries.
+            <p className="mb-3 text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+              Manage your labels. Deleting removes from all notes and entries.
             </p>
 
             {labels.length === 0 ? (
-              <p className="text-center py-8" style={{ color: 'var(--color-text-secondary)' }}>No labels created yet</p>
+              <p className="text-center py-6 text-sm" style={{ color: 'var(--color-text-secondary)' }}>No labels created yet</p>
             ) : (
               <>
                 {/* Search and Filter Controls */}
-                <div className="mb-4 flex flex-col sm:flex-row gap-3">
+                <div className="mb-3 flex flex-col sm:flex-row gap-2">
                   <div className="flex-1">
                     <input
                       type="text"
                       placeholder="Search labels..."
                       value={labelSearchQuery}
                       onChange={(e) => setLabelSearchQuery(e.target.value)}
-                      className="w-full px-4 py-2 rounded-lg focus:outline-none focus:ring-2"
+                      className="w-full px-3 py-1.5 text-sm rounded-lg focus:outline-none focus:ring-2"
                       style={{
                         backgroundColor: 'var(--color-bg-primary)',
                         color: 'var(--color-text-primary)',
@@ -997,11 +988,11 @@ const Settings = () => {
                       }}
                     />
                   </div>
-                  <div className="sm:w-48">
+                  <div className="sm:w-40">
                     <select
                       value={labelSortBy}
                       onChange={(e) => setLabelSortBy(e.target.value as 'name' | 'usage')}
-                      className="w-full px-4 py-2 rounded-lg focus:outline-none focus:ring-2"
+                      className="w-full px-3 py-1.5 text-sm rounded-lg focus:outline-none focus:ring-2"
                       style={{
                         backgroundColor: 'var(--color-bg-primary)',
                         color: 'var(--color-text-primary)',
@@ -1016,22 +1007,22 @@ const Settings = () => {
 
                   {/* Results Count */}
                   {labelSearchQuery && (
-                    <p className="text-sm mb-3" style={{ color: 'var(--color-text-secondary)' }}>
+                    <p className="text-xs mb-2" style={{ color: 'var(--color-text-secondary)' }}>
                       Showing {filteredLabels.length} of {labels.length} labels
                     </p>
                   )}
 
                   {/* Labels Grid */}
                   {filteredLabels.length === 0 ? (
-                    <p className="text-center py-8" style={{ color: 'var(--color-text-secondary)' }}>No labels match your search</p>
+                    <p className="text-center py-6 text-sm" style={{ color: 'var(--color-text-secondary)' }}>No labels match your search</p>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 max-h-96 overflow-y-auto pr-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-2 max-h-80 overflow-y-auto pr-2">
                     {filteredLabels.map((label) => {
                   const isEmoji = isEmojiOnly(label.name);
                   return (
                       <div
                         key={label.id}
-                        className="flex items-center justify-between p-3 rounded-lg transition-all duration-200"
+                        className="flex items-center justify-between p-2 rounded-lg transition-all duration-200"
                         style={{
                           backgroundColor: 'var(--color-bg-primary)',
                           border: '1px solid var(--color-border-primary)'
@@ -1043,23 +1034,23 @@ const Settings = () => {
                           e.currentTarget.style.borderColor = 'var(--color-border-primary)';
                         }}
                       >
-                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5 flex-1 min-w-0">
                           {isCustomEmojiUrl(label.name) ? (
                             <img 
                               src={label.name.startsWith('http') ? label.name : `${API_URL}${label.name}`} 
                               alt="emoji" 
                               className="inline-emoji"
-                              style={{ width: '2rem', height: '2rem' }}
+                              style={{ width: '1.5rem', height: '1.5rem' }}
                             />
                           ) : isEmoji ? (
-                            <span className="text-2xl">{label.name}</span>
+                            <span className="text-xl">{label.name}</span>
                           ) : (
                             <>
                               <div
-                                className="w-4 h-4 rounded-full flex-shrink-0"
+                                className="w-3 h-3 rounded-full flex-shrink-0"
                                 style={{ backgroundColor: label.color }}
                               />
-                              <span className="font-medium truncate" style={{ color: 'var(--color-text-primary)' }} title={label.name}>
+                              <span className="text-sm font-medium truncate" style={{ color: 'var(--color-text-primary)' }} title={label.name}>
                                 {label.name}
                               </span>
                             </>
@@ -1068,7 +1059,7 @@ const Settings = () => {
                         <button
                           onClick={() => handleDeleteLabel(label.id, label.name)}
                           disabled={deletingLabelId === label.id}
-                          className="p-2 rounded transition-colors disabled:opacity-50 flex-shrink-0"
+                          className="p-1.5 rounded transition-colors disabled:opacity-50 flex-shrink-0"
                           style={{ color: 'var(--color-text-tertiary)' }}
                           onMouseEnter={(e) => {
                             e.currentTarget.style.color = 'var(--color-error)';
@@ -1080,7 +1071,7 @@ const Settings = () => {
                           }}
                           title={`Delete label "${label.name}"`}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-3.5 w-3.5" />
                         </button>
                       </div>
                   );
@@ -1093,60 +1084,56 @@ const Settings = () => {
         </section>
 
         {/* Backup & Restore Section */}
-        <section className="mb-8">
-          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2" style={{ color: 'var(--color-text-primary)' }}>
+        <section className="mb-6">
+          <h2 className="text-xl font-semibold mb-3 flex items-center gap-2" style={{ color: 'var(--color-text-primary)' }}>
             <Download className="h-5 w-5" />
             Backup & Restore
           </h2>
           
           {/* Info Banner */}
           <div 
-            className="mb-4 p-4 rounded-lg"
+            className="mb-3 p-3 rounded-lg"
             style={{
               backgroundColor: 'var(--color-bg-primary)',
               border: '1px solid var(--color-border-primary)'
             }}
           >
-            <h3 className="text-sm font-semibold mb-2" style={{ color: 'var(--color-text-primary)' }}>📦 Complete Machine Migration</h3>
-            <p className="text-sm mb-2" style={{ color: 'var(--color-text-secondary)' }}>
-              For a full machine-to-machine restore, you need <strong>both files</strong>:
+            <h3 className="text-sm font-semibold mb-1" style={{ color: 'var(--color-text-primary)' }}>📦 Complete Migration</h3>
+            <p className="text-xs mb-1" style={{ color: 'var(--color-text-secondary)' }}>
+              For full restore: <strong>JSON backup</strong> (notes/labels) + <strong>ZIP</strong> (images/attachments)
             </p>
-            <ul className="text-sm space-y-1 ml-4 list-disc" style={{ color: 'var(--color-text-secondary)' }}>
-              <li><strong>JSON backup</strong> - Contains all notes, entries, labels, timestamps</li>
-              <li><strong>ZIP files</strong> - Contains all uploaded images and attachments</li>
-            </ul>
-            <p className="text-xs mt-2" style={{ color: 'var(--color-text-tertiary)' }}>
-              💡 Use "Full Restore" below to restore both in one click, or restore individually using the buttons.
+            <p className="text-xs" style={{ color: 'var(--color-text-tertiary)' }}>
+              💡 Use "Full Restore" or restore individually
             </p>
           </div>
 
           {/* Full Restore Section */}
           <div 
-            className="mb-4 rounded-lg p-6"
+            className="mb-3 rounded-lg p-4"
             style={{
               backgroundColor: 'var(--color-bg-primary)',
               border: '2px solid var(--color-border-secondary)'
             }}
           >
-            <div className="flex items-center gap-3 mb-3">
+            <div className="flex items-center gap-2 mb-2">
               <div 
-                className="p-2 rounded-lg"
+                className="p-1.5 rounded-lg"
                 style={{ backgroundColor: `${getComputedStyle(document.documentElement).getPropertyValue('--color-accent')}20` }}
               >
-                <Upload className="h-5 w-5" style={{ color: 'var(--color-accent)' }} />
+                <Upload className="h-4 w-4" style={{ color: 'var(--color-accent)' }} />
               </div>
-              <h3 className="text-lg font-semibold" style={{ color: 'var(--color-text-primary)' }}>Full Restore (Recommended)</h3>
+              <h3 className="font-semibold" style={{ color: 'var(--color-text-primary)' }}>Full Restore (Recommended)</h3>
             </div>
-            <p className="text-sm mb-4" style={{ color: 'var(--color-text-secondary)' }}>
-              One-click restore: Upload both files to completely restore your workspace
+            <p className="text-xs mb-3" style={{ color: 'var(--color-text-secondary)' }}>
+              Upload both files to restore workspace
             </p>
             
-            <div className="space-y-3 mb-4">
+            <div className="space-y-2 mb-3">
               {/* JSON File Selector */}
               <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>1. JSON Backup File:</label>
+                <label className="block text-xs font-medium mb-1" style={{ color: 'var(--color-text-secondary)' }}>1. JSON Backup:</label>
                 <label 
-                  className="flex items-center gap-2 px-4 py-2 border-2 rounded-lg transition-colors cursor-pointer"
+                  className="flex items-center gap-2 px-3 py-1.5 border-2 rounded-lg transition-colors cursor-pointer"
                   style={{
                     backgroundColor: 'var(--color-bg-primary)',
                     borderColor: 'var(--color-border-primary)'
@@ -1158,9 +1145,9 @@ const Settings = () => {
                     e.currentTarget.style.borderColor = 'var(--color-border-primary)';
                   }}
                 >
-                  <Download className="h-4 w-4" style={{ color: 'var(--color-text-secondary)' }} />
-                  <span className="text-sm" style={{ color: 'var(--color-text-primary)' }}>
-                    {jsonFile ? jsonFile.name : 'Choose JSON file...'}
+                  <Download className="h-3.5 w-3.5" style={{ color: 'var(--color-text-secondary)' }} />
+                  <span className="text-xs truncate" style={{ color: 'var(--color-text-primary)' }}>
+                    {jsonFile ? jsonFile.name : 'Choose JSON...'}
                   </span>
                   <input
                     type="file"
@@ -1174,9 +1161,9 @@ const Settings = () => {
               
               {/* ZIP File Selector */}
               <div>
-                <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>2. Files Archive (ZIP):</label>
+                <label className="block text-xs font-medium mb-1" style={{ color: 'var(--color-text-secondary)' }}>2. Files (ZIP):</label>
                 <label 
-                  className="flex items-center gap-2 px-4 py-2 border-2 rounded-lg transition-colors cursor-pointer"
+                  className="flex items-center gap-2 px-3 py-1.5 border-2 rounded-lg transition-colors cursor-pointer"
                   style={{
                     backgroundColor: 'var(--color-bg-primary)',
                     borderColor: 'var(--color-border-primary)'
@@ -1188,9 +1175,9 @@ const Settings = () => {
                     e.currentTarget.style.borderColor = 'var(--color-border-primary)';
                   }}
                 >
-                  <Archive className="h-4 w-4" style={{ color: 'var(--color-text-secondary)' }} />
-                  <span className="text-sm" style={{ color: 'var(--color-text-primary)' }}>
-                    {zipFile ? zipFile.name : 'Choose ZIP file...'}
+                  <Archive className="h-3.5 w-3.5" style={{ color: 'var(--color-text-secondary)' }} />
+                  <span className="text-xs truncate" style={{ color: 'var(--color-text-primary)' }}>
+                    {zipFile ? zipFile.name : 'Choose ZIP...'}
                   </span>
                   <input
                     type="file"
@@ -1206,7 +1193,7 @@ const Settings = () => {
             <button
               onClick={startFullRestore}
               disabled={isFullRestoring || !jsonFile || !zipFile}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg transition-colors font-medium disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors font-medium disabled:cursor-not-allowed"
               style={{
                 backgroundColor: 'var(--color-accent)',
                 color: 'var(--color-accent-text)',
@@ -1229,10 +1216,10 @@ const Settings = () => {
           </div>
 
           {/* Individual Actions Grid */}
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid md:grid-cols-2 gap-3">
             {/* Export Card */}
             <div 
-              className="rounded-lg p-6 transition-all"
+              className="rounded-lg p-4 transition-all"
               style={{
                 backgroundColor: 'var(--color-bg-primary)',
                 border: '1px solid var(--color-border-primary)'
@@ -1244,26 +1231,26 @@ const Settings = () => {
                 e.currentTarget.style.borderColor = 'var(--color-border-primary)';
               }}
             >
-              <div className="flex items-center gap-3 mb-3">
+              <div className="flex items-center gap-2 mb-2">
                 <div 
-                  className="p-2 rounded-lg"
+                  className="p-1.5 rounded-lg"
                   style={{ backgroundColor: `${getComputedStyle(document.documentElement).getPropertyValue('--color-accent')}20` }}
                 >
-                  <Download className="h-5 w-5" style={{ color: 'var(--color-accent)' }} />
+                  <Download className="h-4 w-4" style={{ color: 'var(--color-accent)' }} />
                 </div>
-                <h3 className="text-lg font-semibold" style={{ color: 'var(--color-text-primary)' }}>Export Data</h3>
+                <h3 className="font-semibold" style={{ color: 'var(--color-text-primary)' }}>Export Data</h3>
               </div>
-              <p className="text-sm mb-4" style={{ color: 'var(--color-text-secondary)' }}>
-                Download your notes, entries, and labels
+              <p className="text-xs mb-3" style={{ color: 'var(--color-text-secondary)' }}>
+                Download notes, entries, and labels
               </p>
               
               {/* Format Selector */}
-              <div className="mb-4">
-                <label className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>Format:</label>
+              <div className="mb-3">
+                <label className="block text-xs font-medium mb-1" style={{ color: 'var(--color-text-secondary)' }}>Format:</label>
                 <div className="flex gap-2">
                   <button
                     onClick={() => setExportFormat('json')}
-                    className="flex-1 px-3 py-2 text-sm rounded-lg border transition-colors"
+                    className="flex-1 px-2 py-1.5 text-xs rounded-lg border transition-colors"
                     style={{
                       backgroundColor: exportFormat === 'json' ? 'var(--color-accent)' : 'var(--color-bg-primary)',
                       color: exportFormat === 'json' ? 'var(--color-accent-text)' : 'var(--color-text-primary)',
@@ -1284,7 +1271,7 @@ const Settings = () => {
                   </button>
                   <button
                     onClick={() => setExportFormat('markdown')}
-                    className="flex-1 px-3 py-2 text-sm rounded-lg border transition-colors"
+                    className="flex-1 px-2 py-1.5 text-xs rounded-lg border transition-colors"
                     style={{
                       backgroundColor: exportFormat === 'markdown' ? 'var(--color-accent)' : 'var(--color-bg-primary)',
                       color: exportFormat === 'markdown' ? 'var(--color-accent-text)' : 'var(--color-text-primary)',
@@ -1304,17 +1291,17 @@ const Settings = () => {
                     Markdown
                   </button>
                 </div>
-                <p className="text-xs mt-2" style={{ color: 'var(--color-text-tertiary)' }}>
+                <p className="text-xs mt-1" style={{ color: 'var(--color-text-tertiary)' }}>
                   {exportFormat === 'json' 
-                    ? 'Full backup for restore (v4.0)' 
-                    : 'Formatted for LLM analysis'}
+                    ? 'Full backup for restore' 
+                    : 'For LLM analysis'}
                 </p>
               </div>
               
               <button
                 onClick={handleExport}
                 disabled={isExporting}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg transition-colors font-medium disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors font-medium disabled:cursor-not-allowed"
                 style={{
                   backgroundColor: 'var(--color-accent)',
                   color: 'var(--color-accent-text)',
@@ -1334,7 +1321,7 @@ const Settings = () => {
 
             {/* Restore Card */}
             <div 
-              className="rounded-lg p-6 transition-all"
+              className="rounded-lg p-4 transition-all"
               style={{
                 backgroundColor: 'var(--color-bg-primary)',
                 border: '1px solid var(--color-border-primary)'
@@ -1346,33 +1333,33 @@ const Settings = () => {
                 e.currentTarget.style.borderColor = 'var(--color-border-primary)';
               }}
             >
-              <div className="flex items-center gap-3 mb-3">
+              <div className="flex items-center gap-2 mb-2">
                 <div 
-                  className="p-2 rounded-lg"
+                  className="p-1.5 rounded-lg"
                   style={{ backgroundColor: `${getComputedStyle(document.documentElement).getPropertyValue('--color-accent')}20` }}
                 >
-                  <Upload className="h-5 w-5" style={{ color: 'var(--color-accent)' }} />
+                  <Upload className="h-4 w-4" style={{ color: 'var(--color-accent)' }} />
                 </div>
-                <h3 className="text-lg font-semibold" style={{ color: 'var(--color-text-primary)' }}>Restore Data Only</h3>
+                <h3 className="font-semibold" style={{ color: 'var(--color-text-primary)' }}>Restore Data Only</h3>
               </div>
-              <p className="text-sm mb-4" style={{ color: 'var(--color-text-secondary)' }}>
+              <p className="text-xs mb-3" style={{ color: 'var(--color-text-secondary)' }}>
                 Import JSON backup (without files)
               </p>
               
               <div 
-                className="mb-4 p-3 rounded-lg"
+                className="mb-3 p-2 rounded-lg"
                 style={{
                   backgroundColor: `${getComputedStyle(document.documentElement).getPropertyValue('--color-info')}15`,
                   border: '1px solid var(--color-info)'
                 }}
               >
                 <p className="text-xs" style={{ color: 'var(--color-info)' }}>
-                  <strong>✓ Compatible:</strong> v1.0-v4.0 backups supported
+                  <strong>✓</strong> v1.0-v4.0 backups
                 </p>
               </div>
               
               <label 
-                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg transition-colors font-medium cursor-pointer"
+                className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors font-medium cursor-pointer"
                 style={{
                   backgroundColor: 'var(--color-accent)',
                   color: 'var(--color-accent-text)',
@@ -1403,18 +1390,18 @@ const Settings = () => {
 
           {/* Files Export & Restore */}
           <div 
-            className="mt-4 rounded-lg p-4"
+            className="mt-3 rounded-lg p-3"
             style={{
               backgroundColor: 'var(--color-bg-primary)',
               border: '1px solid var(--color-border-primary)'
             }}
           >
-            <h3 className="text-sm font-semibold mb-3" style={{ color: 'var(--color-text-primary)' }}>Attachments</h3>
-            <div className="flex flex-wrap gap-3">
+            <h3 className="text-sm font-semibold mb-2" style={{ color: 'var(--color-text-primary)' }}>Attachments</h3>
+            <div className="flex flex-wrap gap-2">
               <button
                 onClick={handleDownloadFiles}
                 disabled={isDownloadingFiles}
-                className="flex items-center gap-2 px-4 py-2 text-sm rounded-lg transition-colors font-medium disabled:cursor-not-allowed"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg transition-colors font-medium disabled:cursor-not-allowed"
                 style={{
                   backgroundColor: 'var(--color-accent)',
                   color: 'var(--color-accent-text)',
@@ -1427,12 +1414,12 @@ const Settings = () => {
                   if (!isDownloadingFiles) e.currentTarget.style.opacity = '1';
                 }}
               >
-                <Archive className="h-4 w-4" />
-                {isDownloadingFiles ? 'Downloading...' : 'Export Files (ZIP)'}
+                <Archive className="h-3.5 w-3.5" />
+                {isDownloadingFiles ? 'Downloading...' : 'Export ZIP'}
               </button>
               
               <label 
-                className="flex items-center gap-2 px-4 py-2 text-sm rounded-lg transition-colors font-medium cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg transition-colors font-medium cursor-pointer"
                 style={{
                   backgroundColor: 'var(--color-accent)',
                   color: 'var(--color-accent-text)',
@@ -1446,8 +1433,8 @@ const Settings = () => {
                   if (!isRestoringFiles) e.currentTarget.style.opacity = '1';
                 }}
               >
-                <Upload className="h-4 w-4" />
-                {isRestoringFiles ? 'Restoring...' : 'Restore Files (ZIP)'}
+                <Upload className="h-3.5 w-3.5" />
+                {isRestoringFiles ? 'Restoring...' : 'Restore ZIP'}
                 <input
                   type="file"
                   accept=".zip"
@@ -1457,29 +1444,29 @@ const Settings = () => {
                 />
               </label>
             </div>
-            <p className="text-xs mt-3" style={{ color: 'var(--color-text-tertiary)' }}>
-              Export downloads all uploaded files • Restore extracts files from ZIP (skips duplicates)
+            <p className="text-xs mt-2" style={{ color: 'var(--color-text-tertiary)' }}>
+              Export all files • Restore skips duplicates
             </p>
           </div>
         </section>
 
         {/* Timezone Section */}
         <section>
-          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2" style={{ color: 'var(--color-text-primary)' }}>
+          <h2 className="text-xl font-semibold mb-3 flex items-center gap-2" style={{ color: 'var(--color-text-primary)' }}>
             <Clock className="h-5 w-5" />
             Timezone
           </h2>
-          <div className="rounded-lg p-6" style={{ backgroundColor: 'var(--color-bg-primary)' }}>
+          <div className="rounded-lg p-4" style={{ backgroundColor: 'var(--color-bg-primary)' }}>
             {!isEditingTimezone ? (
               // Compact display when not editing
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm mb-1" style={{ color: 'var(--color-text-secondary)' }}>Current timezone:</p>
-                  <p className="text-lg font-medium" style={{ color: 'var(--color-text-primary)' }}>{timezone}</p>
+                  <p className="text-xs mb-1" style={{ color: 'var(--color-text-secondary)' }}>Current timezone:</p>
+                  <p className="font-medium" style={{ color: 'var(--color-text-primary)' }}>{timezone}</p>
                 </div>
                 <button
                   onClick={() => setIsEditingTimezone(true)}
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg transition-colors"
                   style={{ color: 'var(--color-accent)' }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.backgroundColor = `${getComputedStyle(document.documentElement).getPropertyValue('--color-accent')}15`;
@@ -1488,19 +1475,15 @@ const Settings = () => {
                     e.currentTarget.style.backgroundColor = 'transparent';
                   }}
                 >
-                  <Edit2 className="h-4 w-4" />
+                  <Edit2 className="h-3.5 w-3.5" />
                   Change
                 </button>
               </div>
             ) : (
               // Full timezone selector when editing
               <div>
-                <p className="mb-4" style={{ color: 'var(--color-text-secondary)' }}>
-              Set your timezone for accurate time display throughout the app.
-            </p>
-            
             <div className="max-w-md">
-                  <label htmlFor="timezone" className="block text-sm font-medium mb-2" style={{ color: 'var(--color-text-secondary)' }}>
+                  <label htmlFor="timezone" className="block text-xs font-medium mb-1" style={{ color: 'var(--color-text-secondary)' }}>
                 Select Timezone
               </label>
               <select
@@ -1511,7 +1494,7 @@ const Settings = () => {
                   showMessage('success', `Timezone updated to ${e.target.value}`);
                       setIsEditingTimezone(false);
                     }}
-                    className="w-full px-4 py-2 rounded-lg focus:outline-none focus:ring-2"
+                    className="w-full px-3 py-1.5 text-sm rounded-lg focus:outline-none focus:ring-2"
                     style={{
                       backgroundColor: 'var(--color-bg-primary)',
                       color: 'var(--color-text-primary)',
@@ -1560,10 +1543,10 @@ const Settings = () => {
                 </optgroup>
               </select>
                   
-                  <div className="mt-3 flex gap-2">
+                  <div className="mt-2 flex gap-2">
               <button
                       onClick={() => setIsEditingTimezone(false)}
-                      className="px-4 py-2 text-sm rounded-lg transition-colors"
+                      className="px-3 py-1.5 text-xs rounded-lg transition-colors"
                       style={{ color: 'var(--color-text-secondary)' }}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.backgroundColor = 'var(--color-bg-hover)';
